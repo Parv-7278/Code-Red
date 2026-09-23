@@ -33,9 +33,27 @@ const categoryIcons = {
   communication: Radio,
 };
 
+const simulationBaselines = {
+  'station-maitri': {
+    generator_temperature_c: 82.4,
+    battery_level_pct: 74.0,
+    power_consumption_kw: 118.4,
+    wind_speed_kmh: 28.0,
+    generator_vibration_rms: 3.4,
+  },
+  'station-bharati': {
+    generator_temperature_c: 76.8,
+    battery_level_pct: 82.5,
+    power_consumption_kw: 146.2,
+    wind_speed_kmh: 44.0,
+    generator_vibration_rms: 1.9,
+  },
+};
+
 export default function AIPredictionModal() {
   const {
     predictiveData,
+    effectiveStation,
     isPredictionModalOpen,
     closePredictionCenter,
     selectedPrediction,
@@ -43,11 +61,11 @@ export default function AIPredictionModal() {
     activeCategoryFilter,
     setActiveCategoryFilter,
     isSimulating,
+    loading,
     triggerSimulation,
     resetSimulation
   } = usePredictive();
 
-  const [activeHorizon, setActiveHorizon] = useState(24);
   const [showSimSandbox, setShowSimSandbox] = useState(false);
 
   // Simulation Sliders State
@@ -72,6 +90,15 @@ export default function AIPredictionModal() {
     };
   }, [isPredictionModalOpen, closePredictionCenter]);
 
+  useEffect(() => {
+    const baseline = simulationBaselines[effectiveStation] || simulationBaselines['station-maitri'];
+    setSimTemp(baseline.generator_temperature_c);
+    setSimBatt(baseline.battery_level_pct);
+    setSimLoad(baseline.power_consumption_kw);
+    setSimWind(baseline.wind_speed_kmh);
+    setSimVib(baseline.generator_vibration_rms);
+  }, [effectiveStation]);
+
   if (!isPredictionModalOpen || !predictiveData) return null;
 
   const {
@@ -91,7 +118,18 @@ export default function AIPredictionModal() {
     ? predictions
     : (category_summary[activeCategoryFilter] || []);
 
-  const currentItem = selectedPrediction || filteredPredictions[0] || predictions[0];
+  // A simulation replaces every prediction object. Resolve the selection by ID
+  // so the detail pane and graph always use the newly calculated result rather
+  // than retaining the object from the previous simulation run.
+  const refreshedSelection = selectedPrediction
+    ? predictions.find((prediction) => prediction.id === selectedPrediction.id)
+    : null;
+  const selectionMatchesFilter = refreshedSelection && (
+    activeCategoryFilter === 'all' || refreshedSelection.category === activeCategoryFilter
+  );
+  const currentItem = (selectionMatchesFilter ? refreshedSelection : null)
+    || filteredPredictions[0]
+    || predictions[0];
 
   const handleSimulate = (e) => {
     e.preventDefault();
@@ -105,12 +143,13 @@ export default function AIPredictionModal() {
   };
 
   const handleResetSim = () => {
+    const baseline = simulationBaselines[effectiveStation] || simulationBaselines['station-maitri'];
     resetSimulation();
-    setSimTemp(82.4);
-    setSimBatt(74.0);
-    setSimLoad(118.4);
-    setSimWind(28.0);
-    setSimVib(3.4);
+    setSimTemp(baseline.generator_temperature_c);
+    setSimBatt(baseline.battery_level_pct);
+    setSimLoad(baseline.power_consumption_kw);
+    setSimWind(baseline.wind_speed_kmh);
+    setSimVib(baseline.generator_vibration_rms);
   };
 
   // SVG Chart Calculations for Selected Item
@@ -262,10 +301,25 @@ export default function AIPredictionModal() {
                 />
               </div>
 
+              <div className="slider-group">
+                <label>
+                  <span>Bearing Vibration:</span>
+                  <strong className="mono-num text-purple">{simVib.toFixed(1)} mm/s</strong>
+                </label>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="7"
+                  step="0.1"
+                  value={simVib}
+                  onChange={(e) => setSimVib(parseFloat(e.target.value))}
+                />
+              </div>
+
               <div className="slider-submit-wrap">
-                <button type="submit" className="btn-run-sim">
+                <button type="submit" className="btn-run-sim" disabled={loading}>
                   <Sparkles size={14} />
-                  <span>Run AI Prediction</span>
+                  <span>{loading ? 'Recalculating…' : 'Run AI Prediction'}</span>
                 </button>
               </div>
             </form>
@@ -303,17 +357,9 @@ export default function AIPredictionModal() {
           </div>
 
           <div className="ai-kpi-box">
-            <span className="ai-kpi-lbl">FORECAST HORIZON</span>
-            <div className="horizon-pills">
-              {[1, 6, 24, 168].map((h) => (
-                <button
-                  key={h}
-                  className={`horizon-pill ${activeHorizon === h ? 'active' : ''}`}
-                  onClick={() => setActiveHorizon(h)}
-                >
-                  {h === 1 ? '1h' : h === 6 ? '6h' : h === 24 ? '24h' : '7d'}
-                </button>
-              ))}
+            <span className="ai-kpi-lbl">SELECTED MODEL HORIZON</span>
+            <div className="ai-kpi-val-row">
+              <span className="ai-kpi-model text-cyan">{currentItem?.forecast_window || '—'}</span>
             </div>
           </div>
         </div>
@@ -431,7 +477,7 @@ export default function AIPredictionModal() {
                   </div>
 
                   <div className="svg-wrapper" style={{ height: 200, width: '100%', position: 'relative' }}>
-                    <svg width="100%" height="100%" viewBox={`0 0 ${chartW} ${chartH}`} preserveAspectRatio="none">
+                    <svg key={`${currentItem.id}-${predictiveData.timestamp}`} width="100%" height="100%" viewBox={`0 0 ${chartW} ${chartH}`} preserveAspectRatio="none">
                       <defs>
                         <linearGradient id="aiConfidenceGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="#a855f7" stopOpacity={0.35} />

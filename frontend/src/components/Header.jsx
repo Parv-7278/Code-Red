@@ -63,7 +63,6 @@ export default function Header({
     { id: 'logistics', label: 'Logistics', icon: Package },
     { id: 'environment', label: 'Environment', icon: CloudSnow },
     { id: 'research', label: 'Research', icon: FlaskConical },
-    { id: 'alerts', label: 'Alerts', icon: Bell, badge: unreadCount },
     { id: 'telemetry', label: 'Telemetry', icon: Layers },
     { id: 'simulations', label: 'Reports', icon: FileText },
   ];
@@ -220,7 +219,7 @@ export default function Header({
         <div 
           className="user-profile-badge interactive-profile-badge" 
           onClick={onOpenAuth}
-          title="Click to Switch Operator Context or Sign Out"
+          title="Open Operator Identity & Access Workspace"
         >
           <div className="avatar-circle">
             <User size={14} />

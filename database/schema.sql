@@ -31,9 +31,23 @@ CREATE TABLE IF NOT EXISTS telemetry_logs (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Energy telemetry used by the FastAPI forecasting pipeline. The Python
+-- service currently maps Maitri to 1 and Bharati to 2.
+CREATE TABLE IF NOT EXISTS energy_telemetry (
+    id BIGSERIAL PRIMARY KEY,
+    station_id SMALLINT NOT NULL CHECK (station_id IN (1, 2)),
+    total_generation DECIMAL(10, 2) NOT NULL,
+    battery_charge_pct DECIMAL(5, 2) NOT NULL CHECK (battery_charge_pct BETWEEN 0 AND 100),
+    total_consumption DECIMAL(10, 2) NOT NULL,
+    surplus DECIMAL(10, 2) NOT NULL,
+    recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- 3. Station Alerts Table (Prioritized Emergency Events)
 CREATE TABLE IF NOT EXISTS alerts (
     id BIGSERIAL PRIMARY KEY,
+    event_id VARCHAR(100) UNIQUE,
     station_id VARCHAR(50) REFERENCES stations(id),
     priority VARCHAR(20) NOT NULL,    -- 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'
     category VARCHAR(50) NOT NULL,    -- 'GENERATOR', 'POWER', 'WEATHER', 'COMMUNICATION'
@@ -44,6 +58,24 @@ CREATE TABLE IF NOT EXISTS alerts (
     status VARCHAR(20) DEFAULT 'ACTIVE', -- 'ACTIVE', 'ACKNOWLEDGED', 'RESOLVED'
     triggered_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS event_id VARCHAR(100) UNIQUE;
+
+-- Auditable remote-operation lifecycle. These records describe simulated or
+-- real command requests without claiming success until a completion state is stored.
+CREATE TABLE IF NOT EXISTS remote_operations (
+    id VARCHAR(100) PRIMARY KEY,
+    station_id VARCHAR(50) NOT NULL REFERENCES stations(id),
+    command TEXT NOT NULL,
+    command_code VARCHAR(100) NOT NULL,
+    operator_name VARCHAR(150) NOT NULL,
+    mode VARCHAR(30) NOT NULL DEFAULT 'SIMULATION',
+    status VARCHAR(40) NOT NULL,
+    result TEXT,
+    requested_at TIMESTAMPTZ NOT NULL,
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- 4. Queue Latency Measurement Logs
@@ -74,7 +106,9 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 
 -- Indexes for fast query performance on dashboards
 CREATE INDEX IF NOT EXISTS idx_telemetry_station_time ON telemetry_logs (station_id, recorded_at DESC);
+CREATE INDEX IF NOT EXISTS idx_energy_telemetry_station_time ON energy_telemetry (station_id, recorded_at DESC);
 CREATE INDEX IF NOT EXISTS idx_alerts_station_priority ON alerts (station_id, priority, triggered_at DESC);
+CREATE INDEX IF NOT EXISTS idx_remote_operations_station_time ON remote_operations (station_id, requested_at DESC);
 CREATE INDEX IF NOT EXISTS idx_latency_packet_type ON latency_logs (packet_type, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_role ON user_profiles (role, station_id);
 
@@ -85,7 +119,9 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_role ON user_profiles (role, statio
 -- Enable Row Level Security
 ALTER TABLE stations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE telemetry_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE energy_telemetry ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alerts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE remote_operations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE latency_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
@@ -141,6 +177,28 @@ CREATE POLICY "Station operators can only view telemetry for their assigned stat
         )
     );
 
+-- 3b. energy_telemetry Policies
+CREATE POLICY "India operators can view all energy telemetry"
+    ON energy_telemetry FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE id = auth.uid() AND role = 'india_operator'
+        )
+    );
+
+CREATE POLICY "Station operators can view assigned energy telemetry"
+    ON energy_telemetry FOR SELECT
+    USING (
+        station_id = CASE (
+            SELECT station_id FROM user_profiles WHERE id = auth.uid()
+        )
+            WHEN 'station-maitri' THEN 1
+            WHEN 'station-bharati' THEN 2
+            ELSE 0
+        END
+    );
+
 -- 4. alerts Policies
 CREATE POLICY "India operators can view alerts for all stations"
     ON alerts FOR SELECT
@@ -157,6 +215,23 @@ CREATE POLICY "Station operators can only view alerts for their assigned station
         station_id = (
             SELECT station_id FROM user_profiles
             WHERE id = auth.uid()
+        )
+    );
+
+CREATE POLICY "India operators can view all remote operations"
+    ON remote_operations FOR SELECT
+    USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE id = auth.uid() AND role = 'india_operator'
+        )
+    );
+
+CREATE POLICY "Station operators can view assigned remote operations"
+    ON remote_operations FOR SELECT
+    USING (
+        station_id = (
+            SELECT station_id FROM user_profiles WHERE id = auth.uid()
         )
     );
 

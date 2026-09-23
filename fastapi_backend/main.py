@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import hmac
 from datetime import datetime
 from contextlib import asynccontextmanager
 
@@ -10,6 +11,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from starlette.datastructures import MutableHeaders
 
 from config import settings
 
@@ -63,7 +65,7 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description=(
-        "Production-ready FastAPI backend for the POLARIS Antarctic Digital Twin platform. "
+        "Simulation-prototype FastAPI backend for the POLARIS Antarctic Digital Twin platform. "
         "Provides real-time telemetry, 3D building statuses, energy grid flows, logistics inventory, "
         "dedicated scientific research observatories (seismic, geomagnetic Kp, snow accumulation, crew vitals), "
         "What-If failure simulation engine, and live WebSocket streaming for India's Maitri and Bharati research stations."
@@ -74,10 +76,88 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
+PROTECTED_API_PREFIXES = (
+    "/api/ai",
+    "/api/ml",
+    "/api/predictions",
+    "/api/research/ai-analyst",
+)
+
+@app.middleware("http")
+async def verified_operator_authentication(request: Request, call_next):
+    """Use demo headers only in demo mode; require verified Supabase users otherwise."""
+    if not settings.DEMO_MODE and request.method == "POST" and request.url.path.startswith("/api/telemetry"):
+        supplied_key = request.headers.get("x-device-api-key", "")
+        if not settings.DEVICE_INGEST_API_KEY:
+            return JSONResponse(status_code=503, content={
+                "success": False,
+                "error_code": "DEVICE_AUTH_NOT_CONFIGURED",
+                "message": "Device ingestion authentication is not configured.",
+            })
+        if not hmac.compare_digest(supplied_key, settings.DEVICE_INGEST_API_KEY):
+            return JSONResponse(status_code=401, content={
+                "success": False,
+                "error_code": "INVALID_DEVICE_CREDENTIAL",
+                "message": "A valid device ingestion credential is required.",
+            })
+        return await call_next(request)
+
+    if settings.DEMO_MODE or request.method == "OPTIONS" or not request.url.path.startswith(PROTECTED_API_PREFIXES):
+        return await call_next(request)
+
+    client = get_supabase_client()
+    if not client:
+        return JSONResponse(status_code=503, content={
+            "success": False,
+            "error_code": "PRODUCTION_AUTH_NOT_CONFIGURED",
+            "message": "Supabase authentication is not configured on this service.",
+        })
+
+    authorization = request.headers.get("authorization", "")
+    scheme, _, token = authorization.partition(" ")
+    if scheme != "Bearer" or not token:
+        return JSONResponse(status_code=401, content={
+            "success": False,
+            "error_code": "BEARER_TOKEN_REQUIRED",
+            "message": "A valid Bearer access token is required.",
+        })
+
+    try:
+        user_response = client.auth.get_user(token)
+        user = getattr(user_response, "user", None)
+        if not user:
+            raise ValueError("No authenticated user")
+
+        profile_response = client.table("user_profiles") \
+            .select("id, role, station_id, full_name") \
+            .eq("id", str(user.id)) \
+            .single() \
+            .execute()
+        profile = profile_response.data
+        if not profile or profile.get("role") not in {"india_operator", "station_operator"}:
+            return JSONResponse(status_code=403, content={
+                "success": False,
+                "error_code": "TRUSTED_PROFILE_REQUIRED",
+                "message": "No authorized server-side operator profile was found.",
+            })
+
+        trusted_headers = MutableHeaders(scope=request.scope)
+        trusted_headers["x-user-role"] = profile["role"]
+        if profile.get("station_id"):
+            trusted_headers["x-station-id"] = profile["station_id"]
+        return await call_next(request)
+    except Exception as exc:
+        logger.warning("[Auth] Token verification failed: %s", exc)
+        return JSONResponse(status_code=401, content={
+            "success": False,
+            "error_code": "INVALID_ACCESS_TOKEN",
+            "message": "The supplied access token is invalid or expired.",
+        })
+
 # CORS Middleware Setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origin_list if settings.cors_origin_list else ["*"],
+    allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -119,6 +199,7 @@ async def health_check():
         "service": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
+        "data_mode": "SIMULATION" if settings.DEMO_MODE else "CONFIGURED_DEPLOYMENT",
         "supabase_connected": is_supabase_configured(),
         "stations_monitored": ["Maitri (Schirmacher Oasis)", "Bharati (Larsemann Hills)"],
         "timestamp": datetime.utcnow().isoformat()

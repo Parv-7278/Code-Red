@@ -5,10 +5,11 @@
 
 const express = require('express');
 const router = express.Router();
+const { requireAuthenticated, validateStationAccess } = require('../middleware/authRoleMiddleware');
 
 const FASTAPI_URL = process.env.FASTAPI_URL || 'http://127.0.0.1:8000';
 
-router.post('/what-if', async (req, res) => {
+router.post('/what-if', validateStationAccess, async (req, res) => {
   try {
     const response = await fetch(`${FASTAPI_URL}/api/predictions/what-if`, {
       method: 'POST',
@@ -16,6 +17,7 @@ router.post('/what-if', async (req, res) => {
         'Content-Type': 'application/json',
         'x-user-role': req.headers['x-user-role'] || 'india_operator',
         'x-station-id': req.headers['x-station-id'] || '',
+        'Authorization': req.headers.authorization || '',
       },
       body: JSON.stringify(req.body),
     });
@@ -42,7 +44,7 @@ router.post('/what-if', async (req, res) => {
   }
 });
 
-router.get('/status', async (req, res) => {
+router.get('/status', requireAuthenticated, async (req, res) => {
   try {
     const response = await fetch(`${FASTAPI_URL}/api/predictions/status`);
     if (response.ok) {

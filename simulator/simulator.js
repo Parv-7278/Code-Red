@@ -6,6 +6,7 @@
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 const TELEMETRY_ENDPOINT = `${BACKEND_URL}/api/telemetry`;
 const ALERT_ENDPOINT = `${BACKEND_URL}/api/alerts`;
+const DEVICE_INGEST_API_KEY = process.env.DEVICE_INGEST_API_KEY || '';
 
 const STATIONS = {
   'station-maitri': {
@@ -49,7 +50,10 @@ async function postJson(url, data) {
     try {
       const res = await fetch(target, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(DEVICE_INGEST_API_KEY ? { 'x-device-api-key': DEVICE_INGEST_API_KEY } : {}),
+        },
         body: JSON.stringify(data),
       });
       if (res.ok) {

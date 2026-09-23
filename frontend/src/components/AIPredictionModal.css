@@ -200,7 +200,7 @@
 
 .sandbox-sliders-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
   gap: 12px;
   align-items: flex-end;
 }
@@ -250,6 +250,12 @@
 .btn-run-sim:hover {
   filter: brightness(1.15);
   transform: translateY(-1px);
+}
+
+.btn-run-sim:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  transform: none;
 }
 
 /* KPI Ribbon */

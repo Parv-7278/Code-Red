@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const stationController = require('../controllers/stationController');
-const { validateStationAccess } = require('../middleware/authRoleMiddleware');
+const { requireAuthenticated, validateStationAccess } = require('../middleware/authRoleMiddleware');
 
 // GET /api/stations - List all stations
-router.get('/', stationController.listStations);
+router.get('/', requireAuthenticated, stationController.listStations);
 
 // GET /api/stations/:stationId/status - Get health & status
 router.get('/:stationId/status', validateStationAccess, stationController.getStationStatus);

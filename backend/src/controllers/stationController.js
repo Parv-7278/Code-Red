@@ -35,9 +35,9 @@ function getStationResearch(req, res) {
 /**
  * GET /api/stations/:stationId/remote-operations
  */
-function getRemoteOperations(req, res) {
+async function getRemoteOperations(req, res) {
   const { stationId } = req.params;
-  const data = stationService.getRemoteOperations(stationId);
+  const data = await stationService.getRemoteOperations(stationId);
   return res.json({
     success: true,
     data: data,
@@ -53,7 +53,7 @@ function postRemoteOperation(req, res) {
   const result = stationService.executeRemoteOperation(stationId, req.body, operatorName);
   return res.status(201).json({
     success: true,
-    message: 'Remote operation command dispatched and executed.',
+    message: 'Remote operation completed in simulation mode.',
     data: result,
   });
 }

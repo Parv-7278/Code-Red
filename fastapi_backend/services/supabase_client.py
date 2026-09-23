@@ -12,7 +12,9 @@ def get_supabase_client():
         return _supabase_client
 
     url = settings.SUPABASE_URL
-    key = settings.SUPABASE_KEY or settings.SUPABASE_SERVICE_ROLE_KEY
+    # Server-side writes should prefer the service-role credential when one is
+    # explicitly configured. The publishable key remains a read-only fallback.
+    key = settings.SUPABASE_SERVICE_ROLE_KEY or settings.SUPABASE_KEY
 
     if url and key and "your-project" not in url:
         try:

@@ -57,11 +57,15 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
     ambientTemp: isMaitri ? -28 : -22,
     genDeratePct: 35,
     windSpeedKmh: isMaitri ? 75 : 65,
-    priorityReservePct: 80
+    priorityReservePct: 80,
+    loadReductionKw: 0
   });
 
   // What-If ML Output State
   const [mlPredictionResult, setMlPredictionResult] = useState(null);
+  const [baselinePrediction, setBaselinePrediction] = useState(null);
+  const [interventionPrediction, setInterventionPrediction] = useState(null);
+  const [appliedIntervention, setAppliedIntervention] = useState(null);
   const [isMlPredicting, setIsMlPredicting] = useState(false);
   const [mlJustPredicted, setMlJustPredicted] = useState(false);
   const [activeGraphMetric, setActiveGraphMetric] = useState('all'); // 'all' | 'battery' | 'power' | 'temperature' | 'lifesupport'
@@ -72,9 +76,13 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
       ambientTemp: isMaitri ? -28 : -22,
       genDeratePct: 35,
       windSpeedKmh: isMaitri ? 75 : 65,
-      priorityReservePct: 80
+      priorityReservePct: 80,
+      loadReductionKw: 0
     });
     setMlPredictionResult(null);
+    setBaselinePrediction(null);
+    setInterventionPrediction(null);
+    setAppliedIntervention(null);
     setMlJustPredicted(false);
   }, [stationId]);
 
@@ -93,10 +101,14 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
         ambient_temperature: sandboxParams.ambientTemp,
         generator_capacity_derate: sandboxParams.genDeratePct,
         wind_velocity: sandboxParams.windSpeedKmh,
-        life_support_min_reserve: sandboxParams.priorityReservePct
+        life_support_min_reserve: sandboxParams.priorityReservePct,
+        load_reduction_kw: 0
       });
 
       setMlPredictionResult(result);
+      setBaselinePrediction(result);
+      setInterventionPrediction(null);
+      setAppliedIntervention(null);
       setMlJustPredicted(true);
       setTimeout(() => setMlJustPredicted(false), 4000);
     } catch (err) {
@@ -104,6 +116,67 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
     } finally {
       setIsMlPredicting(false);
     }
+  };
+
+  const handleApplyPreventiveAction = async (action) => {
+    if (!action || isMlPredicting) return;
+
+    const nextParams = { ...sandboxParams };
+    let interventionSummary = '';
+
+    if (action.category === 'POWER_DISPATCH') {
+      const restoredDerate = Math.max(0, sandboxParams.genDeratePct - 25);
+      nextParams.genDeratePct = restoredDerate;
+      interventionSummary = `Standby generator synchronized; effective capacity derate reduced from ${sandboxParams.genDeratePct}% to ${restoredDerate}%.`;
+    } else if (action.category === 'LOAD_MANAGEMENT') {
+      const statedReduction = Number(action.action?.match(/~?(\d+(?:\.\d+)?)\s*kW/i)?.[1]);
+      nextParams.loadReductionKw = Math.max(15, Math.min(60, statedReduction || 20));
+      interventionSummary = `${nextParams.loadReductionKw} kW of non-critical load shed for the counterfactual forecast.`;
+    } else if (action.category === 'THERMAL_MANAGEMENT') {
+      nextParams.loadReductionKw = 12;
+      interventionSummary = 'CHP heat recovery prioritized; equivalent electrical heating demand reduced by 12 kW.';
+    } else {
+      setAppliedIntervention({
+        action,
+        summary: 'Procedural safety action acknowledged. It reduces personnel exposure but does not alter the environmental forecast.',
+        proceduralOnly: true,
+        appliedAt: new Date().toISOString()
+      });
+      return;
+    }
+
+    setIsMlPredicting(true);
+    try {
+      const result = await runWhatIfPrediction(station.id, {
+        ambient_temperature: nextParams.ambientTemp,
+        generator_capacity_derate: nextParams.genDeratePct,
+        wind_velocity: nextParams.windSpeedKmh,
+        life_support_min_reserve: nextParams.priorityReservePct,
+        load_reduction_kw: nextParams.loadReductionKw || 0
+      });
+
+      setInterventionPrediction(result);
+      setMlPredictionResult(result);
+      setAppliedIntervention({
+        action,
+        summary: interventionSummary,
+        params: nextParams,
+        appliedAt: new Date().toISOString()
+      });
+      setMlJustPredicted(true);
+      setTimeout(() => setMlJustPredicted(false), 4000);
+    } catch (err) {
+      console.error('[SimulationsView] Error executing preventive intervention:', err);
+    } finally {
+      setIsMlPredicting(false);
+    }
+  };
+
+  const handleRestoreBaseline = () => {
+    if (!baselinePrediction) return;
+    setMlPredictionResult(baselinePrediction);
+    setInterventionPrediction(null);
+    setAppliedIntervention(null);
   };
 
   // Auto-run initial ML prediction on mount if no result
@@ -331,6 +404,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
 
   // SVG Chart Geometry Calculations
   const timeSeries = mlPredictionResult?.time_series || [];
+  const baselineSeries = interventionPrediction ? (baselinePrediction?.time_series || []) : [];
   const chartW = 720;
   const chartH = 220;
   const padL = 45;
@@ -354,6 +428,40 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
   const demPoints = timeSeries.map((d, i) => `${getX(i)},${getY(d.power_consumption, 0, 240)}`).join(' ');
   const tempPoints = timeSeries.map((d, i) => `${getX(i)},${getY(d.generator_temperature, 40, 120)}`).join(' ');
   const lifePoints = timeSeries.map((d, i) => `${getX(i)},${getY(d.life_support_reserve, 0, 100)}`).join(' ');
+  const baselineBattPoints = baselineSeries.map((d, i) => `${getX(i)},${getY(d.battery_level, 0, 100)}`).join(' ');
+  const baselineGenPoints = baselineSeries.map((d, i) => `${getX(i)},${getY(d.power_generation, 0, 240)}`).join(' ');
+  const baselineDemPoints = baselineSeries.map((d, i) => `${getX(i)},${getY(d.power_consumption, 0, 240)}`).join(' ');
+  const baselineTempPoints = baselineSeries.map((d, i) => `${getX(i)},${getY(d.generator_temperature, 40, 120)}`).join(' ');
+  const baselineLifePoints = baselineSeries.map((d, i) => `${getX(i)},${getY(d.life_support_reserve, 0, 100)}`).join(' ');
+
+  const comparison = baselinePrediction && interventionPrediction ? {
+    riskBefore: Math.round((baselinePrediction.risk?.composite_hazard || 0) * 100),
+    riskAfter: Math.round((interventionPrediction.risk?.composite_hazard || 0) * 100),
+    batteryBefore: baselinePrediction.prediction?.['120min']?.battery_level,
+    batteryAfter: interventionPrediction.prediction?.['120min']?.battery_level,
+    netBefore: baselinePrediction.prediction?.['120min']?.net_power,
+    netAfter: interventionPrediction.prediction?.['120min']?.net_power,
+    genBreachBefore: baselinePrediction.time_to_breach?.generator_breach_mins,
+    genBreachAfter: interventionPrediction.time_to_breach?.generator_breach_mins,
+    battBreachBefore: baselinePrediction.time_to_breach?.battery_breach_mins,
+    battBreachAfter: interventionPrediction.time_to_breach?.battery_breach_mins
+  } : null;
+
+  const criticalBreachFor = (prediction) => {
+    if (!prediction) return null;
+    const candidates = [];
+    const generatorText = prediction.time_to_breach?.generator_thermal || '';
+    const batteryText = prediction.time_to_breach?.battery_critical || '';
+    if (/95°?c|overheat/i.test(generatorText) && Number.isFinite(prediction.time_to_breach?.generator_breach_mins)) {
+      candidates.push(prediction.time_to_breach.generator_breach_mins);
+    }
+    if (/38%|depleted/i.test(batteryText) && Number.isFinite(prediction.time_to_breach?.battery_breach_mins)) {
+      candidates.push(prediction.time_to_breach.battery_breach_mins);
+    }
+    return candidates.length ? Math.min(...candidates) : null;
+  };
+  const breachBefore = criticalBreachFor(baselinePrediction);
+  const breachAfter = criticalBreachFor(interventionPrediction);
 
   // Forecast Zone X boundary (step 0 = NOW, step 1 onwards is forecast)
   const forecastSplitX = getX(0) + (getX(1) - getX(0)) * 0.45;
@@ -597,6 +705,47 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                 </div>
               </div>
 
+              {comparison && (
+                <div className="intervention-comparison-card polaris-card">
+                  <div className="intervention-comparison-head">
+                    <div>
+                      <span className="comparison-kicker">CLOSED-LOOP PREVENTIVE ACTION VALIDATION</span>
+                      <h3>Baseline vs. operator-approved intervention</h3>
+                      <p>{appliedIntervention?.summary}</p>
+                    </div>
+                    <button type="button" className="btn-restore-baseline" onClick={handleRestoreBaseline}>
+                      <RotateCcw size={13} /> Restore baseline
+                    </button>
+                  </div>
+                  <div className="comparison-metrics-grid">
+                    <div className="comparison-metric">
+                      <span>Composite risk</span>
+                      <div><strong className="before-value">{comparison.riskBefore}/100</strong><ArrowRight size={14}/><strong className="after-value">{comparison.riskAfter}/100</strong></div>
+                      <small>{Math.max(0, comparison.riskBefore - comparison.riskAfter)} risk points reduced</small>
+                    </div>
+                    <div className="comparison-metric">
+                      <span>Battery at +120m</span>
+                      <div><strong className="before-value">{comparison.batteryBefore}%</strong><ArrowRight size={14}/><strong className="after-value">{comparison.batteryAfter}%</strong></div>
+                      <small>{Math.max(0, (comparison.batteryAfter || 0) - (comparison.batteryBefore || 0)).toFixed(1)}% reserve preserved</small>
+                    </div>
+                    <div className="comparison-metric">
+                      <span>Net power at +120m</span>
+                      <div><strong className="before-value">{comparison.netBefore} kW</strong><ArrowRight size={14}/><strong className="after-value">{comparison.netAfter} kW</strong></div>
+                      <small>{Math.max(0, (comparison.netAfter || 0) - (comparison.netBefore || 0)).toFixed(1)} kW recovered</small>
+                    </div>
+                    <div className="comparison-metric">
+                      <span>Earliest critical breach</span>
+                      <div>
+                        <strong className="before-value">{breachBefore === null ? 'None' : `${breachBefore} min`}</strong>
+                        <ArrowRight size={14}/>
+                        <strong className="after-value">{breachAfter === null ? 'Avoided' : `${breachAfter} min`}</strong>
+                      </div>
+                      <small>{breachBefore !== null && breachAfter === null ? 'Avoided inside forecast horizon' : breachBefore !== null && breachAfter !== null ? `${Math.max(0, breachAfter - breachBefore)} minutes gained` : 'No critical breach predicted'}</small>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* 5 Domain Forecast Cards Grid */}
               <div className="outcome-domain-cards-grid">
                 {/* 1. POWER PREDICTION */}
@@ -825,6 +974,12 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                     )}
                   </div>
                   <div className="legend-items-right">
+                    {interventionPrediction && (
+                      <>
+                        <span className="forecast-zone-tag comparison-legend-before">-- Baseline</span>
+                        <span className="forecast-zone-tag comparison-legend-after">━ After intervention</span>
+                      </>
+                    )}
                     <span className="forecast-zone-tag">░ Shaded Area: Machine Learning Forecast Horizon</span>
                   </div>
                 </div>
@@ -874,6 +1029,23 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                         {d.time} {i === 0 ? '(LIVE)' : ''}
                       </text>
                     ))}
+
+                    {/* Dashed lines preserve the original forecast for a direct counterfactual comparison. */}
+                    {interventionPrediction && (activeGraphMetric === 'all' || activeGraphMetric === 'battery') && (
+                      <polyline fill="none" stroke="#10b981" strokeWidth="1.8" opacity="0.42" points={baselineBattPoints} strokeDasharray="6 5" />
+                    )}
+                    {interventionPrediction && (activeGraphMetric === 'all' || activeGraphMetric === 'power') && (
+                      <>
+                        <polyline fill="none" stroke="#38bdf8" strokeWidth="1.6" opacity="0.42" points={baselineGenPoints} strokeDasharray="6 5" />
+                        <polyline fill="none" stroke="#f59e0b" strokeWidth="1.6" opacity="0.42" points={baselineDemPoints} strokeDasharray="6 5" />
+                      </>
+                    )}
+                    {interventionPrediction && (activeGraphMetric === 'all' || activeGraphMetric === 'temperature') && (
+                      <polyline fill="none" stroke="#ef4444" strokeWidth="1.8" opacity="0.42" points={baselineTempPoints} strokeDasharray="6 5" />
+                    )}
+                    {interventionPrediction && (activeGraphMetric === 'all' || activeGraphMetric === 'lifesupport') && (
+                      <polyline fill="none" stroke="#a855f7" strokeWidth="1.6" opacity="0.42" points={baselineLifePoints} strokeDasharray="6 5" />
+                    )}
 
                     {/* Line 1: Battery % */}
                     {(activeGraphMetric === 'all' || activeGraphMetric === 'battery') && (
@@ -1022,6 +1194,15 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                           <span className="action-cat-tag">{act.category}</span>
                         </div>
                         <p className="action-text">{act.action}</p>
+                        <button
+                          type="button"
+                          className="btn-apply-intervention"
+                          onClick={() => handleApplyPreventiveAction(act)}
+                          disabled={isMlPredicting || act.category === 'MONITORING'}
+                        >
+                          {act.category === 'SAFETY_PROTOCOL' ? 'Acknowledge protocol' : act.category === 'MONITORING' ? 'No intervention required' : 'Apply & compare forecast'}
+                          {act.category !== 'MONITORING' && <ArrowRight size={12} />}
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -1059,6 +1240,22 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                     );
                   })}
                 </div>
+              </div>
+
+              <div className="prediction-audit-card polaris-card">
+                <div className="prediction-audit-head">
+                  <div><ShieldCheck size={16} className="text-emerald" /><h4>PREDICTION TRACEABILITY</h4></div>
+                  <span>{mlPredictionResult.prediction_id || 'LOCAL-PREDICTION'}</span>
+                </div>
+                <div className="prediction-audit-grid">
+                  <div><span>Station</span><strong>{station.name}</strong></div>
+                  <div><span>Execution mode</span><strong>{interventionPrediction ? 'COUNTERFACTUAL INTERVENTION' : 'MANUAL WHAT-IF'}</strong></div>
+                  <div><span>Telemetry source</span><strong>{mlPredictionResult.data_provenance?.telemetry || 'SIMULATED_DIGITAL_TWIN'}</strong></div>
+                  <div><span>Forecast classification</span><strong>{mlPredictionResult.data_provenance?.forecast || 'ML_DERIVED_ESTIMATE'}</strong></div>
+                  <div><span>Generated</span><strong>{new Date(mlPredictionResult.timestamp).toLocaleString()}</strong></div>
+                  <div><span>Model</span><strong>{mlPredictionResult.model_metadata?.engine || 'POLARIS Predictive Engine'}</strong></div>
+                </div>
+                <p className="prediction-disclaimer">{mlPredictionResult.data_provenance?.disclaimer || 'Research prototype using simulated telemetry; operational deployment requires validation against authorised station data.'}</p>
               </div>
             </div>
           )}

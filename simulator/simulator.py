@@ -29,11 +29,19 @@ from config import STATIONS, TELEMETRY_ENDPOINT, ALERT_ENDPOINT, TELEMETRY_INTER
 from sensors import StationSensorModel
 from scenarios import run_generator_thermal_runaway, run_blizzard_warning
 
+DEVICE_INGEST_API_KEY = os.getenv("DEVICE_INGEST_API_KEY", "")
+
+def _ingest_headers():
+    headers = {'Content-Type': 'application/json'}
+    if DEVICE_INGEST_API_KEY:
+        headers['x-device-api-key'] = DEVICE_INGEST_API_KEY
+    return headers
+
 def _http_post(url, payload):
     """Resilient HTTP POST supporting both requests and urllib standard library."""
     if HAS_REQUESTS:
         try:
-            res = requests.post(url, json=payload, timeout=2.0)
+            res = requests.post(url, json=payload, headers=_ingest_headers(), timeout=2.0)
             return res.status_code, res.text
         except Exception:
             pass
@@ -44,7 +52,7 @@ def _http_post(url, payload):
         req = urllib.request.Request(
             url,
             data=data,
-            headers={'Content-Type': 'application/json'},
+            headers=_ingest_headers(),
             method='POST'
         )
         with urllib.request.urlopen(req, timeout=2.0) as res:

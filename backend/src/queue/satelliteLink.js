@@ -9,12 +9,10 @@ const { PRIORITY } = require('./PriorityLevels');
 class SatelliteLinkSimulator {
   constructor(options = {}) {
     this.queue = new PriorityQueue();
-    this.isProcessing = false;
     this.intervalId = null;
 
     // Simulation timing parameters
     this.normalIntervalMs = options.normalIntervalMs || 800; // Simulated satellite rate limiter
-    this.emergencyIntervalMs = options.emergencyIntervalMs || 40; // Preemptive fast-track cycle
     this.basePropagationDelayMs = options.basePropagationDelayMs || 240; // GEO/LEO propagation delay
 
     this.latencyHistory = [];
@@ -29,10 +27,11 @@ class SatelliteLinkSimulator {
   submitPacket(packet, priorityLevel = PRIORITY.NORMAL) {
     const enqueued = this.queue.enqueue(packet, priorityLevel);
 
-    // Fast-track critical emergency alerts immediately
-    if (enqueued.priority_level === PRIORITY.CRITICAL && !this.isProcessing) {
+    // Fast-track a newly queued critical packet immediately. This prioritizes
+    // the next packet; it does not interrupt a packet already in transmission.
+    if (enqueued.priority_level === PRIORITY.CRITICAL) {
       this.processNextPacket();
-    } else if (!this.isProcessing) {
+    } else {
       this.startLinkScheduler();
     }
 

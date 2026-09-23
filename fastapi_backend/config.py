@@ -7,15 +7,17 @@ class Settings(BaseSettings):
     APP_NAME: str = "POLARIS Antarctic Digital Twin Backend"
     APP_VERSION: str = "1.0.0"
     ENVIRONMENT: str = "development"
+    DEMO_MODE: bool = True
     PORT: int = 8000
     HOST: str = "0.0.0.0"
     DEBUG: bool = True
 
-    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://localhost:5000"
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,http://localhost:5000"
 
-    SUPABASE_URL: str = "https://uajnemuotinotiyurdud.supabase.co"
-    SUPABASE_KEY: str = "sb_publishable_Dz0Zq6o-F-LWelMdy5aOBQ_-wyb51xc"
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
+    DEVICE_INGEST_API_KEY: str = ""
 
     WS_TICK_INTERVAL_SECONDS: float = 1.5
     SIMULATION_MAX_DAYS: int = 90
@@ -34,7 +36,7 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> List[str]:
         if not self.CORS_ORIGINS:
-            return ["*"]
+            return []
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
 settings = Settings()

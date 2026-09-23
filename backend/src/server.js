@@ -17,9 +17,19 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const corsOrigin = (origin, callback) => {
+  // Requests without an Origin header include local tools, health checks and
+  // same-origin server calls. Browser origins must be explicitly allow-listed.
+  if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+  return callback(new Error(`CORS origin not allowed: ${origin}`));
+};
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: corsOrigin,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   },
 });
@@ -27,7 +37,7 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 
 // Request logging middleware
@@ -43,6 +53,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ONLINE',
     service: 'Antarctic Station Remote Management Backend',
+    data_mode: process.env.DEMO_MODE === 'false' ? 'CONFIGURED_DEPLOYMENT' : 'SIMULATION',
     timestamp: new Date().toISOString(),
   });
 });

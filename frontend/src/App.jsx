@@ -20,6 +20,7 @@ import LogisticsView from './components/LogisticsView';
 import EnvironmentView from './components/EnvironmentView';
 import CommunicationView from './components/CommunicationView';
 import AlertsView from './components/AlertsView';
+import OperatorAccessView from './components/OperatorAccessView';
 import TelemetryView from './components/TelemetryView';
 import SimulationsView from './components/SimulationsView';
 import ResearchView from './components/ResearchView';
@@ -98,8 +99,8 @@ function MainDashboard() {
         selectedStation={selectedStation}
         onSelectStation={setSelectedStation}
         unreadCount={stationData.unreadAlertsCount}
-        onOpenAlerts={handleOpenAlerts}
-        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenAlerts={() => setActiveTab('alerts')}
+        onOpenAuth={() => setActiveTab('account')}
       />
 
       {/* Main View Switching controlled exclusively by Top Navbar */}
@@ -138,7 +139,13 @@ function MainDashboard() {
         />
       ) : activeTab === 'alerts' ? (
         <AlertsView 
-          selectedStation={effectiveStationId}
+          selectedStation={selectedStation}
+        />
+      ) : activeTab === 'account' ? (
+        <OperatorAccessView
+          selectedStation={selectedStation}
+          onSelectStation={setSelectedStation}
+          onOpenSwitcher={() => setIsAuthModalOpen(true)}
         />
       ) : activeTab === 'telemetry' ? (
         <TelemetryView 
@@ -319,14 +326,23 @@ function AppContent() {
   return <MainDashboard />;
 }
 
+function StationAwarePredictiveProvider({ children }) {
+  const { selectedStation } = useTelemetry();
+  return (
+    <PredictiveProvider selectedStation={selectedStation}>
+      {children}
+    </PredictiveProvider>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <TelemetryProvider>
         <ModalProvider>
-          <PredictiveProvider>
+          <StationAwarePredictiveProvider>
             <AppContent />
-          </PredictiveProvider>
+          </StationAwarePredictiveProvider>
         </ModalProvider>
       </TelemetryProvider>
     </AuthProvider>

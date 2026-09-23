@@ -4,21 +4,26 @@
  * with high-fidelity telemetry forecasting models and simulation support.
  */
 
-const BACKEND_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) || 'http://localhost:5000';
+import { getAccessToken } from './supabaseClient.js';
 
-function getAuthHeaders(role = 'india_operator', assignedStation = null) {
+const BACKEND_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) || 'http://localhost:5000';
+const ML_API_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ML_API_URL) || 'http://localhost:8000';
+
+async function getAuthHeaders(role = 'india_operator', assignedStation = null) {
   const headers = {
     'Content-Type': 'application/json',
     'x-user-role': role || 'india_operator',
   };
   if (assignedStation) headers['x-station-id'] = assignedStation;
+  const accessToken = await getAccessToken();
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
   return headers;
 }
 
 /**
  * Generates client-side fallback predictive intelligence if backend is offline or starting up.
  */
-function generateFallbackPredictions(stationId = 'station-maitri', overrides = null, isSimulation = false) {
+function generateFallbackPredictions(stationId = 'station-maitri', overrides = null, isSimulation = false, fallbackReason = 'ML backend unavailable') {
   const isBharati = stationId === 'station-bharati';
   const stationName = isBharati ? 'Bharati Station' : 'Maitri Station';
   const region = isBharati ? 'Larsemann Hills (East Antarctica)' : 'Schirmacher Oasis (Dronning Maud Land)';
@@ -150,11 +155,23 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
   // 3. Power Demand Surge
   const demandInc = isBharati ? 12 : 15;
   const projDemand = +(pwrCons * (1 + demandInc/100)).toFixed(1);
+  let demandRisk = demandInc > 10 ? 'MODERATE' : 'LOW';
+  let demandBreach = 'No Capacity Breach';
+  let demandBreachMins = null;
+  if (pwrCons >= pwrGen) {
+    demandRisk = 'CRITICAL';
+    demandBreach = 'Capacity Exceeded Now';
+    demandBreachMins = 0;
+  } else if (projDemand >= pwrGen) {
+    demandRisk = 'HIGH';
+    demandBreachMins = Math.max(1, Math.round(60 * (pwrGen - pwrCons) / Math.max(0.1, projDemand - pwrCons)));
+    demandBreach = demandBreachMins < 60 ? `${demandBreachMins} min` : `${Math.floor(demandBreachMins / 60)} hours`;
+  }
   const pwrSeries = [
     { time: 'Now', predicted_value: pwrCons, upper_bound: pwrCons, lower_bound: pwrCons, threshold: pwrGen, unit: 'kW' },
-    { time: '+15m', predicted_value: +(pwrCons + 3.2).toFixed(1), upper_bound: +(pwrCons + 4.1).toFixed(1), lower_bound: +(pwrCons + 2.2).toFixed(1), threshold: pwrGen, unit: 'kW' },
-    { time: '+30m', predicted_value: +(pwrCons + 7.8).toFixed(1), upper_bound: +(pwrCons + 9.4).toFixed(1), lower_bound: +(pwrCons + 6.1).toFixed(1), threshold: pwrGen, unit: 'kW' },
-    { time: '+45m', predicted_value: +(pwrCons + 11.5).toFixed(1), upper_bound: +(pwrCons + 13.8).toFixed(1), lower_bound: +(pwrCons + 9.5).toFixed(1), threshold: pwrGen, unit: 'kW' },
+    { time: '+15m', predicted_value: +(pwrCons + (projDemand - pwrCons) * 0.25).toFixed(1), upper_bound: +(pwrCons + (projDemand - pwrCons) * 0.31).toFixed(1), lower_bound: +(pwrCons + (projDemand - pwrCons) * 0.19).toFixed(1), threshold: pwrGen, unit: 'kW' },
+    { time: '+30m', predicted_value: +(pwrCons + (projDemand - pwrCons) * 0.5).toFixed(1), upper_bound: +(pwrCons + (projDemand - pwrCons) * 0.59).toFixed(1), lower_bound: +(pwrCons + (projDemand - pwrCons) * 0.41).toFixed(1), threshold: pwrGen, unit: 'kW' },
+    { time: '+45m', predicted_value: +(pwrCons + (projDemand - pwrCons) * 0.75).toFixed(1), upper_bound: +(pwrCons + (projDemand - pwrCons) * 0.87).toFixed(1), lower_bound: +(pwrCons + (projDemand - pwrCons) * 0.63).toFixed(1), threshold: pwrGen, unit: 'kW' },
     { time: '+60m', predicted_value: projDemand, upper_bound: +(projDemand + 3.5).toFixed(1), lower_bound: +(projDemand - 2.8).toFixed(1), threshold: pwrGen, unit: 'kW' },
   ];
 
@@ -168,9 +185,9 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
     current_val: `${pwrCons.toFixed(1)} kW`,
     predicted_val: `${projDemand} kW (+${demandInc}%)`,
     threshold: `${pwrGen.toFixed(1)} kW Capacity`,
-    time_to_breach: 'Peak in 60 min',
-    time_to_breach_mins: 60,
-    risk_level: 'MODERATE',
+    time_to_breach: demandBreach,
+    time_to_breach_mins: demandBreachMins,
+    risk_level: demandRisk,
     confidence: 94,
     forecast_window: '60 Minutes',
     explanation: `Scheduled science experiment heating cycles and habitat thaw circuits forecast a +${demandInc}% surge over the next 60 minutes.`,
@@ -181,13 +198,22 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
   // 4. Infrastructure Bearing Harmonic Fatigue
   const vibCrit = 4.5;
   const vibWarn = 2.5;
-  const infraRisk = vib >= vibCrit ? 'CRITICAL' : vib >= vibWarn ? 'HIGH' : 'LOW';
-  const projVib = +(vib * 1.25).toFixed(2);
+  const bearingLoadStress = Math.max(0, loadFactor - 0.70);
+  const bearingThermalStress = Math.max(0, (genTemp - 75.0) / 30.0);
+  const bearingGrowth = Math.min(0.55, 0.15 + (0.18 * bearingLoadStress) + (0.12 * bearingThermalStress));
+  const projVib = +(vib * (1 + bearingGrowth)).toFixed(2);
+  const vibrationGrowthPerHour = Math.max(0.001, (projVib - vib) / 24);
+  const vibBreachMins = vib >= vibCrit
+    ? 0
+    : projVib >= vibCrit
+      ? Math.max(1, Math.round(((vibCrit - vib) / vibrationGrowthPerHour) * 60))
+      : null;
+  const infraRisk = vib >= vibCrit ? 'CRITICAL' : projVib >= vibCrit ? 'HIGH' : vib >= vibWarn ? 'MODERATE' : 'LOW';
   const vibSeries = [
     { time: 'Now', predicted_value: vib, upper_bound: vib, lower_bound: vib, threshold: vibCrit, unit: 'mm/s' },
-    { time: '+4h', predicted_value: +(vib * 1.05).toFixed(2), upper_bound: +(vib * 1.1).toFixed(2), lower_bound: +(vib * 1.01).toFixed(2), threshold: vibCrit, unit: 'mm/s' },
-    { time: '+8h', predicted_value: +(vib * 1.11).toFixed(2), upper_bound: +(vib * 1.18).toFixed(2), lower_bound: +(vib * 1.05).toFixed(2), threshold: vibCrit, unit: 'mm/s' },
-    { time: '+16h', predicted_value: +(vib * 1.18).toFixed(2), upper_bound: +(vib * 1.26).toFixed(2), lower_bound: +(vib * 1.12).toFixed(2), threshold: vibCrit, unit: 'mm/s' },
+    { time: '+4h', predicted_value: +(vib + (projVib - vib) * 0.17).toFixed(2), upper_bound: +(vib + (projVib - vib) * 0.22).toFixed(2), lower_bound: +(vib + (projVib - vib) * 0.12).toFixed(2), threshold: vibCrit, unit: 'mm/s' },
+    { time: '+8h', predicted_value: +(vib + (projVib - vib) * 0.33).toFixed(2), upper_bound: +(vib + (projVib - vib) * 0.42).toFixed(2), lower_bound: +(vib + (projVib - vib) * 0.24).toFixed(2), threshold: vibCrit, unit: 'mm/s' },
+    { time: '+16h', predicted_value: +(vib + (projVib - vib) * 0.67).toFixed(2), upper_bound: +(vib + (projVib - vib) * 0.8).toFixed(2), lower_bound: +(vib + (projVib - vib) * 0.54).toFixed(2), threshold: vibCrit, unit: 'mm/s' },
     { time: '+24h', predicted_value: projVib, upper_bound: +(projVib + 0.35).toFixed(2), lower_bound: +(projVib - 0.28).toFixed(2), threshold: vibCrit, unit: 'mm/s' },
   ];
 
@@ -201,25 +227,33 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
     current_val: `${vib.toFixed(2)} mm/s RMS`,
     predicted_val: `${projVib} mm/s (in 24h)`,
     threshold: '4.5 mm/s Max Tolerance',
-    time_to_breach: vib >= vibWarn ? '24 - 48 Hours' : 'No Breach Expected',
-    time_to_breach_mins: vib >= vibWarn ? 1440 : null,
+    time_to_breach: vib >= vibCrit ? 'Active Threshold Breach' : vibBreachMins ? `${Math.floor(vibBreachMins / 60)}h ${vibBreachMins % 60}m` : 'No Breach Expected',
+    time_to_breach_mins: vibBreachMins,
     risk_level: infraRisk,
     confidence: 88,
     forecast_window: '24 Hours',
-    explanation: 'Harmonic spectral analysis shows progressive bearing cage friction elevation under sustained mechanical run cycles.',
+    explanation: `Bearing wear projection combines ${vib.toFixed(2)} mm/s vibration with ${Math.round(loadFactor * 100)}% generator load and ${genTemp.toFixed(1)}°C thermal stress.`,
     recommendation: 'Extract oil sample for spectrography; schedule changeover during next maintenance shift.',
     forecast_series: vibSeries,
   };
 
   // 5. Environmental Katabatic Blizzard Onset
   const windCrit = 55.0;
-  const envRisk = isBharati ? 'HIGH' : 'MODERATE';
-  const projWind = +(wind + 18.0).toFixed(1);
+  const nominalWind = isBharati ? 44.0 : 28.0;
+  const baseWindGrowth = isBharati ? 18.0 : 14.0;
+  const windGrowth = Math.max(6, baseWindGrowth + (wind - nominalWind) * 0.18);
+  const projWind = +Math.min(130, wind + windGrowth).toFixed(1);
+  const windBreachMins = wind >= windCrit
+    ? 0
+    : projWind >= windCrit
+      ? Math.max(1, Math.round(((windCrit - wind) / Math.max(0.1, projWind - wind)) * 720))
+      : null;
+  const envRisk = wind >= windCrit ? 'CRITICAL' : windBreachMins !== null ? (windBreachMins <= 360 ? 'HIGH' : 'MODERATE') : 'LOW';
   const windSeries = [
     { time: 'Now', predicted_value: wind, upper_bound: wind, lower_bound: wind, threshold: windCrit, unit: 'km/h' },
-    { time: '+2h', predicted_value: +(wind + 4.2).toFixed(1), upper_bound: +(wind + 6.1).toFixed(1), lower_bound: +(wind + 2.5).toFixed(1), threshold: windCrit, unit: 'km/h' },
-    { time: '+4h', predicted_value: +(wind + 9.5).toFixed(1), upper_bound: +(wind + 12.0).toFixed(1), lower_bound: +(wind + 7.1).toFixed(1), threshold: windCrit, unit: 'km/h' },
-    { time: '+8h', predicted_value: +(wind + 14.8).toFixed(1), upper_bound: +(wind + 18.2).toFixed(1), lower_bound: +(wind + 11.4).toFixed(1), threshold: windCrit, unit: 'km/h' },
+    { time: '+2h', predicted_value: +(wind + windGrowth * 0.18).toFixed(1), upper_bound: +(wind + windGrowth * 0.25).toFixed(1), lower_bound: +(wind + windGrowth * 0.12).toFixed(1), threshold: windCrit, unit: 'km/h' },
+    { time: '+4h', predicted_value: +(wind + windGrowth * 0.4).toFixed(1), upper_bound: +(wind + windGrowth * 0.51).toFixed(1), lower_bound: +(wind + windGrowth * 0.3).toFixed(1), threshold: windCrit, unit: 'km/h' },
+    { time: '+8h', predicted_value: +(wind + windGrowth * 0.75).toFixed(1), upper_bound: +(wind + windGrowth * 0.91).toFixed(1), lower_bound: +(wind + windGrowth * 0.59).toFixed(1), threshold: windCrit, unit: 'km/h' },
     { time: '+12h', predicted_value: projWind, upper_bound: +(projWind + 5.2).toFixed(1), lower_bound: +(projWind - 4.1).toFixed(1), threshold: windCrit, unit: 'km/h' },
   ];
 
@@ -233,25 +267,39 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
     current_val: `${wind.toFixed(1)} km/h`,
     predicted_val: `${projWind} km/h (in 12h)`,
     threshold: '55 km/h Warning Threshold',
-    time_to_breach: isBharati ? '8 hours' : '12 hours',
-    time_to_breach_mins: isBharati ? 480 : 720,
+    time_to_breach: wind >= windCrit ? 'Threshold Breached Now' : windBreachMins !== null ? `${Math.floor(windBreachMins / 60)}h ${windBreachMins % 60}m` : 'No Breach Expected',
+    time_to_breach_mins: windBreachMins,
     risk_level: envRisk,
     confidence: 92,
     forecast_window: '12 Hours',
-    explanation: 'Rapid barometric depression (-2.8 hPa/3hr) combined with Antarctic continental katabatic flow vector indicates gale force onset.',
+    explanation: `Injected wind of ${wind.toFixed(1)} km/h produces a modeled ${windGrowth.toFixed(1)} km/h 12-hour katabatic acceleration.`,
     recommendation: 'Recall outdoor field traverses; secure external radome panels and tension guideline ropes.',
     forecast_series: windSeries,
   };
 
   // 6. Logistics Fuel Depletion
   const fuelCrit = 20;
-  const logRisk = fuelDays <= fuelCrit ? 'CRITICAL' : fuelDays <= 45 ? 'HIGH' : 'LOW';
+  const nominalLoad = isBharati ? 146.2 : 118.4;
+  const nominalTemp = isBharati ? 76.8 : 82.4;
+  const nominalBatt = isBharati ? 82.5 : 74.0;
+  const fuelBurnMultiplier = Math.max(0.5, Math.min(2.5,
+    1
+    + 0.65 * ((pwrCons / nominalLoad) - 1)
+    + 0.006 * (genTemp - nominalTemp)
+    + 0.004 * (wind - nominalWind)
+    + 0.003 * (nominalBatt - battLvl)
+  ));
+  const effectiveFuelRunway = +(fuelDays / fuelBurnMultiplier).toFixed(1);
+  const projectedFuelStock = +Math.max(0, fuelDays - 7 * fuelBurnMultiplier).toFixed(1);
+  const daysToFuelThreshold = Math.max(0, (fuelDays - fuelCrit) / fuelBurnMultiplier);
+  const logRisk = fuelDays <= fuelCrit ? 'CRITICAL' : daysToFuelThreshold <= 30 ? 'HIGH' : 'LOW';
+  const fuelAtDay = (day) => +Math.max(0, fuelDays - day * fuelBurnMultiplier).toFixed(2);
   const fuelSeries = [
     { time: 'Now', predicted_value: fuelDays, upper_bound: fuelDays, lower_bound: fuelDays, threshold: fuelCrit, unit: 'Days' },
-    { time: '+1d', predicted_value: fuelDays - 1, upper_bound: fuelDays - 1, lower_bound: fuelDays - 1, threshold: fuelCrit, unit: 'Days' },
-    { time: '+3d', predicted_value: fuelDays - 3, upper_bound: fuelDays - 3, lower_bound: fuelDays - 3, threshold: fuelCrit, unit: 'Days' },
-    { time: '+5d', predicted_value: fuelDays - 5, upper_bound: fuelDays - 5, lower_bound: fuelDays - 5, threshold: fuelCrit, unit: 'Days' },
-    { time: '+7d', predicted_value: fuelDays - 7, upper_bound: fuelDays - 7, lower_bound: fuelDays - 7, threshold: fuelCrit, unit: 'Days' },
+    { time: '+1d', predicted_value: fuelAtDay(1), upper_bound: fuelAtDay(0.9), lower_bound: fuelAtDay(1.1), threshold: fuelCrit, unit: 'Days' },
+    { time: '+3d', predicted_value: fuelAtDay(3), upper_bound: fuelAtDay(2.7), lower_bound: fuelAtDay(3.3), threshold: fuelCrit, unit: 'Days' },
+    { time: '+5d', predicted_value: fuelAtDay(5), upper_bound: fuelAtDay(4.5), lower_bound: fuelAtDay(5.5), threshold: fuelCrit, unit: 'Days' },
+    { time: '+7d', predicted_value: projectedFuelStock, upper_bound: fuelAtDay(6.3), lower_bound: fuelAtDay(7.7), threshold: fuelCrit, unit: 'Days' },
   ];
 
   const logPred = {
@@ -261,27 +309,32 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
     title: 'Diesel / ATF-50 Polar Fuel Runway',
     station_id: stationId,
     station_name: stationName,
-    current_val: `${fuelDays} Days Stock`,
-    predicted_val: `${fuelDays - 7} Days (in 7d)`,
+    current_val: `${fuelDays.toFixed(1)} Days Stock`,
+    predicted_val: `${projectedFuelStock.toFixed(1)} Days (in 7d)`,
     threshold: '20 Days Critical Reserve',
-    time_to_breach: `${fuelDays - fuelCrit} Days until 15% Buffer`,
-    time_to_breach_mins: (fuelDays - fuelCrit) * 1440,
+    time_to_breach: fuelDays <= fuelCrit ? 'Threshold Breached Now' : `${daysToFuelThreshold.toFixed(1)} Days until Critical Reserve`,
+    time_to_breach_mins: Math.max(0, Math.round(daysToFuelThreshold * 1440)),
     risk_level: logRisk,
     confidence: 96,
     forecast_window: '7 Days',
-    explanation: `Current station burn rate (1,167 L/day) provides ${fuelDays} days of autonomous operations before reaching emergency reserve thresholds.`,
+    explanation: `Scenario-adjusted burn is ${Math.round(1167 * fuelBurnMultiplier).toLocaleString()} L/day (${fuelBurnMultiplier.toFixed(2)}× nominal), based on load, generator heat, wind and battery recovery demand; effective runway is ${effectiveFuelRunway.toFixed(1)} days.`,
     recommendation: 'Confirm supply vessel MV Vasiliy Golovnin fuel transfer manifold readiness.',
     forecast_series: fuelSeries,
   };
 
   // 7. Communication Satcom Link Quality
-  const commRisk = commSnr < 11.0 ? 'MODERATE' : 'LOW';
-  const projSnr = +(commSnr - 1.2).toFixed(1);
+  const weatherFade = Math.max(0.2, 0.45 + Math.max(0, wind - 20) * 0.035);
+  const vibrationFade = Math.max(0, vib - vibWarn) * 0.16;
+  const totalFade = weatherFade + vibrationFade;
+  const projSnr = +Math.max(4, commSnr - totalFade).toFixed(1);
+  const projectedLatency = Math.round(commLat + 8 + Math.max(0, wind - 30) * 0.8);
+  const commBreachMins = commSnr <= 10 ? 0 : projSnr < 10 ? Math.max(1, Math.round(((commSnr - 10) / Math.max(0.1, commSnr - projSnr)) * 360)) : null;
+  const commRisk = commSnr <= 10 ? 'CRITICAL' : commBreachMins !== null ? (commBreachMins <= 180 ? 'HIGH' : 'MODERATE') : 'LOW';
   const commSeries = [
     { time: 'Now', predicted_value: commSnr, upper_bound: commSnr, lower_bound: commSnr, threshold: 10.0, unit: 'dB' },
-    { time: '+1h', predicted_value: +(commSnr - 0.2).toFixed(1), upper_bound: +(commSnr + 0.1).toFixed(1), lower_bound: +(commSnr - 0.5).toFixed(1), threshold: 10.0, unit: 'dB' },
-    { time: '+2h', predicted_value: +(commSnr - 0.5).toFixed(1), upper_bound: +(commSnr - 0.1).toFixed(1), lower_bound: +(commSnr - 0.9).toFixed(1), threshold: 10.0, unit: 'dB' },
-    { time: '+4h', predicted_value: +(commSnr - 0.9).toFixed(1), upper_bound: +(commSnr - 0.4).toFixed(1), lower_bound: +(commSnr - 1.4).toFixed(1), threshold: 10.0, unit: 'dB' },
+    { time: '+1h', predicted_value: +(commSnr - totalFade / 6).toFixed(1), upper_bound: +(commSnr - totalFade / 7).toFixed(1), lower_bound: +(commSnr - totalFade / 5).toFixed(1), threshold: 10.0, unit: 'dB' },
+    { time: '+2h', predicted_value: +(commSnr - totalFade / 3).toFixed(1), upper_bound: +(commSnr - totalFade * 0.27).toFixed(1), lower_bound: +(commSnr - totalFade * 0.4).toFixed(1), threshold: 10.0, unit: 'dB' },
+    { time: '+4h', predicted_value: +(commSnr - totalFade * 0.67).toFixed(1), upper_bound: +(commSnr - totalFade * 0.55).toFixed(1), lower_bound: +(commSnr - totalFade * 0.8).toFixed(1), threshold: 10.0, unit: 'dB' },
     { time: '+6h', predicted_value: projSnr, upper_bound: +(projSnr + 0.4).toFixed(1), lower_bound: +(projSnr - 0.8).toFixed(1), threshold: 10.0, unit: 'dB' },
   ];
 
@@ -293,14 +346,14 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
     station_id: stationId,
     station_name: stationName,
     current_val: `${commSnr.toFixed(1)} dB SNR (${commLat} ms)`,
-    predicted_val: `${projSnr} dB SNR (${commLat + 15} ms)`,
+    predicted_val: `${projSnr} dB SNR (${projectedLatency} ms)`,
     threshold: '10.0 dB Minimum Margin',
-    time_to_breach: 'No Link Loss Expected',
-    time_to_breach_mins: null,
+    time_to_breach: commBreachMins === 0 ? 'Threshold Breached Now' : commBreachMins !== null ? `${Math.floor(commBreachMins / 60)}h ${commBreachMins % 60}m` : 'No Breach Expected',
+    time_to_breach_mins: commBreachMins,
     risk_level: commRisk,
     confidence: 84,
     forecast_window: '6 Hours',
-    explanation: 'Approaching blizzard front will introduce minor Ku-band atmospheric fade (-1.2 dB), but SNR remains safely above lock threshold.',
+    explanation: `Wind-driven snow and vibration produce ${totalFade.toFixed(2)} dB modeled attenuation, reducing the six-hour link margin to ${projSnr.toFixed(1)} dB.`,
     recommendation: '4-Level Priority Queue active; critical emergency life-support packets preemptively guaranteed 240ms latency.',
     forecast_series: commSeries,
   };
@@ -312,19 +365,35 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
   const compositeScore = Math.min(100, allPreds.reduce((acc, p) => acc + (riskScores[p.risk_level] || 0), 0));
   const stationRiskLevel = compositeScore >= 60 ? 'CRITICAL' : compositeScore >= 35 ? 'HIGH' : compositeScore >= 15 ? 'MODERATE' : 'OPTIMAL';
 
-  const nextIssue = allPreds.find(p => p.time_to_breach_mins && p.time_to_breach_mins > 0) || genPred;
+  const nextIssue = [...allPreds]
+    .filter((prediction) => prediction.time_to_breach_mins !== null && prediction.time_to_breach_mins >= 0)
+    .sort((a, b) => a.time_to_breach_mins - b.time_to_breach_mins)[0] || genPred;
+
+  const operatingPenalty = (
+    Math.max(0, genTemp - 80) * 0.30
+    + Math.max(0, 65 - battLvl) * 0.12
+    + Math.max(0, pwrCons - pwrGen) * 0.05
+    + Math.max(0, wind - 55) * 0.05
+    + Math.max(0, vib - vibWarn) * 1.5
+  );
+  const scenarioHealth = isSimulation
+    ? +Math.max(50, health - operatingPenalty).toFixed(1)
+    : health;
 
   return {
-    status: 'SUCCESS',
-    mode: isSimulation ? 'SIMULATION_MODE' : 'REALTIME_TELEMETRY',
+    status: 'DEGRADED',
+    mode: isSimulation ? 'CLIENT_SIMULATION' : 'SIMULATED_FALLBACK',
+    data_source: 'SIMULATED_FALLBACK',
+    is_fallback: true,
+    fallback_reason: fallbackReason,
     station_id: stationId,
     station_name: stationName,
     station_region: region,
     timestamp: new Date().toISOString(),
     station_risk_score: compositeScore,
     station_risk_level: stationRiskLevel,
-    current_health_score: health,
-    projected_health_24h: +(health - (compositeScore / 100) * 12).toFixed(1),
+    current_health_score: scenarioHealth,
+    projected_health_24h: +Math.max(50, scenarioHealth - (compositeScore / 100) * 12).toFixed(1),
     next_predicted_issue: {
       title: nextIssue.title,
       prediction_type: nextIssue.prediction_type,
@@ -344,8 +413,8 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
       communication: [commPred],
     },
     model_metadata: {
-      engine: 'POLARIS Physics-Informed ML Predictor v2.4',
-      training_status: 'ONLINE',
+      engine: 'POLARIS Client-Side Physics-Informed Simulator v2.4',
+      training_status: 'CLIENT_FALLBACK',
       inference_latency_ms: 14.2,
       overall_confidence: 91.4,
     }
@@ -358,17 +427,17 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
 export async function fetchPredictiveIntelligence(stationId = 'station-maitri', horizonHours = 24, role = 'india_operator') {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   try {
-    const res = await fetch(`${BACKEND_URL}/api/ml/predictive-intelligence?station_id=${normId}&horizon_hours=${horizonHours}`, {
-      headers: getAuthHeaders(role),
+    const res = await fetch(`${ML_API_URL}/api/ml/predictive-intelligence?station_id=${normId}&horizon_hours=${horizonHours}`, {
+      headers: await getAuthHeaders(role),
     });
     if (res.ok) {
       const data = await res.json();
-      return data;
+      return { ...data, data_source: data.data_source || 'FASTAPI_ML', is_fallback: false };
     }
   } catch (err) {
     console.warn('[PredictiveService] Backend not reachable, using physics-informed client telemetry engine:', err);
   }
-  return generateFallbackPredictions(normId, null, false);
+  return generateFallbackPredictions(normId, null, false, 'FastAPI predictive endpoint unavailable');
 }
 
 /**
@@ -377,9 +446,9 @@ export async function fetchPredictiveIntelligence(stationId = 'station-maitri', 
 export async function simulatePredictiveIntelligence(stationId = 'station-maitri', overrides = {}, role = 'india_operator') {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   try {
-    const res = await fetch(`${BACKEND_URL}/api/ml/predictive-intelligence/simulate`, {
+    const res = await fetch(`${ML_API_URL}/api/ml/predictive-intelligence/simulate`, {
       method: 'POST',
-      headers: getAuthHeaders(role),
+      headers: await getAuthHeaders(role),
       body: JSON.stringify({
         station_id: normId,
         telemetry_override: overrides,
@@ -387,12 +456,12 @@ export async function simulatePredictiveIntelligence(stationId = 'station-maitri
     });
     if (res.ok) {
       const data = await res.json();
-      return data;
+      return { ...data, data_source: data.data_source || 'FASTAPI_ML_SIMULATION', is_fallback: false };
     }
   } catch (err) {
     console.warn('[PredictiveService] Backend simulation call failed, simulating on client:', err);
   }
-  return generateFallbackPredictions(normId, overrides, true);
+  return generateFallbackPredictions(normId, overrides, true, 'FastAPI simulation endpoint unavailable');
 }
 
 /**
@@ -405,7 +474,8 @@ export async function runWhatIfPrediction(
     ambient_temperature: -28.0,
     generator_capacity_derate: 35.0,
     wind_velocity: 75.0,
-    life_support_min_reserve: 80.0
+    life_support_min_reserve: 80.0,
+    load_reduction_kw: 0.0
   },
   role = 'india_operator'
 ) {
@@ -416,12 +486,15 @@ export async function runWhatIfPrediction(
     generator_capacity_derate: Number(params.generator_capacity_derate ?? 35.0),
     wind_velocity: Number(params.wind_velocity ?? 75.0),
     life_support_min_reserve: Number(params.life_support_min_reserve ?? 80.0),
+    load_reduction_kw: Number(params.load_reduction_kw ?? 0.0),
   };
 
   try {
-    const res = await fetch(`${BACKEND_URL}/api/predictions/what-if`, {
+    // What-if inference is served directly by FastAPI so counterfactual model
+    // additions are available without depending on the Node proxy lifecycle.
+    const res = await fetch(`${ML_API_URL}/api/predictions/what-if`, {
       method: 'POST',
-      headers: getAuthHeaders(role, normId),
+      headers: await getAuthHeaders(role, normId),
       body: JSON.stringify(payload),
     });
     if (res.ok) {
@@ -448,6 +521,7 @@ function generateFallbackWhatIfPrediction(stationId, payload) {
   const genDerate = payload.generator_capacity_derate;
   const wind = payload.wind_velocity;
   const minLifeReserve = payload.life_support_min_reserve;
+  const loadReductionKw = Math.max(0, Math.min(100, payload.load_reduction_kw || 0));
 
   const totalGenKw = isBharati ? 185.0 : 132.0;
   const baseDemandKw = isBharati ? 145.0 : 105.0;
@@ -458,7 +532,7 @@ function generateFallbackWhatIfPrediction(stationId, payload) {
   // Colder temperature increases heating demand
   const coldDemandKw = Math.max(0, (-18.0 - ambTemp) * (isBharati ? 1.15 : 0.95));
   const windDemandKw = Math.max(0, (wind - 40.0) * 0.24);
-  const totalDemand = Math.round(baseDemandKw + coldDemandKw + windDemandKw);
+  const totalDemand = Math.max(25, Math.round(baseDemandKw + coldDemandKw + windDemandKw - loadReductionKw));
 
   // Derated generation
   const availableGen = Math.round(totalGenKw * (1.0 - genDerate / 100.0));
@@ -525,11 +599,19 @@ function generateFallbackWhatIfPrediction(stationId, payload) {
 
   return {
     status: 'SUCCESS',
+    prediction_id: `PRED-${isBharati ? 'BHARATI' : 'MAITRI'}-${Date.now()}`,
     station_id: stationId,
     station_name: stationName,
     station_region: stationRegion,
     timestamp: new Date().toISOString(),
     whatif_parameters: payload,
+    data_provenance: {
+      telemetry: 'SIMULATED_DIGITAL_TWIN',
+      manual_inputs: 'OPERATOR_WHAT_IF',
+      forecast: 'CLIENT_PHYSICS_ESTIMATE',
+      intervention: loadReductionKw > 0 ? 'OPERATOR_APPROVED_COUNTERFACTUAL' : 'NONE',
+      disclaimer: 'Research prototype; validate against authorised station telemetry before operational deployment.'
+    },
     current_telemetry: {
       battery_level: baseBatt,
       power_generation: totalGenKw,

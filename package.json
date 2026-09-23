@@ -10,12 +10,15 @@
   "scripts": {
     "build": "node build.js",
     "start": "npm --prefix frontend run preview",
+    "dev": "node scripts/dev-all.cjs",
     "dev:backend": "npm --prefix backend run dev",
     "dev:fastapi": "uvicorn main:app --reload --port 8000 --app-dir fastapi_backend",
     "dev:frontend": "npm --prefix frontend run dev",
     "simulate": "node simulator/simulator.js",
     "simulate:scenario": "node simulator/simulator.js --scenario",
-    "test:queue": "node backend/test_verification.js"
+    "test": "npm run test:queue",
+    "test:queue": "node backend/test_verification.js",
+    "check": "npm run test && npm --prefix frontend run build"
   },
   "keywords": [
     "sih2026",

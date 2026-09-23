@@ -25,6 +25,7 @@ class WhatIfPredictionRequest(BaseModel):
     generator_capacity_derate: float = Field(default=35.0, description="Generator Capacity Derate in % (0 to 100)")
     wind_velocity: float = Field(default=75.0, description="Katabatic Storm Wind Velocity in km/h (0 to 160)")
     life_support_min_reserve: float = Field(default=80.0, description="Life-Support Priority Minimum Reserve in % (40 to 100)")
+    load_reduction_kw: float = Field(default=0.0, ge=0.0, le=100.0, description="Operator-selected non-critical load shedding in kW")
 
 @router.post("/what-if", summary="Execute AI/ML-Based Predictive Simulation for Station What-If Parameters")
 async def execute_what_if_prediction(
@@ -58,7 +59,8 @@ async def execute_what_if_prediction(
             ambient_temperature=payload.ambient_temperature,
             generator_capacity_derate=payload.generator_capacity_derate,
             wind_velocity=payload.wind_velocity,
-            life_support_min_reserve=payload.life_support_min_reserve
+            life_support_min_reserve=payload.life_support_min_reserve,
+            load_reduction_kw=payload.load_reduction_kw
         )
         return result
     except Exception as e:

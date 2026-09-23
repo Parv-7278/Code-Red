@@ -54,6 +54,7 @@ class WhatIfPredictionService:
         generator_capacity_derate: float = 35.0,
         wind_velocity: float = 75.0,
         life_support_min_reserve: float = 80.0,
+        load_reduction_kw: float = 0.0,
         custom_telemetry_history: Optional[List[SyntheticTelemetryPoint]] = None
     ) -> Dict[str, Any]:
         """
@@ -79,11 +80,13 @@ class WhatIfPredictionService:
         latest = history[-1]
 
         # 2. Package What-If inputs
+        load_reduction_kw = max(0.0, min(100.0, float(load_reduction_kw)))
         whatif_params = {
             "ambient_temperature": float(ambient_temperature),
             "generator_capacity_derate": float(generator_capacity_derate),
             "wind_velocity": float(wind_velocity),
-            "life_support_min_reserve": float(life_support_min_reserve)
+            "life_support_min_reserve": float(life_support_min_reserve),
+            "load_reduction_kw": load_reduction_kw
         }
 
         # Current baseline telemetry snapshot
@@ -119,6 +122,29 @@ class WhatIfPredictionService:
         pred_30 = horizon_preds["30min"]
         pred_60 = horizon_preds["60min"]
         pred_120 = horizon_preds["120min"]
+
+        # Apply an operator-approved load-shedding intervention after the raw ML
+        # forecast. This is kept explicit so the UI can compare the untouched
+        # baseline forecast with the counterfactual intervention forecast.
+        if load_reduction_kw > 0:
+            battery_capacity_kwh = 480.0 if is_bharati else 320.0
+            for horizon_key, hours in (("15min", 0.25), ("30min", 0.5), ("60min", 1.0), ("120min", 2.0)):
+                point = horizon_preds[horizon_key]
+                original_demand = float(point["power_demand"])
+                effective_reduction = min(load_reduction_kw, max(0.0, original_demand - 25.0))
+                point["power_demand"] = round(original_demand - effective_reduction, 1)
+                point["net_power"] = round(float(point["power_generation"]) - point["power_demand"], 1)
+                avoided_discharge_pct = (effective_reduction * hours / battery_capacity_kwh) * 100.0 * 0.90
+                point["battery_level"] = round(min(100.0, float(point["battery_level"]) + avoided_discharge_pct), 1)
+                thermal_relief = min(8.0, (effective_reduction / max(1.0, original_demand)) * 7.0 * hours)
+                point["generator_temperature"] = round(max(40.0, float(point["generator_temperature"]) - thermal_relief), 1)
+                reserve_gain = min(3.0, effective_reduction / 25.0 * hours)
+                point["life_support_reserve"] = round(min(100.0, float(point["life_support_reserve"]) + reserve_gain), 1)
+
+            pred_15 = horizon_preds["15min"]
+            pred_30 = horizon_preds["30min"]
+            pred_60 = horizon_preds["60min"]
+            pred_120 = horizon_preds["120min"]
 
         # 6. Calculate Dynamic Risk Probabilities (Model-Derived)
         # Power Failure Risk
@@ -296,10 +322,10 @@ class WhatIfPredictionService:
                 "category": "POWER_DISPATCH"
             })
 
-        if batt_risk_score >= 0.60 or pred_60["battery_level"] <= cls.THRESHOLDS["battery_warning_pct"]:
+        if max_deficit >= 15.0 or batt_risk_score >= 0.60 or pred_60["battery_level"] <= cls.THRESHOLDS["battery_warning_pct"]:
             preventive_actions.append({
                 "priority": "P1_URGENT",
-                "action": f"Initiate SCADA automated load-shedding on non-critical research lab spectrometer trace heaters and domestic laundry to reduce load by ~{int(max(15.0, abs(pred_60['net_power'])))} kW.",
+                "action": f"Initiate SCADA automated load-shedding on non-critical research lab spectrometer trace heaters and domestic laundry to reduce load by ~{int(max(15.0, max_deficit))} kW.",
                 "category": "LOAD_MANAGEMENT"
             })
 
@@ -386,11 +412,19 @@ class WhatIfPredictionService:
         # 11. Assemble Complete Structured Response
         return {
             "status": "SUCCESS",
+            "prediction_id": f"PRED-{clean_id.split('-')[-1].upper()}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')[:-3]}",
             "station_id": clean_id,
             "station_name": station_name,
             "station_region": station_region,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "whatif_parameters": whatif_params,
+            "data_provenance": {
+                "telemetry": "SIMULATED_DIGITAL_TWIN",
+                "manual_inputs": "OPERATOR_WHAT_IF",
+                "forecast": "ML_DERIVED_ESTIMATE",
+                "intervention": "OPERATOR_APPROVED_COUNTERFACTUAL" if load_reduction_kw > 0 else "NONE",
+                "disclaimer": "Research prototype; validate against authorised station telemetry before operational deployment."
+            },
             "current_telemetry": current_telemetry,
             "predicted_state": predicted_state,
             "confidence": confidence,

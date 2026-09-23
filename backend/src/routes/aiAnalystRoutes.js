@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const aiAnalystController = require('../controllers/aiAnalystController');
-const { validateStationAccess } = require('../middleware/authRoleMiddleware');
+const { requireAuthenticated, validateStationAccess } = require('../middleware/authRoleMiddleware');
 
 // GET /api/research/ai-analyst/status
-router.get('/status', aiAnalystController.getAIAnalystStatus);
+router.get('/status', requireAuthenticated, aiAnalystController.getAIAnalystStatus);
 
 // POST /api/research/ai-analyst/report-24h
 router.post('/report-24h', validateStationAccess, aiAnalystController.generate24hSummaryReport);

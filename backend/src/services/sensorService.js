@@ -63,8 +63,8 @@ async function processSensorData(data) {
     packet_type: 'NORMAL_TELEMETRY',
   };
 
-  // 1. Submit normal telemetry packet to Priority Queue (Priority Level 4 = Normal)
-  const enqueuedPacket = defaultSatelliteLink.submitPacket(formattedRecord, 4);
+  // 1. Submit normal telemetry packet to Priority Queue (Priority Level 3 = Normal)
+  const enqueuedPacket = defaultSatelliteLink.submitPacket(formattedRecord, 3);
 
   // 2. Update in-memory state
   latestStationData[stationId] = {

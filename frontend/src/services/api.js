@@ -1,15 +1,26 @@
 import { formatStationDate, formatStationTime, getStationTimezone, getStationTimezoneLabel } from '../utils/timeUtils.js';
+import { getAccessToken } from './supabaseClient.js';
 
 const BACKEND_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) || 'http://localhost:5000';
 
-function getAuthHeaders(role = 'india_operator', assignedStation = null, operatorName = null) {
+async function getAuthHeaders(role = 'india_operator', assignedStation = null, operatorName = null) {
   const headers = {
     'Content-Type': 'application/json',
     'x-user-role': role || 'india_operator',
   };
   if (assignedStation) headers['x-station-id'] = assignedStation;
   if (operatorName) headers['x-operator-name'] = operatorName;
+  const accessToken = await getAccessToken();
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
   return headers;
+}
+
+async function unwrapApiResponse(res) {
+  const payload = await res.json();
+  if (!res.ok) {
+    throw new Error(payload.message || payload.error || `API request failed with HTTP ${res.status}`);
+  }
+  return payload.data ?? payload;
 }
 
 // -----------------------------------------------------------------------------
@@ -19,7 +30,7 @@ function getAuthHeaders(role = 'india_operator', assignedStation = null, operato
 export async function getStationHealth(stationId = 'station-maitri', role, assignedStation) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   const res = await fetch(`${BACKEND_URL}/api/stations/${normId}/health`, {
-    headers: getAuthHeaders(role, assignedStation),
+    headers: await getAuthHeaders(role, assignedStation),
   });
   return res.json();
 }
@@ -27,7 +38,7 @@ export async function getStationHealth(stationId = 'station-maitri', role, assig
 export async function getStationModules(stationId = 'station-maitri', role, assignedStation) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   const res = await fetch(`${BACKEND_URL}/api/stations/${normId}/modules`, {
-    headers: getAuthHeaders(role, assignedStation),
+    headers: await getAuthHeaders(role, assignedStation),
   });
   return res.json();
 }
@@ -35,7 +46,7 @@ export async function getStationModules(stationId = 'station-maitri', role, assi
 export async function getStationEnergy(stationId = 'station-maitri', role, assignedStation) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   const res = await fetch(`${BACKEND_URL}/api/stations/${normId}/energy`, {
-    headers: getAuthHeaders(role, assignedStation),
+    headers: await getAuthHeaders(role, assignedStation),
   });
   return res.json();
 }
@@ -43,7 +54,7 @@ export async function getStationEnergy(stationId = 'station-maitri', role, assig
 export async function getStationLogistics(stationId = 'station-maitri', role, assignedStation) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   const res = await fetch(`${BACKEND_URL}/api/stations/${normId}/logistics`, {
-    headers: getAuthHeaders(role, assignedStation),
+    headers: await getAuthHeaders(role, assignedStation),
   });
   return res.json();
 }
@@ -51,7 +62,7 @@ export async function getStationLogistics(stationId = 'station-maitri', role, as
 export async function getStationEnvironment(stationId = 'station-maitri', role, assignedStation) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   const res = await fetch(`${BACKEND_URL}/api/stations/${normId}/environment`, {
-    headers: getAuthHeaders(role, assignedStation),
+    headers: await getAuthHeaders(role, assignedStation),
   });
   return res.json();
 }
@@ -59,7 +70,7 @@ export async function getStationEnvironment(stationId = 'station-maitri', role, 
 export async function getStationResearch(stationId = 'station-maitri', role, assignedStation) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   const res = await fetch(`${BACKEND_URL}/api/stations/${normId}/research`, {
-    headers: getAuthHeaders(role, assignedStation),
+    headers: await getAuthHeaders(role, assignedStation),
   });
   return res.json();
 }
@@ -67,7 +78,7 @@ export async function getStationResearch(stationId = 'station-maitri', role, ass
 export async function getStationAlerts(stationId = null, role, assignedStation) {
   const filterParam = stationId && stationId !== 'all-stations' && stationId !== 'all' ? `?stationId=${stationId}` : '';
   const res = await fetch(`${BACKEND_URL}/api/alerts${filterParam}`, {
-    headers: getAuthHeaders(role, assignedStation),
+    headers: await getAuthHeaders(role, assignedStation),
   });
   return res.json();
 }
@@ -87,7 +98,7 @@ export const fetchAlerts = getStationAlerts;
 export async function fetchLatestTelemetry(stationId, role, assignedStation) {
   const filterParam = stationId && stationId !== 'all-stations' && stationId !== 'all' ? `?stationId=${stationId}` : '';
   const res = await fetch(`${BACKEND_URL}/api/sensor-data/latest${filterParam}`, {
-    headers: getAuthHeaders(role, assignedStation),
+    headers: await getAuthHeaders(role, assignedStation),
   });
   return res.json();
 }
@@ -99,19 +110,19 @@ export async function fetchStationStatus(stationId, role, assignedStation) {
 export async function fetchRemoteOperations(stationId, role, assignedStation) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   const res = await fetch(`${BACKEND_URL}/api/stations/${normId}/remote-operations`, {
-    headers: getAuthHeaders(role, assignedStation),
+    headers: await getAuthHeaders(role, assignedStation),
   });
-  return res.json();
+  return unwrapApiResponse(res);
 }
 
 export async function executeRemoteCommand(stationId, commandData, operatorName, role, assignedStation) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   const res = await fetch(`${BACKEND_URL}/api/stations/${normId}/remote-operations`, {
     method: 'POST',
-    headers: getAuthHeaders(role, assignedStation, operatorName),
+    headers: await getAuthHeaders(role, assignedStation, operatorName),
     body: JSON.stringify(commandData),
   });
-  return res.json();
+  return unwrapApiResponse(res);
 }
 
 export async function fetchQueueMetrics() {
@@ -454,7 +465,7 @@ export async function analyzeResearchData(params = {}, role, assignedStation) {
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: getAuthHeaders(role, assignedStation),
+        headers: await getAuthHeaders(role, assignedStation),
         body: JSON.stringify({
           station_id: stationId,
           analysis_type: analysisType,
@@ -504,7 +515,7 @@ export async function fetchEnergyPrediction(stationId = 'maitri', predictionHour
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: getAuthHeaders(role, assignedStation),
+        headers: await getAuthHeaders(role, assignedStation),
         body: JSON.stringify({
           station_id: normId,
           prediction_hours: predictionHours
@@ -672,7 +683,7 @@ export async function askResearchAI(params = {}, role, assignedStation) {
     try {
       const res = await fetch(url, {
         method: 'POST',
-        headers: getAuthHeaders(role, assignedStation),
+        headers: await getAuthHeaders(role, assignedStation),
         body: JSON.stringify({
           station_id: stationId,
           question,
@@ -774,7 +785,7 @@ export async function generate24HourReport(params = {}, role, assignedStation) {
 
       const res = await fetch(url, {
         method: 'POST',
-        headers: getAuthHeaders(role, assignedStation),
+        headers: await getAuthHeaders(role, assignedStation),
         body: JSON.stringify(body),
       });
 
@@ -802,7 +813,7 @@ export async function generate24HourReport(params = {}, role, assignedStation) {
 export async function getAIAnalystStatus(role, assignedStation) {
   try {
     const res = await fetch(`${BACKEND_URL}/api/research/ai-analyst/status`, {
-      headers: getAuthHeaders(role, assignedStation),
+      headers: await getAuthHeaders(role, assignedStation),
     });
     if (res.ok) return await res.json();
   } catch (err) {

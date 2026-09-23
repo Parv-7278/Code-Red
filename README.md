@@ -100,26 +100,34 @@ React India Mission Control Dashboard (Vite + WebSockets)
 ## ⚡ Quick Start Guide
 
 ### 1. Database (Supabase)
-Execute [`database/schema.sql`](file:///c:/Users/Parv/OneDrive/Desktop/code%20red/database/schema.sql) followed by [`database/seed.sql`](file:///c:/Users/Parv/OneDrive/Desktop/code%20red/database/seed.sql) in your Supabase SQL editor.  
-*(Note: If Supabase credentials are not provided, the backend seamlessly runs with an in-memory mock store).*
+Execute `database/schema.sql` followed by `database/seed.sql` in your Supabase SQL editor.
+If Supabase credentials are not provided, the APIs use an in-memory simulated store and the frontend displays a simulation-prototype banner.
 
-### 2. Backend (Node.js)
+### 2. Configure local environment
 ```bash
-cd backend
-npm install
-npm run dev
-# Server running at http://localhost:5000
+copy backend\.env.example backend\.env
+copy fastapi_backend\.env.example fastapi_backend\.env
+copy frontend\.env.example frontend\.env
 ```
 
-### 3. Frontend (React + Vite)
+Keep `DEMO_MODE=true` only for local demonstrations. Header-based demo roles are disabled when the Node API runs with `NODE_ENV=production`.
+
+For a configured deployment, set `DEMO_MODE=false`, provide the Supabase URL and service-role key to both backends, provide the Supabase URL and publishable key to the frontend, and use the same strong `DEVICE_INGEST_API_KEY` in the backends and station simulator. Operator API calls then use verified Supabase bearer tokens and server-controlled `user_profiles` roles.
+
+Apply `database/schema.sql` before disabling demo mode. It now includes energy telemetry, persistent remote-operation audit records, alert event IDs, indexes, and row-level security policies.
+
+### 3. Install and start the complete application
 ```bash
-cd frontend
 npm install
+pip install -r fastapi_backend/requirements.txt
 npm run dev
-# Dashboard running at http://localhost:3000
 ```
 
-### 4. Station Sensor Simulator (Python)
+This starts the Node API on `http://localhost:5000`, FastAPI/ML on `http://localhost:8000`, and the React dashboard on `http://localhost:3000`.
+
+Run `npm run check` before a demonstration to execute the queue verification and production frontend build.
+
+### 4. Optional station sensor simulator (Python)
 ```bash
 cd simulator
 pip install -r requirements.txt

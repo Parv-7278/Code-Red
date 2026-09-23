@@ -222,7 +222,7 @@ export default function LandingPage() {
               />
               
               {/* Bharati Station Pin (Top-Right Coast) */}
-              <g className="map-station-pin" onClick={() => handleQuickLogin('station-bharati')} style={{ cursor: 'pointer' }}>
+              <g className="map-station-pin" aria-label="Bharati Station location">
                 <circle cx="148" cy="78" r="4.5" fill="#0284c7" className="animate-ping" opacity="0.8" />
                 <circle cx="148" cy="78" r="3.5" fill="#0f172a" />
                 <circle cx="148" cy="78" r="2" fill="#38bdf8" />
@@ -230,7 +230,7 @@ export default function LandingPage() {
               </g>
 
               {/* Maitri Station Pin (Bottom-Right Oasis) */}
-              <g className="map-station-pin" onClick={() => handleQuickLogin('station-maitri')} style={{ cursor: 'pointer' }}>
+              <g className="map-station-pin" aria-label="Maitri Station location">
                 <circle cx="132" cy="135" r="4.5" fill="#0284c7" className="animate-ping" opacity="0.8" />
                 <circle cx="132" cy="135" r="3.5" fill="#0f172a" />
                 <circle cx="132" cy="135" r="2" fill="#38bdf8" />
@@ -244,80 +244,6 @@ export default function LandingPage() {
               <span className="coords-station-line">Maitri: 70° 45′ S, 11° 44′ E</span>
               <span className="coords-station-line">Bharati: 69° 24′ S, 76° 17′ E</span>
             </div>
-          </div>
-
-          {/* 3 Floating Station Cards (Horizontal Row on Landscape) */}
-          <div className="hero-station-cards-row">
-            
-            {/* 1. INDIA CONTROL CENTRE CARD */}
-            <div 
-              className="station-glass-card card-dark-india"
-              onClick={() => handleQuickLogin('india_operator')}
-              title="Access India Control Centre"
-            >
-              <div className="card-top-content">
-                <div className="card-icon-square dark-square">
-                  <Building2 size={20} className="text-white" />
-                </div>
-                <div className="card-title-col">
-                  <h3 className="card-st-heading text-white">INDIA</h3>
-                  <h3 className="card-st-heading text-white">CONTROL CENTRE</h3>
-                </div>
-              </div>
-              <p className="card-st-desc text-slate-300">
-                Central monitoring, cross-station coordination and mission support.
-              </p>
-              <div className="card-arrow-circle-btn dark-btn">
-                <ArrowRight size={14} className="text-white" />
-              </div>
-            </div>
-
-            {/* 2. MAITRI STATION CARD */}
-            <div 
-              className="station-glass-card card-light-station"
-              onClick={() => handleQuickLogin('station-maitri')}
-              title="Access Maitri Station"
-            >
-              <div className="card-top-content">
-                <div className="card-thumb-wrap">
-                  <img src="/stations/maitri.jpg" alt="Maitri Research Station" className="card-thumb-img" />
-                </div>
-                <div className="card-title-col">
-                  <h3 className="card-st-heading text-navy">MAITRI</h3>
-                  <h3 className="card-st-heading text-navy">STATION</h3>
-                </div>
-              </div>
-              <p className="card-st-desc text-slate-600">
-                Access station operations, infrastructure and environment data.
-              </p>
-              <div className="card-arrow-circle-btn light-btn">
-                <ArrowRight size={14} className="text-navy" />
-              </div>
-            </div>
-
-            {/* 3. BHARATI STATION CARD */}
-            <div 
-              className="station-glass-card card-light-station"
-              onClick={() => handleQuickLogin('station-bharati')}
-              title="Access Bharati Station"
-            >
-              <div className="card-top-content">
-                <div className="card-thumb-wrap">
-                  <img src="/stations/bharati.jpg" alt="Bharati Research Station" className="card-thumb-img" />
-                </div>
-                <div className="card-title-col">
-                  <h3 className="card-st-heading text-navy">BHARATI</h3>
-                  <h3 className="card-st-heading text-navy">STATION</h3>
-                </div>
-              </div>
-              <p className="card-st-desc text-slate-600">
-                Access station operations, infrastructure and environment data.
-              </p>
-              <div className="card-arrow-circle-btn light-btn">
-                <ArrowRight size={14} className="text-navy" />
-              </div>
-            </div>
-
           </div>
 
           {/* Bottom 5-Column Feature Icons Strip */}

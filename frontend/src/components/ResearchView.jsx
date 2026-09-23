@@ -48,9 +48,6 @@ import {
   FileCheck,
   X,
   Sliders,
-  Settings,
-  Bell,
-  LayoutDashboard,
   HardDrive
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -408,125 +405,9 @@ export default function ResearchView({ selectedStation = 'station-maitri', onSel
   return (
     <div className="india-dashboard-container">
       
-      {/* ====================================================================
-          LEFT SIDEBAR NAVIGATION & HEALTH GAUGE
-          ==================================================================== */}
+      {/* Station health summary column */}
       <aside className="india-sidebar-col">
-        
-        {/* Sidebar Header Title & Station Switcher */}
-        <div className="sidebar-header-badge">
-          <span className="sidebar-station-prefix">
-            {isBharati ? 'BHARATI STATION' : 'MAITRI STATION'}
-          </span>
-          {isIndiaOperator && onSelectStation && (
-            <div className="sidebar-stn-switcher-mini">
-              <button
-                type="button"
-                className={`stn-mini-btn ${effectiveStation === 'station-maitri' && selectedStation !== 'all-stations' ? 'active' : ''}`}
-                onClick={() => onSelectStation('station-maitri')}
-                title="Switch to Maitri Station"
-              >
-                Maitri
-              </button>
-              <button
-                type="button"
-                className={`stn-mini-btn ${effectiveStation === 'station-bharati' ? 'active' : ''}`}
-                onClick={() => onSelectStation('station-bharati')}
-                title="Switch to Bharati Station"
-              >
-                Bharati
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Vertical Navigation Menu */}
-        <nav className="sidebar-nav-list">
-          <button 
-            type="button" 
-            className={`sidebar-nav-item ${sidebarTab === 'overview' ? 'active' : ''}`}
-            onClick={() => { setSidebarTab('overview'); setSubTab('overview'); }}
-          >
-            <LayoutDashboard size={14} className="sidebar-nav-icon" />
-            <span>Overview</span>
-          </button>
-          
-          <button 
-            type="button" 
-            className={`sidebar-nav-item ${sidebarTab === 'research' ? 'active' : ''}`}
-            onClick={() => { setSidebarTab('research'); setSubTab('overview'); }}
-          >
-            <FlaskConical size={14} className="sidebar-nav-icon" />
-            <span>Research</span>
-            {isBharati && <ChevronRight size={13} className="sidebar-nav-arrow" />}
-          </button>
-          
-          <button 
-            type="button" 
-            className={`sidebar-nav-item ${sidebarTab === 'infrastructure' ? 'active' : ''}`}
-            onClick={() => setSidebarTab('infrastructure')}
-          >
-            <Cpu size={14} className="sidebar-nav-icon" />
-            <span>Infrastructure</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`sidebar-nav-item ${sidebarTab === 'energy' ? 'active' : ''}`}
-            onClick={() => setSidebarTab('energy')}
-          >
-            <Zap size={14} className="sidebar-nav-icon" />
-            <span>Energy</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`sidebar-nav-item ${sidebarTab === 'logistics' ? 'active' : ''}`}
-            onClick={() => setSidebarTab('logistics')}
-          >
-            <Box size={14} className="sidebar-nav-icon" />
-            <span>Logistics</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`sidebar-nav-item ${sidebarTab === 'environment' ? 'active' : ''}`}
-            onClick={() => setSidebarTab('environment')}
-          >
-            <CloudSnow size={14} className="sidebar-nav-icon" />
-            <span>Environment</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`sidebar-nav-item ${sidebarTab === 'maintenance' ? 'active' : ''}`}
-            onClick={() => setSidebarTab('maintenance')}
-          >
-            <Settings size={14} className="sidebar-nav-icon" />
-            <span>Maintenance</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`sidebar-nav-item ${sidebarTab === 'communication' ? 'active' : ''}`}
-            onClick={() => setSidebarTab('communication')}
-          >
-            <Radio size={14} className="sidebar-nav-icon" />
-            <span>Communication</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`sidebar-nav-item ${sidebarTab === 'alerts' ? 'active' : ''}`}
-            onClick={() => setSidebarTab('alerts')}
-          >
-            <Bell size={14} className="sidebar-nav-icon" />
-            <span>Alerts</span>
-            <span className="sidebar-alert-badge-pill">3</span>
-          </button>
-        </nav>
-
-        {/* STATION HEALTH INDEX CARD */}
+        {/* Station Health Index now occupies the former navigation area. */}
         <div className="sidebar-health-card">
           <div className="card-mini-title">STATION HEALTH INDEX</div>
           

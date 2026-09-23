@@ -1,5 +1,6 @@
 const sensorService = require('./sensorService');
 const alertService = require('./alertService');
+const { supabase, isConfigured } = require('../config/supabase');
 
 const STATION_METADATA = {
   'station-maitri': {
@@ -56,8 +57,9 @@ const remoteOperationsLog = [
     stationId: 'station-maitri',
     operator: 'Dr. Rajesh Sharma (India HQ)',
     timestamp: new Date(Date.now() - 3600000).toISOString(),
-    status: 'EXECUTED',
-    result: 'Telemetry link established with NCPOR Goa.'
+    mode: 'SIMULATION',
+    status: 'COMPLETED_SIMULATION',
+    result: 'Simulated telemetry link established with NCPOR Goa.'
   },
   {
     id: 'cmd-init-02',
@@ -65,8 +67,9 @@ const remoteOperationsLog = [
     stationId: 'station-bharati',
     operator: 'Dr. Sunita Deshmukh (Bharati Lead)',
     timestamp: new Date(Date.now() - 1800000).toISOString(),
-    status: 'EXECUTED',
-    result: 'Prydz Bay subsea intake heating set to 45% power.'
+    mode: 'SIMULATION',
+    status: 'COMPLETED_SIMULATION',
+    result: 'Simulated Prydz Bay subsea intake heating set to 45% power.'
   }
 ];
 
@@ -187,9 +190,38 @@ function getStationResearch(stationId) {
   };
 }
 
-function getRemoteOperations(stationId) {
+async function getRemoteOperations(stationId) {
   const normId = normalizeStationId(stationId);
-  const list = remoteOperationsLog.filter(c => c.stationId === normId || c.stationId === 'all');
+  let list = remoteOperationsLog.filter(c => c.stationId === normId || c.stationId === 'all');
+
+  if (isConfigured()) {
+    try {
+      const { data, error } = await supabase
+        .from('remote_operations')
+        .select('*')
+        .eq('station_id', normId)
+        .order('requested_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      if (data?.length) {
+        list = data.map((row) => ({
+          id: row.id,
+          command: row.command,
+          commandCode: row.command_code,
+          stationId: row.station_id,
+          operator: row.operator_name,
+          timestamp: row.requested_at,
+          requested_at: row.requested_at,
+          completed_at: row.completed_at,
+          mode: row.mode,
+          status: row.status,
+          result: row.result,
+        }));
+      }
+    } catch (error) {
+      console.error('[Supabase] Error loading remote operations:', error.message);
+    }
+  }
   return {
     station_id: normId,
     available_commands: [
@@ -214,12 +246,33 @@ function executeRemoteOperation(stationId, commandData, operatorName = 'Mission 
     stationId: normId,
     operator: operatorName,
     timestamp: new Date().toISOString(),
-    status: 'EXECUTED',
-    result: `Command successfully dispatched via Priority Satellite Uplink to ${STATION_METADATA[normId].name}.`
+    requested_at: new Date().toISOString(),
+    completed_at: new Date().toISOString(),
+    mode: 'SIMULATION',
+    status: 'COMPLETED_SIMULATION',
+    result: `Command accepted and completed by the ${STATION_METADATA[normId].name} digital-twin simulator.`
   };
 
   remoteOperationsLog.unshift(record);
   if (remoteOperationsLog.length > 50) remoteOperationsLog.pop();
+
+  if (isConfigured()) {
+    const databaseRecord = {
+      id: record.id,
+      station_id: record.stationId,
+      command: record.command,
+      command_code: record.commandCode,
+      operator_name: record.operator,
+      mode: record.mode,
+      status: record.status,
+      result: record.result,
+      requested_at: record.requested_at,
+      completed_at: record.completed_at,
+    };
+    supabase.from('remote_operations').insert([databaseRecord]).then(({ error }) => {
+      if (error) console.error('[Supabase] Error saving remote operation:', error.message);
+    });
+  }
 
   // If command is generator switch, resolve any high generator temp in memory!
   if (record.command.includes('BACKUP') || record.command.includes('GEN')) {

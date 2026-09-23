@@ -9,6 +9,16 @@ export const supabase = (supabaseUrl && supabaseAnonKey && !supabaseUrl.includes
 
 export const isSupabaseConfigured = () => !!supabase;
 
+export async function getAccessToken() {
+  if (!supabase) return null;
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    console.warn('[Supabase] Could not read active session:', error.message);
+    return null;
+  }
+  return data.session?.access_token || null;
+}
+
 /**
  * Fetch a user profile by user UUID
  */

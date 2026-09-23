@@ -53,8 +53,8 @@ async function ingestTelemetry(data) {
     packet_type: 'NORMAL_TELEMETRY',
   };
 
-  // Submit to satellite queue with NORMAL priority (Level 4)
-  const enqueued = defaultSatelliteLink.submitPacket(telemetryRecord, 4);
+  // Submit to satellite queue with NORMAL priority (Level 3)
+  const enqueued = defaultSatelliteLink.submitPacket(telemetryRecord, 3);
 
   // Update in-memory state
   latestStationTelemetry[stationId] = {

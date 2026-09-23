@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Bell, 
   AlertTriangle, 
@@ -35,6 +35,16 @@ export default function AlertsView({ selectedStation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [acknowledgedIds, setAcknowledgedIds] = useState(new Set());
   const [injectingScenario, setInjectingScenario] = useState(null);
+
+  useEffect(() => {
+    if (!isIndiaOperator && assignedStation) {
+      setStationFilter(assignedStation);
+    } else if (selectedStation && selectedStation !== 'all-stations') {
+      setStationFilter(selectedStation);
+    } else {
+      setStationFilter('ALL');
+    }
+  }, [assignedStation, isIndiaOperator, selectedStation]);
 
   const maitriData = STATIONS_DATA['station-maitri'];
   const bharatiData = STATIONS_DATA['station-bharati'];
@@ -128,7 +138,12 @@ export default function AlertsView({ selectedStation }) {
       if (triggerAnomaly) {
         triggerAnomaly();
       }
-      await triggerScenario(scenarioType, 'station-bharati');
+      const targetStation = stationFilter !== 'ALL'
+        ? stationFilter
+        : selectedStation === 'station-bharati'
+          ? 'station-bharati'
+          : 'station-maitri';
+      await triggerScenario(scenarioType, targetStation);
       if (refreshTelemetry) refreshTelemetry();
     } catch (err) {
       console.warn('Scenario triggered:', err);
@@ -138,13 +153,21 @@ export default function AlertsView({ selectedStation }) {
   };
 
   // Filter alerts by Station, Severity, and Search Query
-  const filteredAlerts = masterAlerts.filter((a) => {
+  const accessibleAlerts = masterAlerts.filter((a) => {
     if (!isIndiaOperator && assignedStation && a.stationId !== assignedStation) {
       return false;
     }
+    return true;
+  });
+
+  const stationScopedAlerts = accessibleAlerts.filter((a) => {
     if (isIndiaOperator && stationFilter !== 'ALL' && a.stationId !== stationFilter) {
       return false;
     }
+    return true;
+  });
+
+  const filteredAlerts = stationScopedAlerts.filter((a) => {
     if (severityFilter !== 'ALL' && a.severity !== severityFilter) {
       return false;
     }
@@ -155,10 +178,10 @@ export default function AlertsView({ selectedStation }) {
     return true;
   });
 
-  const criticalCount = masterAlerts.filter(a => a.severity === 'CRITICAL').length;
-  const highCount = masterAlerts.filter(a => a.severity === 'HIGH').length;
-  const warningCount = masterAlerts.filter(a => a.severity === 'WARNING').length;
-  const infoCount = masterAlerts.filter(a => a.severity === 'INFO').length;
+  const criticalCount = stationScopedAlerts.filter(a => a.severity === 'CRITICAL').length;
+  const highCount = stationScopedAlerts.filter(a => a.severity === 'HIGH').length;
+  const warningCount = stationScopedAlerts.filter(a => a.severity === 'WARNING').length;
+  const infoCount = stationScopedAlerts.filter(a => a.severity === 'INFO').length;
 
   return (
     <div className="tab-page-container alerts-view-container">
@@ -167,7 +190,9 @@ export default function AlertsView({ selectedStation }) {
         <div>
           <h2 className="tab-page-title">Mission Incident Management & Emergency Operations Center</h2>
           <span className="tab-page-subtitle">
-            Centralized Space-Ground Alert Telemetry, Fault Correlation, and SCADA Incident Dispatch
+            {selectedStation === 'all-stations'
+              ? 'Unified Maitri and Bharati alert telemetry, fault correlation and SCADA incident dispatch'
+              : `${selectedStation === 'station-bharati' ? 'Bharati' : 'Maitri'} station alert telemetry, fault correlation and incident response`}
           </span>
         </div>
         <div className="header-status-badge">
@@ -183,7 +208,7 @@ export default function AlertsView({ selectedStation }) {
           onClick={() => setActiveAlertTab('active')}
         >
           <Bell size={14} />
-          <span>Active SCADA Incident Log ({masterAlerts.length})</span>
+          <span>Active SCADA Incident Log ({stationScopedAlerts.length})</span>
         </button>
 
         <button
@@ -312,7 +337,7 @@ export default function AlertsView({ selectedStation }) {
               className={`alert-kpi-pill ${severityFilter === 'ALL' ? 'active-filter' : ''}`}
               onClick={() => setSeverityFilter('ALL')}
             >
-              <span className="kpi-count">{masterAlerts.length}</span>
+              <span className="kpi-count">{stationScopedAlerts.length}</span>
               <span className="kpi-label">TOTAL INCIDENTS</span>
             </div>
 

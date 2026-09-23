@@ -20,7 +20,7 @@ async function runVerification() {
       station_id: 'station-maitri',
       packet_type: 'NORMAL_TELEMETRY',
       data: { generator_temperature: 70 + i, battery_level: 95 }
-    }, 4); // Priority 4 = NORMAL
+    }, 3); // Priority 3 = NORMAL
   }
 
   console.log(`   Current Queue Size: ${link.queue.size()}`);
@@ -51,7 +51,7 @@ async function runVerification() {
   console.log('\n4. Latency & Queue Delay Results:');
   console.log('---------------------------------------------------------------');
   console.log(`Total Packets Processed: ${metrics.summary.totalProcessed}`);
-  if (metrics.summary.critical && metrics.summary.normal) {
+  if (metrics.summary.critical.count > 0 && metrics.summary.normal.count > 0) {
     console.log(`Critical Packets: Avg Queue Delay = ${metrics.summary.critical.avgQueueDelayMs} ms | Avg Total Latency = ${metrics.summary.critical.avgTotalLatencyMs} ms`);
     console.log(`Normal Packets:   Avg Queue Delay = ${metrics.summary.normal.avgQueueDelayMs} ms | Avg Total Latency = ${metrics.summary.normal.avgTotalLatencyMs} ms`);
     console.log('---------------------------------------------------------------');
@@ -59,8 +59,10 @@ async function runVerification() {
     if (metrics.summary.critical.avgQueueDelayMs <= metrics.summary.normal.avgQueueDelayMs) {
       console.log('✅ PASS: Critical emergency alert experienced significantly lower queueing delay than normal telemetry!');
     } else {
-      console.log('⚠️ CHECK: Critical queue delay was not strictly lower.');
+      throw new Error('Critical queue delay was not lower than normal telemetry.');
     }
+  } else {
+    throw new Error(`Expected processed critical and normal packets, received critical=${metrics.summary.critical.count}, normal=${metrics.summary.normal.count}.`);
   }
 
   console.log('\n🎉 Verification completed successfully.\n');

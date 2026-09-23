@@ -58,10 +58,15 @@ export default function RemoteOperationsView({ selectedStation }) {
   }, [stationId]);
 
   const handleSendCommand = async (cmd) => {
+    const confirmed = window.confirm(
+      `Run the simulated command "${cmd.label}" for ${currentStationData.name}? This does not control physical equipment.`
+    );
+    if (!confirmed) return;
+
     setDispatchingId(cmd.id);
     setFeedbackMessage({
       type: 'transmitting',
-      text: `Uplinking command "${cmd.label}" via ISRO Priority Satellite Carrier to ${currentStationData.name}...`
+      text: `Sending simulated command "${cmd.label}" to the ${currentStationData.name} digital twin...`
     });
 
     try {
@@ -94,8 +99,9 @@ export default function RemoteOperationsView({ selectedStation }) {
           stationId: stationId,
           operator: operatorName,
           timestamp: new Date().toISOString(),
-          status: 'EXECUTED',
-          result: `Command acknowledged by ${currentStationData.name} SCADA digital twin subsystem.`
+          mode: 'SIMULATION',
+          status: 'COMPLETED_SIMULATION',
+          result: `Command acknowledged by the ${currentStationData.name} digital-twin simulator.`
         };
         setAuditLog(prev => [localRecord, ...prev]);
       }
@@ -107,7 +113,7 @@ export default function RemoteOperationsView({ selectedStation }) {
 
       setFeedbackMessage({
         type: 'success',
-        text: `✓ COMMAND EXECUTED: "${cmd.label}" successfully enacted on ${currentStationData.name} subsystem.`
+        text: `✓ SIMULATION COMPLETED: "${cmd.label}" was applied to the ${currentStationData.name} digital twin.`
       });
 
       // Clear feedback after 4 seconds

@@ -47,6 +47,7 @@ async function triggerAlert(data) {
   // Asynchronously persist to Supabase if credentials are provided
   if (isConfigured()) {
     const supabasePayload = {
+      event_id: alertRecord.id,
       station_id: alertRecord.station_id,
       priority: alertRecord.priority,
       category: alertRecord.category,
@@ -96,6 +97,11 @@ function acknowledgeAlert(alertId) {
   const alert = activeAlerts.find(a => a.id === alertId);
   if (alert) {
     alert.status = 'ACKNOWLEDGED';
+    if (isConfigured()) {
+      supabase.from('alerts').update({ status: 'ACKNOWLEDGED' }).eq('event_id', alertId).then(({ error }) => {
+        if (error) console.error('[Supabase] Error acknowledging alert:', error.message);
+      });
+    }
     return alert;
   }
   return null;

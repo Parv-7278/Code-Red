@@ -41,8 +41,10 @@ class PredictiveIntelligenceEngine:
     @staticmethod
     def _format_time_to_breach(minutes: Optional[float]) -> str:
         """Helper to format minutes into human-readable countdown."""
-        if minutes is None or minutes <= 0 or math.isinf(minutes) or math.isnan(minutes):
+        if minutes is None or math.isinf(minutes) or math.isnan(minutes):
             return "No Breach Expected"
+        if minutes <= 0:
+            return "Threshold Breached Now"
         if minutes < 60:
             return f"{int(round(minutes))} min"
         hours = int(minutes // 60)
@@ -152,6 +154,10 @@ class PredictiveIntelligenceEngine:
                 "station_health_score": 88.6
             }
 
+        # Keep the station's normal operating point so cross-domain projections
+        # can respond to scenario deltas instead of using fixed curves.
+        nominal_baseline = baseline.copy()
+
         # Apply simulation / custom telemetry overrides if provided
         if telemetry_override:
             for k, v in telemetry_override.items():
@@ -219,7 +225,7 @@ class PredictiveIntelligenceEngine:
             "predicted_val": f"{proj_gen_temp_6h:.1f}°C (in 6h)",
             "threshold": f"{crit_temp_threshold:.0f}°C",
             "time_to_breach": cls._format_time_to_breach(gen_time_to_breach),
-            "time_to_breach_mins": int(gen_time_to_breach) if gen_time_to_breach else None,
+            "time_to_breach_mins": int(gen_time_to_breach) if gen_time_to_breach is not None else None,
             "risk_level": gen_risk,
             "confidence": 91 if is_bharati else 93,
             "forecast_window": "6 Hours",
@@ -278,7 +284,7 @@ class PredictiveIntelligenceEngine:
             "predicted_val": f"{proj_batt_6h:.1f}% (in 6h)",
             "threshold": f"{crit_batt_threshold:.0f}%",
             "time_to_breach": cls._format_time_to_breach(batt_time_to_breach),
-            "time_to_breach_mins": int(batt_time_to_breach) if batt_time_to_breach else None,
+            "time_to_breach_mins": int(batt_time_to_breach) if batt_time_to_breach is not None else None,
             "risk_level": batt_risk,
             "confidence": 87 if is_bharati else 89,
             "forecast_window": "6 Hours",
@@ -296,7 +302,20 @@ class PredictiveIntelligenceEngine:
         # 1C. Power Demand Surge Forecast
         demand_growth_pct = 12.4 if is_bharati else 14.8
         proj_demand_kw = round(curr_cons * (1.0 + demand_growth_pct / 100.0), 1)
-        demand_risk = "MODERATE" if demand_growth_pct > 10.0 else "LOW"
+        if curr_cons >= curr_gen_pwr:
+            demand_risk = "CRITICAL"
+            demand_breach = "Capacity Exceeded Now"
+            demand_breach_mins = 0
+        elif proj_demand_kw >= curr_gen_pwr:
+            demand_risk = "HIGH"
+            available_growth = max(0.0, curr_gen_pwr - curr_cons)
+            forecast_growth = max(0.1, proj_demand_kw - curr_cons)
+            demand_breach_mins = max(1, round(60.0 * available_growth / forecast_growth))
+            demand_breach = cls._format_time_to_breach(demand_breach_mins)
+        else:
+            demand_risk = "MODERATE" if demand_growth_pct > 10.0 else "LOW"
+            demand_breach = "No Capacity Breach"
+            demand_breach_mins = None
 
         pwr_forecast_series = cls.generate_forecast_series(
             current_val=curr_cons,
@@ -317,8 +336,8 @@ class PredictiveIntelligenceEngine:
             "current_val": f"{curr_cons:.1f} kW",
             "predicted_val": f"{proj_demand_kw:.1f} kW (+{demand_growth_pct:.1f}%)",
             "threshold": f"{curr_gen_pwr:.1f} kW Headroom",
-            "time_to_breach": "Peak in 60 min",
-            "time_to_breach_mins": 60,
+            "time_to_breach": demand_breach,
+            "time_to_breach_mins": demand_breach_mins,
             "risk_level": demand_risk,
             "confidence": 94,
             "forecast_window": "60 Minutes",
@@ -336,17 +355,30 @@ class PredictiveIntelligenceEngine:
         crit_vib_threshold = cls.THRESHOLDS["vibration_critical_rms"]
         warn_vib_threshold = cls.THRESHOLDS["vibration_warning_rms"]
 
+        # Bearing wear accelerates under high generator load and heat even when
+        # the injected vibration reading itself is unchanged.
+        bearing_load_stress = max(0.0, load_factor - 0.70)
+        bearing_thermal_stress = max(0.0, (curr_gen_temp - 75.0) / 30.0)
+        bearing_growth = min(
+            0.55,
+            0.15 + (0.18 * bearing_load_stress) + (0.12 * bearing_thermal_stress)
+        )
+        proj_vib_24h = round(curr_vib * (1.0 + bearing_growth), 2)
+
         if curr_vib >= crit_vib_threshold:
             vib_time_to_breach = 0.0
             infra_risk = "CRITICAL"
+        elif proj_vib_24h >= crit_vib_threshold:
+            growth_per_hour = max(0.001, (proj_vib_24h - curr_vib) / 24.0)
+            vib_time_to_breach = ((crit_vib_threshold - curr_vib) / growth_per_hour) * 60.0
+            infra_risk = "HIGH"
         elif curr_vib >= warn_vib_threshold:
-            vib_time_to_breach = 1440.0 # 24 - 48 hours
-            infra_risk = "HIGH" if not is_bharati else "MODERATE"
+            vib_time_to_breach = None
+            infra_risk = "MODERATE"
         else:
             vib_time_to_breach = None
             infra_risk = "LOW"
 
-        proj_vib_24h = round(curr_vib * 1.25, 2)
         vib_forecast_series = cls.generate_forecast_series(
             current_val=curr_vib,
             target_val=proj_vib_24h,
@@ -366,13 +398,14 @@ class PredictiveIntelligenceEngine:
             "current_val": f"{curr_vib:.2f} mm/s RMS",
             "predicted_val": f"{proj_vib_24h:.2f} mm/s (in 24h)",
             "threshold": f"{crit_vib_threshold:.1f} mm/s Max",
-            "time_to_breach": "24 - 48 Hours" if curr_vib >= warn_vib_threshold else "No Breach Expected",
-            "time_to_breach_mins": 1440 if curr_vib >= warn_vib_threshold else None,
+            "time_to_breach": "Active Threshold Breach" if curr_vib >= crit_vib_threshold else cls._format_time_to_breach(vib_time_to_breach),
+            "time_to_breach_mins": int(vib_time_to_breach) if vib_time_to_breach is not None else None,
             "risk_level": infra_risk,
             "confidence": 88,
             "forecast_window": "24 Hours",
             "explanation": (
-                f"Vibration spectral density shows 2nd harmonic peak elevation at 48 Hz. Bearing wear model extrapolates progressive degradation under continuous run cycles."
+                f"Bearing wear projection combines {curr_vib:.2f} mm/s vibration with "
+                f"{load_factor * 100:.0f}% generator load and {curr_gen_temp:.1f}°C thermal stress."
             ),
             "recommendation": (
                 "Schedule bearing casing thermography and oil analysis; plan generator changeover during next scheduled maintenance window."
@@ -387,15 +420,24 @@ class PredictiveIntelligenceEngine:
         curr_amb_temp = baseline["ambient_temperature_c"]
         crit_wind_threshold = cls.THRESHOLDS["wind_warning_kmh"]
 
-        # Blizzard onset model
-        if is_bharati:
-            proj_wind_12h = round(curr_wind + 18.0, 1) # Coastal maritime winds pick up
-            env_risk = "HIGH" if proj_wind_12h >= crit_wind_threshold else "MODERATE"
-            wind_time_to_breach = 480.0 # ~8 hours
+        # Higher injected wind implies a stronger accelerating weather front.
+        base_wind_growth = 18.0 if is_bharati else 14.0
+        wind_growth_12h = max(
+            6.0,
+            base_wind_growth + (curr_wind - nominal_baseline["wind_speed_kmh"]) * 0.18
+        )
+        proj_wind_12h = round(min(130.0, curr_wind + wind_growth_12h), 1)
+        if curr_wind >= crit_wind_threshold:
+            wind_time_to_breach = 0.0
+            env_risk = "CRITICAL"
+        elif proj_wind_12h >= crit_wind_threshold:
+            wind_time_to_breach = (
+                (crit_wind_threshold - curr_wind) / max(0.1, proj_wind_12h - curr_wind)
+            ) * 12.0 * 60.0
+            env_risk = "HIGH" if wind_time_to_breach <= 360 else "MODERATE"
         else:
-            proj_wind_12h = round(curr_wind + 14.0, 1)
-            env_risk = "MODERATE" if proj_wind_12h >= crit_wind_threshold else "LOW"
-            wind_time_to_breach = 720.0 # ~12 hours
+            wind_time_to_breach = None
+            env_risk = "LOW"
 
         wind_forecast_series = cls.generate_forecast_series(
             current_val=curr_wind,
@@ -417,12 +459,13 @@ class PredictiveIntelligenceEngine:
             "predicted_val": f"{proj_wind_12h:.1f} km/h (in 12h)",
             "threshold": f"{crit_wind_threshold:.0f} km/h Threshold",
             "time_to_breach": cls._format_time_to_breach(wind_time_to_breach),
-            "time_to_breach_mins": int(wind_time_to_breach) if wind_time_to_breach else None,
+            "time_to_breach_mins": int(wind_time_to_breach) if wind_time_to_breach is not None else None,
             "risk_level": env_risk,
             "confidence": 92,
             "forecast_window": "12 Hours",
             "explanation": (
-                f"Barometric pressure drop (-2.8 hPa/3hr) and Antarctic continental plateau katabatic wind vector indicate severe blizzard conditions approaching within 8-12 hours."
+                f"Injected wind of {curr_wind:.1f} km/h produces a modeled {wind_growth_12h:.1f} km/h "
+                f"12-hour katabatic acceleration toward {proj_wind_12h:.1f} km/h."
             ),
             "recommendation": (
                 "Recall all outdoor scientific traverses to main station; tension emergency guideline ropes and lock radome access hatches."
@@ -437,16 +480,29 @@ class PredictiveIntelligenceEngine:
         crit_fuel_days = cls.THRESHOLDS["fuel_critical_days"]
         warn_fuel_days = cls.THRESHOLDS["fuel_warning_days"]
 
+        nominal_load = nominal_baseline["power_consumption_kw"]
+        fuel_burn_multiplier = max(0.50, min(2.50,
+            1.0
+            + 0.65 * ((curr_cons / max(1.0, nominal_load)) - 1.0)
+            + 0.006 * (curr_gen_temp - nominal_baseline["generator_temperature_c"])
+            + 0.004 * (curr_wind - nominal_baseline["wind_speed_kmh"])
+            + 0.003 * (nominal_baseline["battery_level_pct"] - curr_batt)
+        ))
+        effective_fuel_runway = round(curr_fuel_days / fuel_burn_multiplier, 1)
+        projected_fuel_stock = round(max(0.0, curr_fuel_days - (7.0 * fuel_burn_multiplier)), 1)
+        days_to_fuel_threshold = max(0.0, (curr_fuel_days - crit_fuel_days) / fuel_burn_multiplier)
+        effective_burn_lpd = round(1167.0 * fuel_burn_multiplier)
+
         if curr_fuel_days <= crit_fuel_days:
             log_risk = "CRITICAL"
-        elif curr_fuel_days <= warn_fuel_days:
+        elif days_to_fuel_threshold <= 30.0:
             log_risk = "HIGH" if not is_bharati else "MODERATE"
         else:
             log_risk = "LOW"
 
         fuel_forecast_series = cls.generate_forecast_series(
             current_val=float(curr_fuel_days),
-            target_val=max(0.0, float(curr_fuel_days - 7)),
+            target_val=projected_fuel_stock,
             threshold=float(crit_fuel_days),
             horizon_hours=168, # 7 days
             steps=7,
@@ -460,16 +516,21 @@ class PredictiveIntelligenceEngine:
             "title": "Diesel / ATF-50 Polar Fuel Runway",
             "station_id": clean_st,
             "station_name": station_name,
-            "current_val": f"{curr_fuel_days} Days Stock",
-            "predicted_val": f"{curr_fuel_days - 7} Days (in 7d)",
+            "current_val": f"{curr_fuel_days:.1f} Days Stock",
+            "predicted_val": f"{projected_fuel_stock:.1f} Days (in 7d)",
             "threshold": f"{crit_fuel_days} Days Critical Reserve",
-            "time_to_breach": f"{curr_fuel_days - crit_fuel_days} Days until 15% Buffer",
-            "time_to_breach_mins": (curr_fuel_days - crit_fuel_days) * 1440,
+            "time_to_breach": (
+                "Threshold Breached Now" if curr_fuel_days <= crit_fuel_days
+                else f"{days_to_fuel_threshold:.1f} Days until Critical Reserve"
+            ),
+            "time_to_breach_mins": max(0, int(days_to_fuel_threshold * 1440)),
             "risk_level": log_risk,
             "confidence": 96,
             "forecast_window": "7 Days",
             "explanation": (
-                f"Current burn rate (1,167 L/day) provides {curr_fuel_days} days of autonomous operations before reaching emergency reserve thresholds."
+                f"Scenario-adjusted burn is {effective_burn_lpd:,} L/day ({fuel_burn_multiplier:.2f}× nominal), "
+                f"based on load, generator heat, wind and battery recovery demand; effective runway is "
+                f"{effective_fuel_runway:.1f} days."
             ),
             "recommendation": (
                 "Logistics shipment rendezvous scheduled with supply vessel MV Vasiliy Golovnin; confirm fuel transfer manifold readiness."
@@ -484,11 +545,24 @@ class PredictiveIntelligenceEngine:
         curr_lat = baseline["comm_latency_ms"]
         warn_snr_threshold = cls.THRESHOLDS["comm_snr_warning_db"]
 
-        # Ionospheric & weather attenuation forecast
-        proj_snr_6h = round(curr_snr - (1.8 if env_risk in ["HIGH", "CRITICAL"] else 0.4), 1)
-        proj_lat_6h = round(curr_lat + (45 if env_risk in ["HIGH", "CRITICAL"] else 10), 0)
+        # Wind-driven snow and antenna vibration continuously alter link margin.
+        weather_fade_db = max(0.2, 0.45 + max(0.0, curr_wind - 20.0) * 0.035)
+        vibration_fade_db = max(0.0, curr_vib - warn_vib_threshold) * 0.16
+        total_fade_db = weather_fade_db + vibration_fade_db
+        proj_snr_6h = round(max(4.0, curr_snr - total_fade_db), 1)
+        proj_lat_6h = round(curr_lat + 8.0 + max(0.0, curr_wind - 30.0) * 0.8, 0)
 
-        comm_risk = "MODERATE" if proj_snr_6h < warn_snr_threshold else "LOW"
+        if curr_snr <= warn_snr_threshold:
+            comm_breach_mins = 0.0
+            comm_risk = "CRITICAL"
+        elif proj_snr_6h < warn_snr_threshold:
+            comm_breach_mins = (
+                (curr_snr - warn_snr_threshold) / max(0.1, curr_snr - proj_snr_6h)
+            ) * 6.0 * 60.0
+            comm_risk = "HIGH" if comm_breach_mins <= 180 else "MODERATE"
+        else:
+            comm_breach_mins = None
+            comm_risk = "LOW"
 
         comm_forecast_series = cls.generate_forecast_series(
             current_val=curr_snr,
@@ -509,13 +583,14 @@ class PredictiveIntelligenceEngine:
             "current_val": f"{curr_snr:.1f} dB SNR ({curr_lat} ms)",
             "predicted_val": f"{proj_snr_6h:.1f} dB SNR ({proj_lat_6h:.0f} ms)",
             "threshold": f"{warn_snr_threshold:.1f} dB Minimum Fade Margin",
-            "time_to_breach": "No Link Loss Expected",
-            "time_to_breach_mins": None,
+            "time_to_breach": cls._format_time_to_breach(comm_breach_mins),
+            "time_to_breach_mins": int(comm_breach_mins) if comm_breach_mins is not None else None,
             "risk_level": comm_risk,
             "confidence": 84,
             "forecast_window": "6 Hours",
             "explanation": (
-                f"Approaching weather front will introduce minor Ku-band precipitation attenuation (-1.4 dB), but link margin remains above the demodulator lock threshold."
+                f"Wind-driven snow and vibration produce {total_fade_db:.2f} dB modeled attenuation, "
+                f"reducing the six-hour link margin to {proj_snr_6h:.1f} dB."
             ),
             "recommendation": (
                 "4-Level Priority Queue active; critical emergency life-support packets preemptively guaranteed 240ms latency."
@@ -526,7 +601,20 @@ class PredictiveIntelligenceEngine:
         # ---------------------------------------------------------------------
         # 6. STATION HEALTH INDEX & COMPOSITE RISK
         # ---------------------------------------------------------------------
-        curr_health = baseline["station_health_score"]
+        baseline_health = baseline["station_health_score"]
+        # Convert the injected operating point into an immediate health impact.
+        # This makes the KPI respond to the same scenario that drives the cards.
+        operating_penalty = (
+            max(0.0, curr_gen_temp - 80.0) * 0.30
+            + max(0.0, 65.0 - curr_batt) * 0.12
+            + max(0.0, curr_cons - curr_gen_pwr) * 0.05
+            + max(0.0, curr_wind - 55.0) * 0.05
+            + max(0.0, curr_vib - warn_vib_threshold) * 1.5
+        )
+        curr_health = round(
+            max(50.0, baseline_health - operating_penalty) if is_simulation else baseline_health,
+            1
+        )
         
         # Calculate composite risk score (0 - 100)
         risk_weights = {
@@ -554,7 +642,7 @@ class PredictiveIntelligenceEngine:
         proj_health_24h = round(max(50.0, curr_health - health_penalty), 1)
 
         # Identify next immediate predicted issue
-        breached_preds = [p for p in all_preds if p["time_to_breach_mins"] is not None and p["time_to_breach_mins"] > 0]
+        breached_preds = [p for p in all_preds if p["time_to_breach_mins"] is not None and p["time_to_breach_mins"] >= 0]
         breached_preds.sort(key=lambda x: x["time_to_breach_mins"])
         next_issue = breached_preds[0] if breached_preds else gen_pred
 
