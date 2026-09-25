@@ -43,7 +43,7 @@ export default function AllStationsOverview({ onSelectStation }) {
             <div className="station-title-cluster">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="station-card-code">STATION #1</span>
-                <span style={{ fontSize: '11px', padding: '2px 7px', background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.25)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '11px', padding: '2px 7px', background: 'rgba(56, 189, 248, 0.12)', color: '#146b80', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.25)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   <Clock size={10} /> Local: <strong className="mono-num">{maitriClock.timeStrWithSeconds}</strong> ({maitri.timezone_label || 'UTC+0'})
                 </span>
               </div>
@@ -123,7 +123,7 @@ export default function AllStationsOverview({ onSelectStation }) {
             <div className="station-title-cluster">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="station-card-code">STATION #2</span>
-                <span style={{ fontSize: '11px', padding: '2px 7px', background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.25)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '11px', padding: '2px 7px', background: 'rgba(56, 189, 248, 0.12)', color: '#146b80', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.25)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                   <Clock size={10} /> Local: <strong className="mono-num">{bharatiClock.timeStrWithSeconds}</strong> ({bharati.timezone_label || 'UTC+5'})
                 </span>
               </div>

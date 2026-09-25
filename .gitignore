@@ -1,6 +1,7 @@
 # Node
 node_modules/
 dist/
+tmp/pdfs/
 
 # Python
 __pycache__/
@@ -14,6 +15,7 @@ env/
 .env
 .env.*
 !.env.example
+!.env.deploy.example
 *.local
 *.pem
 *.key

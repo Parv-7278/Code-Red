@@ -424,17 +424,19 @@ function generateFallbackPredictions(stationId = 'station-maitri', overrides = n
 /**
  * Fetches real-time AI predictive intelligence from FastAPI backend or fallback.
  */
-export async function fetchPredictiveIntelligence(stationId = 'station-maitri', horizonHours = 24, role = 'india_operator') {
+export async function fetchPredictiveIntelligence(stationId = 'station-maitri', horizonHours = 24, role = 'india_operator', assignedStation = null) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   try {
     const res = await fetch(`${ML_API_URL}/api/ml/predictive-intelligence?station_id=${normId}&horizon_hours=${horizonHours}`, {
-      headers: await getAuthHeaders(role),
+      headers: await getAuthHeaders(role, assignedStation),
     });
     if (res.ok) {
       const data = await res.json();
       return { ...data, data_source: data.data_source || 'FASTAPI_ML', is_fallback: false };
     }
+    if (res.status === 401 || res.status === 403) throw new Error('Access denied. Sign in with an operator authorized for this station.');
   } catch (err) {
+    if (err.message.startsWith('Access denied')) throw err;
     console.warn('[PredictiveService] Backend not reachable, using physics-informed client telemetry engine:', err);
   }
   return generateFallbackPredictions(normId, null, false, 'FastAPI predictive endpoint unavailable');
@@ -443,12 +445,12 @@ export async function fetchPredictiveIntelligence(stationId = 'station-maitri', 
 /**
  * Executes What-If AI Simulation with custom sensor overrides.
  */
-export async function simulatePredictiveIntelligence(stationId = 'station-maitri', overrides = {}, role = 'india_operator') {
+export async function simulatePredictiveIntelligence(stationId = 'station-maitri', overrides = {}, role = 'india_operator', assignedStation = null) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   try {
     const res = await fetch(`${ML_API_URL}/api/ml/predictive-intelligence/simulate`, {
       method: 'POST',
-      headers: await getAuthHeaders(role),
+      headers: await getAuthHeaders(role, assignedStation),
       body: JSON.stringify({
         station_id: normId,
         telemetry_override: overrides,
@@ -458,7 +460,9 @@ export async function simulatePredictiveIntelligence(stationId = 'station-maitri
       const data = await res.json();
       return { ...data, data_source: data.data_source || 'FASTAPI_ML_SIMULATION', is_fallback: false };
     }
+    if (res.status === 401 || res.status === 403) throw new Error('Access denied. Sign in with an operator authorized for this station.');
   } catch (err) {
+    if (err.message.startsWith('Access denied')) throw err;
     console.warn('[PredictiveService] Backend simulation call failed, simulating on client:', err);
   }
   return generateFallbackPredictions(normId, overrides, true, 'FastAPI simulation endpoint unavailable');
@@ -477,7 +481,8 @@ export async function runWhatIfPrediction(
     life_support_min_reserve: 80.0,
     load_reduction_kw: 0.0
   },
-  role = 'india_operator'
+  role = 'india_operator',
+  assignedStation = null
 ) {
   const normId = stationId === 'all-stations' || stationId === 'all' ? 'station-maitri' : stationId;
   const payload = {
@@ -494,14 +499,17 @@ export async function runWhatIfPrediction(
     // additions are available without depending on the Node proxy lifecycle.
     const res = await fetch(`${ML_API_URL}/api/predictions/what-if`, {
       method: 'POST',
-      headers: await getAuthHeaders(role, normId),
+      headers: await getAuthHeaders(role, assignedStation),
       body: JSON.stringify(payload),
     });
     if (res.ok) {
       const data = await res.json();
       return data;
     }
+    if (res.status === 401 || res.status === 403) throw new Error('Access denied. Sign in with an operator authorized for this station.');
+    if (res.status === 422) throw new Error('Invalid scenario inputs. Check the values and run the forecast again.');
   } catch (err) {
+    if (err.message.startsWith('Access denied') || err.message.startsWith('Invalid scenario')) throw err;
     console.warn('[PredictiveService] FastAPI /api/predictions/what-if unreachable, computing mathematical ML mirror:', err);
   }
 

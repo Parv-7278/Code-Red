@@ -208,12 +208,12 @@ export default function DigitalTwinViewer({ selectedStation = 'station-maitri', 
             <circle cx="22" cy="22" r="20" stroke="rgba(56, 189, 248, 0.3)" strokeWidth="1.2" strokeDasharray="3 3" />
             <circle cx="22" cy="22" r="16" stroke="rgba(56, 189, 248, 0.15)" strokeWidth="1" />
             {/* North Red Needle */}
-            <polygon points="22,6 25.5,22 18.5,22" fill="#ef4444" />
+            <polygon points="22,6 25.5,22 18.5,22" fill="#b73b37" />
             {/* South Silver Needle */}
             <polygon points="22,38 25.5,22 18.5,22" fill="#94a3b8" />
             {/* Center Hub */}
             <circle cx="22" cy="22" r="2.5" fill="#ffffff" />
-            <text x="22" y="5" fill="#f87171" fontSize="6.5" fontWeight="bold" textAnchor="middle">N</text>
+            <text x="22" y="5" fill="#b73b37" fontSize="6.5" fontWeight="bold" textAnchor="middle">N</text>
             <text x="40" y="24" fill="#64748b" fontSize="6.5" fontWeight="bold" textAnchor="middle">E</text>
             <text x="22" y="43" fill="#64748b" fontSize="6.5" fontWeight="bold" textAnchor="middle">S</text>
             <text x="4" y="24" fill="#64748b" fontSize="6.5" fontWeight="bold" textAnchor="middle">W</text>

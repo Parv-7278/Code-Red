@@ -11,6 +11,7 @@ const services = [
   ['Node API', ['run', 'dev:backend']],
   ['FastAPI ML', ['run', 'dev:fastapi']],
   ['React UI', ['run', 'dev:frontend']],
+  ['Telemetry simulator', ['run', 'simulate']],
 ];
 
 const children = services.map(([name, args]) => {
@@ -39,4 +40,4 @@ function shutdown(signal) {
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-console.log('[dev] Starting Node API :5000, FastAPI ML :8000, and React UI :3000.');
+console.log('[dev] Starting Node API :5000, FastAPI ML :8000, React UI :3000, and the live telemetry simulator.');

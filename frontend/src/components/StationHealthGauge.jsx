@@ -14,7 +14,7 @@ export default function StationHealthGauge({ health, selectedStation = 'Maitri S
   const healthData = health || {
     total: 87,
     rating: 'Good',
-    ratingColor: '#10b981',
+    ratingColor: '#187451',
     infrastructure: 91,
     energy: 84,
     logistics: 89,
@@ -28,11 +28,11 @@ export default function StationHealthGauge({ health, selectedStation = 'Maitri S
       label: 'Infrastructure', 
       score: healthData.infrastructure, 
       icon: Building2, 
-      color: '#10b981',
+      color: '#187451',
       details: [
-        { label: 'Structural Integrity', value: '98%', color: '#10b981' },
-        { label: 'Thermal Envelope', value: '92%', color: '#38bdf8' },
-        { label: 'Foundation Anchor Health', value: '95%', color: '#10b981' },
+        { label: 'Structural Integrity', value: '98%', color: '#187451' },
+        { label: 'Thermal Envelope', value: '92%', color: '#146b80' },
+        { label: 'Foundation Anchor Health', value: '95%', color: '#187451' },
       ],
       interpretation: 'Main station structure, containerized living pods, and elevated foundation pilings show no permafrost deformation.'
     },
@@ -41,11 +41,11 @@ export default function StationHealthGauge({ health, selectedStation = 'Maitri S
       label: 'Energy', 
       score: healthData.energy, 
       icon: Zap, 
-      color: healthData.energy >= 85 ? '#10b981' : '#a3e635',
+      color: healthData.energy >= 85 ? '#187451' : '#4f7132',
       details: [
-        { label: 'Microgrid Stability', value: '96%', color: '#10b981' },
-        { label: 'Genset Health Index', value: '82%', color: '#f59e0b' },
-        { label: 'BESS Battery Health (SoH)', value: '98.4%', color: '#10b981' },
+        { label: 'Microgrid Stability', value: '96%', color: '#187451' },
+        { label: 'Genset Health Index', value: '82%', color: '#946013' },
+        { label: 'BESS Battery Health (SoH)', value: '98.4%', color: '#187451' },
       ],
       interpretation: 'Microgrid power generation is steady; Genset G-02 stator temp under surveillance during routine load cycles.'
     },
@@ -54,11 +54,11 @@ export default function StationHealthGauge({ health, selectedStation = 'Maitri S
       label: 'Logistics', 
       score: healthData.logistics, 
       icon: Package, 
-      color: '#10b981',
+      color: '#187451',
       details: [
-        { label: 'Fuel Reserves', value: '43 Days', color: '#f59e0b' },
-        { label: 'Food Rations', value: '67 Days', color: '#10b981' },
-        { label: 'Medical Supplies', value: '89 Days', color: '#10b981' },
+        { label: 'Fuel Reserves', value: '43 Days', color: '#946013' },
+        { label: 'Food Rations', value: '67 Days', color: '#187451' },
+        { label: 'Medical Supplies', value: '89 Days', color: '#187451' },
       ],
       interpretation: 'Consumable stock levels are sufficient for the overwintering cycle with scheduled resupply voyage window.'
     },
@@ -67,11 +67,11 @@ export default function StationHealthGauge({ health, selectedStation = 'Maitri S
       label: 'Environment', 
       score: healthData.environment, 
       icon: Leaf, 
-      color: healthData.environment >= 90 ? '#10b981' : '#facc15',
+      color: healthData.environment >= 90 ? '#187451' : '#946013',
       details: [
-        { label: 'Life Support Air Quality', value: '99%', color: '#10b981' },
-        { label: 'Internal Pressure', value: '1013 hPa', color: '#38bdf8' },
-        { label: 'Thermal Comfort AHU', value: '94%', color: '#10b981' },
+        { label: 'Life Support Air Quality', value: '99%', color: '#187451' },
+        { label: 'Internal Pressure', value: '1013 hPa', color: '#146b80' },
+        { label: 'Thermal Comfort AHU', value: '94%', color: '#187451' },
       ],
       interpretation: 'Habitat HVAC and biological water treatment systems are maintaining optimal indoor environmental conditions.'
     },
@@ -80,11 +80,11 @@ export default function StationHealthGauge({ health, selectedStation = 'Maitri S
       label: 'Communication', 
       score: healthData.communication, 
       icon: Radio, 
-      color: '#10b981',
+      color: '#187451',
       details: [
-        { label: 'Satellite C/Ku Uplink', value: '99.8% Uptime', color: '#10b981' },
-        { label: 'VHF Polar Network', value: 'Nominal', color: '#38bdf8' },
-        { label: 'Telemetry Jitter', value: '< 15 ms', color: '#10b981' },
+        { label: 'Satellite C/Ku Uplink', value: '99.8% Uptime', color: '#187451' },
+        { label: 'VHF Polar Network', value: 'Nominal', color: '#146b80' },
+        { label: 'Telemetry Jitter', value: '< 15 ms', color: '#187451' },
       ],
       interpretation: 'INSAT-4CR space-ground link maintains continuous high-throughput data telemetry with the India HQ Control Centre.'
     },
@@ -114,11 +114,11 @@ export default function StationHealthGauge({ health, selectedStation = 'Maitri S
         color={healthData.ratingColor}
         subtext={`Overall Operational Rating: ${healthData.rating.toUpperCase()}`}
         details={[
-          { label: 'Infrastructure', value: `${healthData.infrastructure}/100`, color: '#10b981' },
-          { label: 'Energy Grid', value: `${healthData.energy}/100`, color: '#a3e635' },
-          { label: 'Logistics Buffer', value: `${healthData.logistics}/100`, color: '#10b981' },
-          { label: 'Environment & Life Support', value: `${healthData.environment}/100`, color: '#facc15' },
-          { label: 'Communications Link', value: `${healthData.communication}/100`, color: '#10b981' },
+          { label: 'Infrastructure', value: `${healthData.infrastructure}/100`, color: '#187451' },
+          { label: 'Energy Grid', value: `${healthData.energy}/100`, color: '#4f7132' },
+          { label: 'Logistics Buffer', value: `${healthData.logistics}/100`, color: '#187451' },
+          { label: 'Environment & Life Support', value: `${healthData.environment}/100`, color: '#946013' },
+          { label: 'Communications Link', value: `${healthData.communication}/100`, color: '#187451' },
         ]}
         interpretation="Comprehensive aggregated station readiness rating combining SCADA bus telemetry, structural health, and life support systems."
         recommendation="All major subsystems are in high readiness state with standard monitoring active."
@@ -130,9 +130,9 @@ export default function StationHealthGauge({ health, selectedStation = 'Maitri S
             <svg width={size} height={size} className="gauge-svg">
               <defs>
                 <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00e699" />
-                  <stop offset="50%" stopColor="#10b981" />
-                  <stop offset="100%" stopColor="#06b6d4" />
+                  <stop offset="0%" stopColor="#187451" />
+                  <stop offset="50%" stopColor="#187451" />
+                  <stop offset="100%" stopColor="#147889" />
                 </linearGradient>
               </defs>
 

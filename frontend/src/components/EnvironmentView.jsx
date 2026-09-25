@@ -250,7 +250,7 @@ export default function EnvironmentView({ selectedStation }) {
                 <h3 className="section-title">24-Hour Polar Thermal & Katabatic Wind Profile</h3>
               </div>
               <div className="stream-channel-legend" style={{ fontSize: '0.72rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                <span style={{ color: '#38bdf8' }}>● Temperature (°C)</span>
+                <span style={{ color: '#146b80' }}>● Temperature (°C)</span>
               </div>
             </div>
             <p className="section-subtitle">
@@ -261,8 +261,8 @@ export default function EnvironmentView({ selectedStation }) {
               <svg width="100%" height="100%" viewBox={`0 0 ${chartW} ${chartH}`} preserveAspectRatio="none" style={{ overflow: 'visible' }}>
                 <defs>
                   <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#146b80" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#146b80" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
 
@@ -291,13 +291,13 @@ export default function EnvironmentView({ selectedStation }) {
                 <polygon points={tempAreaPoints} fill="url(#tempGradient)" />
 
                 {/* Main Temperature Line */}
-                <polyline fill="none" stroke="#38bdf8" strokeWidth="2.2" points={tempLinePoints} strokeLinecap="round" strokeLinejoin="round" />
+                <polyline fill="none" stroke="#146b80" strokeWidth="2.2" points={tempLinePoints} strokeLinecap="round" strokeLinejoin="round" />
 
                 {/* Data Points */}
                 {hourlyData.map((d, i) => (
                   <g key={i}>
-                    <circle cx={getTempX(i)} cy={getTempY(d.temp)} r="3" fill="#38bdf8" stroke="#060b14" strokeWidth="1.5" />
-                    <text x={getTempX(i)} y={getTempY(d.temp) - 8} textAnchor="middle" fill="#38bdf8" fontSize="9" fontWeight="bold" fontFamily="monospace">
+                    <circle cx={getTempX(i)} cy={getTempY(d.temp)} r="3" fill="#146b80" stroke="#060b14" strokeWidth="1.5" />
+                    <text x={getTempX(i)} y={getTempY(d.temp) - 8} textAnchor="middle" fill="#146b80" fontSize="9" fontWeight="bold" fontFamily="monospace">
                       {d.temp}°
                     </text>
                   </g>

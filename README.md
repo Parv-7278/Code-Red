@@ -3,6 +3,8 @@
 > **Smart India Hackathon (SIH 2026) Prototype**  
 > Simulating remote operations, low-bandwidth telemetry, and prioritized emergency alert handling for **Maitri** and **Bharati** research stations.
 
+Production packaging and server deployment instructions are available in [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ---
 
 ## 🧭 System Architecture & Flow
@@ -123,7 +125,7 @@ pip install -r fastapi_backend/requirements.txt
 npm run dev
 ```
 
-This starts the Node API on `http://localhost:5000`, FastAPI/ML on `http://localhost:8000`, and the React dashboard on `http://localhost:3000`.
+This starts the Node API on `http://localhost:5000`, FastAPI/ML on `http://localhost:8000`, the React dashboard on `http://localhost:3000`, and the live station telemetry simulator.
 
 Run `npm run check` before a demonstration to execute the queue verification and production frontend build.
 

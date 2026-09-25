@@ -34,13 +34,13 @@ export default function WeatherOverview({ weather: weatherProp, onOpenForecast, 
         value={`${weather.temp}${weather.unit}`}
         status="nominal"
         icon={CloudSnow}
-        color="#38bdf8"
+        color="#146b80"
         subtext={`Current Condition: ${weather.condition}`}
         details={[
-          { label: 'Surface Temperature', value: `${weather.temp}${weather.unit}`, color: '#38bdf8' },
-          { label: 'Weather Condition', value: weather.condition, color: '#f8fafc' },
+          { label: 'Surface Temperature', value: `${weather.temp}${weather.unit}`, color: '#146b80' },
+          { label: 'Weather Condition', value: weather.condition, color: '#1d3044' },
           { label: 'Wind Chill Factor', value: '-31.5°C', color: '#60a5fa' },
-          { label: 'Barometric Trend', value: `${weather.pressure} (Stable)`, color: '#10b981' },
+          { label: 'Barometric Trend', value: `${weather.pressure} (Stable)`, color: '#187451' },
         ]}
         interpretation="Overwintering polar atmospheric station reading from the sonic anemometer and automated weather station (AWS)."
         recommendation="Outer expedition EVA permits valid with thermal protective gear Category 4."
@@ -54,9 +54,9 @@ export default function WeatherOverview({ weather: weatherProp, onOpenForecast, 
               <svg className="snow-cloud-svg" viewBox="0 0 54 44" fill="none">
                 <path 
                   d="M38 18C37.5 10 30 6 23 9C17 6 9 12 11 19C5 21 4 29 10 32C12 33 40 33 42 32C47 30 48 22 42 19C40 18.5 39 18 38 18Z" 
-                  fill="#38bdf8" 
+                  fill="#146b80"
                   fillOpacity="0.2" 
-                  stroke="#38bdf8" 
+                  stroke="#146b80"
                   strokeWidth="1.8" 
                   strokeLinejoin="round" 
                 />
@@ -87,11 +87,11 @@ export default function WeatherOverview({ weather: weatherProp, onOpenForecast, 
           value={weather.windSpeed}
           status="nominal"
           icon={Wind}
-          color="#0284c7"
+          color="#245b82"
           details={[
-            { label: 'Sustained Wind', value: weather.windSpeed, color: '#0284c7' },
-            { label: '3-Second Gust', value: '42 km/h', color: '#f59e0b' },
-            { label: 'Beaufort Scale', value: 'Force 5 (Fresh Breeze)', color: '#38bdf8' },
+            { label: 'Sustained Wind', value: weather.windSpeed, color: '#245b82' },
+            { label: '3-Second Gust', value: '42 km/h', color: '#946013' },
+            { label: 'Beaufort Scale', value: 'Force 5 (Fresh Breeze)', color: '#146b80' },
           ]}
           interpretation="Wind velocity is sufficient for wind turbine generation while within safe structural aerodynamic tolerances."
           stationName={selectedStation}
@@ -113,11 +113,11 @@ export default function WeatherOverview({ weather: weatherProp, onOpenForecast, 
           value={weather.windDir}
           status="nominal"
           icon={Compass}
-          color="#38bdf8"
+          color="#146b80"
           details={[
-            { label: 'Compass Cardinal', value: weather.windDir, color: '#38bdf8' },
-            { label: 'Azimuth Angle', value: '315° (North-West)', color: '#f8fafc' },
-            { label: 'Katabatic Vector', value: 'Inland Continental Flow', color: '#10b981' },
+            { label: 'Compass Cardinal', value: weather.windDir, color: '#146b80' },
+            { label: 'Azimuth Angle', value: '315° (North-West)', color: '#1d3044' },
+            { label: 'Katabatic Vector', value: 'Inland Continental Flow', color: '#187451' },
           ]}
           interpretation="North-westerly polar airflow channelled by the Schirmacher Oasis / Larsemann terrain ridge."
           stationName={selectedStation}
@@ -139,11 +139,11 @@ export default function WeatherOverview({ weather: weatherProp, onOpenForecast, 
           value={weather.humidity}
           status="nominal"
           icon={Droplets}
-          color="#06b6d4"
+          color="#147889"
           details={[
-            { label: 'Relative Humidity', value: weather.humidity, color: '#06b6d4' },
-            { label: 'Dew Point', value: '-23.5°C', color: '#38bdf8' },
-            { label: 'Vapor Pressure', value: '0.84 hPa', color: '#94a3b8' },
+            { label: 'Relative Humidity', value: weather.humidity, color: '#147889' },
+            { label: 'Dew Point', value: '-23.5°C', color: '#146b80' },
+            { label: 'Vapor Pressure', value: '0.84 hPa', color: '#536579' },
           ]}
           interpretation="Dry Antarctic atmosphere prevents excessive ice accretion on radomes and solar collectors."
           stationName={selectedStation}
@@ -165,11 +165,11 @@ export default function WeatherOverview({ weather: weatherProp, onOpenForecast, 
           value={weather.pressure}
           status="nominal"
           icon={Gauge}
-          color="#10b981"
+          color="#187451"
           details={[
-            { label: 'Station Pressure', value: weather.pressure, color: '#10b981' },
-            { label: 'Sea Level Adjusted (QNH)', value: '1004 hPa', color: '#38bdf8' },
-            { label: '3-Hour Tendency', value: '+0.4 hPa (Rising Slowly)', color: '#10b981' },
+            { label: 'Station Pressure', value: weather.pressure, color: '#187451' },
+            { label: 'Sea Level Adjusted (QNH)', value: '1004 hPa', color: '#146b80' },
+            { label: '3-Hour Tendency', value: '+0.4 hPa (Rising Slowly)', color: '#187451' },
           ]}
           interpretation="Barometric pressure trend confirms steady anti-cyclonic polar ridge conditions without imminent storm formation."
           stationName={selectedStation}

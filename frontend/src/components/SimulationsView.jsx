@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Sliders, 
   Play, 
@@ -35,11 +35,13 @@ import {
 } from 'lucide-react';
 import { STATIONS_DATA } from '../data/stationsData';
 import { useModal } from '../context/ModalContext';
+import { useAuth } from '../context/AuthContext';
 import { runWhatIfPrediction } from '../services/predictiveService';
 import './SimulationsView.css';
 
 export default function SimulationsView({ selectedStation, onOpenReport }) {
   const { openDrillDown } = useModal();
+  const { role, assignedStation } = useAuth();
   const stationId = selectedStation === 'all-stations' ? 'station-maitri' : selectedStation;
   const station = STATIONS_DATA[stationId] || STATIONS_DATA['station-maitri'];
   const isMaitri = station.id === 'station-maitri';
@@ -69,9 +71,18 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
   const [isMlPredicting, setIsMlPredicting] = useState(false);
   const [mlJustPredicted, setMlJustPredicted] = useState(false);
   const [activeGraphMetric, setActiveGraphMetric] = useState('all'); // 'all' | 'battery' | 'power' | 'temperature' | 'lifesupport'
+  const [baselineParams, setBaselineParams] = useState(null);
+  const [predictionError, setPredictionError] = useState(null);
+  const predictionSequence = useRef(0);
+  const scenarioTimers = useRef([]);
+  const predictionTimer = useRef(null);
+  const inputsChanged = baselineParams && ['ambientTemp', 'genDeratePct', 'windSpeedKmh', 'priorityReservePct'].some((key) => sandboxParams[key] !== baselineParams[key]);
 
   // Update baseline parameters when station changes
   useEffect(() => {
+    predictionSequence.current += 1;
+    scenarioTimers.current.forEach(clearTimeout);
+    clearTimeout(predictionTimer.current);
     setSandboxParams({
       ambientTemp: isMaitri ? -28 : -22,
       genDeratePct: 35,
@@ -84,6 +95,18 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
     setInterventionPrediction(null);
     setAppliedIntervention(null);
     setMlJustPredicted(false);
+    setIsMlPredicting(false);
+    setBaselineParams(null);
+    setPredictionError(null);
+    setSimulationRunning(false);
+    setSimulationCompleted(false);
+    setLoadShedApplied(false);
+    setSimulationProgress(0);
+    return () => {
+      predictionSequence.current += 1;
+      scenarioTimers.current.forEach(clearTimeout);
+      clearTimeout(predictionTimer.current);
+    };
   }, [stationId]);
 
   // Station specific baseline metrics
@@ -92,42 +115,48 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
   const batteryCapKwh = isMaitri ? 320 : 480;
 
   // Execute Real Python ML Regressor Prediction
-  const handleRunAIPrediction = async () => {
+  const handleRunAIPrediction = async (params = sandboxParams) => {
+    const requestId = ++predictionSequence.current;
+    const submittedParams = { ...params, loadReductionKw: 0 };
     setIsMlPredicting(true);
     setMlJustPredicted(false);
+    setPredictionError(null);
 
     try {
       const result = await runWhatIfPrediction(station.id, {
-        ambient_temperature: sandboxParams.ambientTemp,
-        generator_capacity_derate: sandboxParams.genDeratePct,
-        wind_velocity: sandboxParams.windSpeedKmh,
-        life_support_min_reserve: sandboxParams.priorityReservePct,
+        ambient_temperature: submittedParams.ambientTemp,
+        generator_capacity_derate: submittedParams.genDeratePct,
+        wind_velocity: submittedParams.windSpeedKmh,
+        life_support_min_reserve: submittedParams.priorityReservePct,
         load_reduction_kw: 0
-      });
+      }, role, assignedStation);
+      if (requestId !== predictionSequence.current) return;
 
       setMlPredictionResult(result);
+      setBaselineParams(submittedParams);
       setBaselinePrediction(result);
       setInterventionPrediction(null);
       setAppliedIntervention(null);
       setMlJustPredicted(true);
-      setTimeout(() => setMlJustPredicted(false), 4000);
+      clearTimeout(predictionTimer.current);
+      predictionTimer.current = setTimeout(() => setMlJustPredicted(false), 4000);
     } catch (err) {
-      console.error('[SimulationsView] Error executing ML prediction:', err);
+      if (requestId === predictionSequence.current) setPredictionError(err.message || 'Forecast unavailable. Please try again.');
     } finally {
-      setIsMlPredicting(false);
+      if (requestId === predictionSequence.current) setIsMlPredicting(false);
     }
   };
 
   const handleApplyPreventiveAction = async (action) => {
-    if (!action || isMlPredicting) return;
+    if (!action || isMlPredicting || !baselineParams) return;
 
-    const nextParams = { ...sandboxParams };
+    const nextParams = { ...baselineParams };
     let interventionSummary = '';
 
     if (action.category === 'POWER_DISPATCH') {
-      const restoredDerate = Math.max(0, sandboxParams.genDeratePct - 25);
+      const restoredDerate = Math.max(0, baselineParams.genDeratePct - 25);
       nextParams.genDeratePct = restoredDerate;
-      interventionSummary = `Standby generator synchronized; effective capacity derate reduced from ${sandboxParams.genDeratePct}% to ${restoredDerate}%.`;
+      interventionSummary = `Forecast assumes standby generation restores capacity derate from ${baselineParams.genDeratePct}% to ${restoredDerate}%. No equipment command is sent.`;
     } else if (action.category === 'LOAD_MANAGEMENT') {
       const statedReduction = Number(action.action?.match(/~?(\d+(?:\.\d+)?)\s*kW/i)?.[1]);
       nextParams.loadReductionKw = Math.max(15, Math.min(60, statedReduction || 20));
@@ -146,6 +175,8 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
     }
 
     setIsMlPredicting(true);
+    setPredictionError(null);
+    const requestId = ++predictionSequence.current;
     try {
       const result = await runWhatIfPrediction(station.id, {
         ambient_temperature: nextParams.ambientTemp,
@@ -153,7 +184,8 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
         wind_velocity: nextParams.windSpeedKmh,
         life_support_min_reserve: nextParams.priorityReservePct,
         load_reduction_kw: nextParams.loadReductionKw || 0
-      });
+      }, role, assignedStation);
+      if (requestId !== predictionSequence.current) return;
 
       setInterventionPrediction(result);
       setMlPredictionResult(result);
@@ -164,11 +196,12 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
         appliedAt: new Date().toISOString()
       });
       setMlJustPredicted(true);
-      setTimeout(() => setMlJustPredicted(false), 4000);
+      clearTimeout(predictionTimer.current);
+      predictionTimer.current = setTimeout(() => setMlJustPredicted(false), 4000);
     } catch (err) {
-      console.error('[SimulationsView] Error executing preventive intervention:', err);
+      if (requestId === predictionSequence.current) setPredictionError(err.message || 'Intervention forecast unavailable. Please try again.');
     } finally {
-      setIsMlPredicting(false);
+      if (requestId === predictionSequence.current) setIsMlPredicting(false);
     }
   };
 
@@ -179,12 +212,10 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
     setAppliedIntervention(null);
   };
 
-  // Auto-run initial ML prediction on mount if no result
+  // Use the new station's defaults even before React commits the slider reset.
   useEffect(() => {
-    if (!mlPredictionResult && activeTabMode === 'sandbox') {
-      handleRunAIPrediction();
-    }
-  }, [stationId, activeTabMode]);
+    handleRunAIPrediction({ ambientTemp: isMaitri ? -28 : -22, genDeratePct: 35, windSpeedKmh: isMaitri ? 75 : 65, priorityReservePct: 80, loadReductionKw: 0 });
+  }, [stationId, role, assignedStation]);
 
   // Polar Preset Scenario Definitions
   const scenarios = [
@@ -291,6 +322,9 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
   const currentScenario = scenarios.find(s => s.id === activeScenarioId) || scenarios[0];
 
   const handleSelectScenario = (scId) => {
+    scenarioTimers.current.forEach(clearTimeout);
+    setSimulationRunning(false);
+    setSimulationProgress(0);
     setActiveScenarioId(scId);
     setSimulationCompleted(false);
     setLoadShedApplied(false);
@@ -303,28 +337,31 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
     setSimulationPhaseLog('Phase 1/4: Injecting SCADA fault vector into station telemetry stream...');
     setLoadShedApplied(false);
 
-    setTimeout(() => {
+    scenarioTimers.current.forEach(clearTimeout);
+    scenarioTimers.current = [setTimeout(() => {
       setSimulationProgress(45);
       setSimulationPhaseLog('Phase 2/4: Calculating electrical bus load transient & energy depletion envelope...');
-    }, 450);
+    }, 450),
 
     setTimeout(() => {
       setSimulationProgress(80);
-      setSimulationPhaseLog('Phase 3/4: Running AI SCADA Optimal Load-Shedding & Grid Protection algorithm...');
-    }, 900);
+      setSimulationPhaseLog('Phase 3/4: Evaluating the preset load-shedding response...');
+    }, 900),
 
     setTimeout(() => {
       setSimulationProgress(100);
       setSimulationPhaseLog('Phase 4/4: Simulation Complete — Incident Diagnostic Report Compiled.');
       setSimulationRunning(false);
       setSimulationCompleted(true);
-    }, 1350);
+    }, 1350)];
   };
 
   const handleTriggerOfficialReport = () => {
+    const sandboxParams = appliedIntervention?.params || baselineParams;
+    if (!sandboxParams || !mlPredictionResult || isMlPredicting) return;
     const reportData = mlPredictionResult ? {
-      name: `AI ML Predictive Simulation (${sandboxParams.ambientTemp}°C, -${sandboxParams.genDeratePct}% Gen, ${sandboxParams.windSpeedKmh} km/h)`,
-      category: 'AI MACHINE LEARNING PREDICTIVE DOSSIER',
+      name: `What-if forecast (${sandboxParams.ambientTemp}°C, -${sandboxParams.genDeratePct}% generation, ${sandboxParams.windSpeedKmh} km/h wind)`,
+      category: 'STATION FORECAST REPORT',
       description: `Physics-informed Multi-Horizon ML forecast evaluating ${station.name} under ${sandboxParams.ambientTemp}°C ambient temperature, ${sandboxParams.genDeratePct}% generator derate, and ${sandboxParams.windSpeedKmh} km/h katabatic wind velocity.`,
       params: {
         powerDropPct: -sandboxParams.genDeratePct,
@@ -374,13 +411,17 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
   };
 
   const handleDownloadJSON = () => {
+    if (!mlPredictionResult || isMlPredicting) return;
     const reportPayload = {
       station_id: station.id,
       station_name: station.name,
       report_type: 'POLARIS_ML_PREDICTIVE_SIMULATION_REPORT',
       generated_at: new Date().toISOString(),
-      what_if_inputs: sandboxParams,
+      what_if_inputs: appliedIntervention?.params || baselineParams,
       ml_prediction: mlPredictionResult,
+      baseline_inputs: baselineParams,
+      baseline_prediction: baselinePrediction,
+      intervention: appliedIntervention,
       baseline_metrics: {
         totalGenKw,
         totalConsKw,
@@ -396,9 +437,13 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const handlePrintReport = () => {
+    document.body.classList.add('print-scenario-summary');
+    const cleanup = () => document.body.classList.remove('print-scenario-summary');
+    window.addEventListener('afterprint', cleanup, { once: true });
     window.print();
   };
 
@@ -475,9 +520,9 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
             <Sparkles size={22} className="text-cyan" />
           </div>
           <div className="reports-hero-titles">
-            <h2>{station.name} AI Predictive Simulation &amp; Stress Testing Command</h2>
+            <h2>{station.name} · Scenario planning</h2>
             <p className="reports-hero-sub">
-              Supervised Machine Learning Regressor Pipeline • Parametric Stress Testing • Multi-Horizon State Forecasting ({station.region})
+              Test changing conditions, inspect the forecast, and compare preventive actions.
             </p>
           </div>
         </div>
@@ -487,15 +532,17 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
             type="button" 
             className="btn-report-quick-action primary"
             onClick={handleTriggerOfficialReport}
+            disabled={!mlPredictionResult || isMlPredicting}
             title="Generate and view full official simulation dossier"
           >
             <FileText size={14} />
-            <span>Generate Official Report</span>
+            <span>View forecast report</span>
           </button>
           <button 
             type="button" 
             className="btn-report-quick-action"
             onClick={handleDownloadJSON}
+            disabled={!mlPredictionResult || isMlPredicting}
             title="Export simulation raw JSON dataset"
           >
             <Download size={14} />
@@ -508,10 +555,27 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
             title="Print or Save PDF report"
           >
             <Printer size={14} />
-            <span>Print Dossier</span>
+            <span>Print</span>
           </button>
         </div>
       </div>
+
+      <article className="simulation-print-sheet" aria-hidden="true">
+        <header>
+          <div><span>POLARIS · ANTARCTIC OPERATIONS</span><h1>What-if forecast report</h1><p>{station.name}</p></div>
+          <div className="simulation-print-meta"><strong>{mlPredictionResult?.prediction_id || 'FORECAST-PENDING'}</strong><span>{new Date().toLocaleString()}</span></div>
+        </header>
+        <section className="simulation-print-banner">
+          <div><span>Predicted state</span><strong>{mlPredictionResult?.predicted_state || 'Awaiting forecast'}</strong></div>
+          <div><span>Model confidence</span><strong>{Math.round((mlPredictionResult?.confidence || 0) * 100)}%</strong></div>
+          <div><span>Composite risk</span><strong>{Math.round((mlPredictionResult?.risk?.composite_hazard || 0) * 100)}/100</strong></div>
+          <div><span>Forecast horizon</span><strong>120 minutes</strong></div>
+        </section>
+        <section><h2>Submitted scenario inputs</h2><div className="simulation-print-grid"><div><span>Ambient temperature</span><strong>{sandboxParams.ambientTemp}°C</strong></div><div><span>Generation derate</span><strong>{sandboxParams.genDeratePct}%</strong></div><div><span>Wind velocity</span><strong>{sandboxParams.windSpeedKmh} km/h</strong></div><div><span>Minimum reserve</span><strong>{sandboxParams.priorityReservePct}%</strong></div></div></section>
+        <section><h2>120-minute projected station state</h2><div className="simulation-print-grid"><div><span>Battery reserve</span><strong>{mlPredictionResult?.prediction?.['120min']?.battery_level ?? '—'}%</strong></div><div><span>Power generation</span><strong>{mlPredictionResult?.prediction?.['120min']?.power_generation ?? '—'} kW</strong></div><div><span>Power demand</span><strong>{mlPredictionResult?.prediction?.['120min']?.power_consumption ?? '—'} kW</strong></div><div><span>Generator temperature</span><strong>{mlPredictionResult?.prediction?.['120min']?.generator_temperature ?? '—'}°C</strong></div></div></section>
+        <section><h2>Recommended operational actions</h2><ol>{(mlPredictionResult?.preventive_actions || []).slice(0, 5).map((action, index) => <li key={`${action.category}-${index}`}><strong>{action.priority} · {action.category}</strong><span>{action.action}</span></li>)}</ol>{!mlPredictionResult?.preventive_actions?.length && <p>Run the forecast to populate recommendations.</p>}</section>
+        <footer><span>Generated by POLARIS Predictive Intelligence</span><span>Research prototype · Verify before operational use</span></footer>
+      </article>
 
       {/* Studio Navigation Mode Switcher */}
       <div className="sim-mode-switcher">
@@ -520,21 +584,21 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
           className={`sim-mode-btn ${activeTabMode === 'sandbox' ? 'active' : ''}`}
           onClick={() => setActiveTabMode('sandbox')}
         >
-          <Cpu size={13} /> AI Machine-Learning What-If Sandbox
+          <Cpu size={13} /> What-if forecast
         </button>
         <button 
           type="button" 
           className={`sim-mode-btn ${activeTabMode === 'scenarios' ? 'active' : ''}`}
           onClick={() => setActiveTabMode('scenarios')}
         >
-          <Sliders size={13} /> Preset Polar Hazard Scenarios
+          <Sliders size={13} /> Preset scenarios
         </button>
         <button 
           type="button" 
           className={`sim-mode-btn ${activeTabMode === 'archive' ? 'active' : ''}`}
           onClick={() => setActiveTabMode('archive')}
         >
-          <Clock size={13} /> Generated Reports Archive
+          <Clock size={13} /> Example reports
         </button>
       </div>
 
@@ -548,10 +612,10 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
             <div className="panel-title-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Sliders size={16} className="text-cyan" />
-                <h3 className="section-title">What-If Parametric Edge-Case Stress Testing Sliders</h3>
+                <h3 className="section-title">Scenario inputs</h3>
               </div>
               <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>
-                Inputs are fed into the Python Random Forest Regressor to forecast microgrid states
+                Inputs are evaluated by the station forecast service
               </span>
             </div>
 
@@ -566,7 +630,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                   <span className="slider-val text-cyan mono-num">{sandboxParams.ambientTemp}°C</span>
                 </div>
                 <input 
-                  type="range" 
+                  type="range" aria-label="Ambient temperature in degrees Celsius"
                   min="-50" 
                   max="-5" 
                   step="1"
@@ -587,7 +651,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                   <span className="slider-val text-amber mono-num">{sandboxParams.genDeratePct}%</span>
                 </div>
                 <input 
-                  type="range" 
+                  type="range" aria-label="Generator capacity reduction in percent"
                   min="0" 
                   max="100" 
                   step="1"
@@ -608,7 +672,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                   <span className="slider-val text-blue mono-num">{sandboxParams.windSpeedKmh} km/h</span>
                 </div>
                 <input 
-                  type="range" 
+                  type="range" aria-label="Wind velocity in kilometres per hour"
                   min="0" 
                   max="160" 
                   step="2"
@@ -629,7 +693,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                   <span className="slider-val text-emerald mono-num">{sandboxParams.priorityReservePct}%</span>
                 </div>
                 <input 
-                  type="range" 
+                  type="range" aria-label="Minimum life support reserve in percent"
                   min="40" 
                   max="100" 
                   step="1"
@@ -646,30 +710,35 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
               <button 
                 type="button" 
                 className={`btn-run-ai-prediction ${isMlPredicting ? 'predicting' : ''}`}
-                onClick={handleRunAIPrediction}
+                onClick={() => handleRunAIPrediction()}
                 disabled={isMlPredicting}
               >
                 {isMlPredicting ? (
                   <>
                     <RefreshCw size={15} className="animate-spin" />
-                    <span>Executing ML Prediction Regressor...</span>
+                    <span>Calculating forecast…</span>
                   </>
                 ) : (
                   <>
                     <Sparkles size={15} />
-                    <span>RUN AI PREDICTION</span>
+                    <span>Run forecast</span>
                   </>
                 )}
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.66rem', color: '#94a3b8' }}>
-                <span>Engine: <strong className="text-cyan">POLARIS Physics-Informed ML Model v3.0</strong></span>
+                <span>Forecast service: <strong className="text-cyan">POLARIS operational model v3.0</strong></span>
                 <span>Station: <strong className="text-cyan">{station.name}</strong></span>
               </div>
             </div>
           </div>
 
           {/* AI PREDICTIVE OUTCOME SECTION */}
+          <div aria-live="polite">
+            {predictionError && <p className="ui-feedback ui-feedback-error" role="alert">{predictionError}</p>}
+            {isMlPredicting && <p className="ui-feedback">Calculating this scenario. Any visible results are from the previous completed forecast.</p>}
+            {inputsChanged && !isMlPredicting && <p className="ui-feedback">Inputs changed. Select Run forecast to update the graph. Existing results and action comparisons still use the last submitted scenario.</p>}
+          </div>
           {mlPredictionResult && (
             <div className={`ai-predictive-outcome-panel ${mlJustPredicted ? 'outcome-glow' : ''}`}>
               {/* Outcome Header Banner with Predicted State */}
@@ -679,7 +748,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                     <Sparkles size={18} className="text-cyan" />
                   </div>
                   <div>
-                    <span className="outcome-tagline">AI PREDICTIVE OUTCOME • SCADA MULTI-HORIZON INFERENCE</span>
+                    <span className="outcome-tagline">Forecast results</span>
                     <h3 className="outcome-main-title">
                       Predicted Station State: 
                       <span className={`predicted-state-badge state-${mlPredictionResult.predicted_state?.toLowerCase()}`}>
@@ -713,7 +782,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                       <h3>Baseline vs. operator-approved intervention</h3>
                       <p>{appliedIntervention?.summary}</p>
                     </div>
-                    <button type="button" className="btn-restore-baseline" onClick={handleRestoreBaseline}>
+                    <button type="button" className="btn-restore-baseline" onClick={handleRestoreBaseline} disabled={isMlPredicting}>
                       <RotateCcw size={13} /> Restore baseline
                     </button>
                   </div>
@@ -980,7 +1049,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                         <span className="forecast-zone-tag comparison-legend-after">━ After intervention</span>
                       </>
                     )}
-                    <span className="forecast-zone-tag">░ Shaded Area: Machine Learning Forecast Horizon</span>
+                    <span className="forecast-zone-tag">Shaded area: forecast horizon</span>
                   </div>
                 </div>
 
@@ -1007,7 +1076,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
 
                     {/* Forecast Zone Header Marker */}
                     <text x={forecastSplitX + 10} y={padT + 12} fill="#38bdf8" fontSize="8" fontWeight="bold" fontFamily="monospace">
-                      ⚡ AI FORECAST HORIZON
+                      FORECAST HORIZON
                     </text>
 
                     {/* Horizontal Gridlines */}
@@ -1106,7 +1175,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                 <div className="outcome-sub-card polaris-card">
                   <div className="sub-card-header">
                     <ShieldAlert size={15} className="text-red" />
-                    <h4>AI RISK PREDICTION</h4>
+                    <h4>RISK ASSESSMENT</h4>
                   </div>
                   <div className="risk-bars-stack">
                     <div className="risk-bar-item">
@@ -1165,7 +1234,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                 <div className="outcome-sub-card polaris-card">
                   <div className="sub-card-header">
                     <AlertTriangle size={15} className="text-amber" />
-                    <h4>PREDICTED ALERTS (FORWARD 120M)</h4>
+                    <h4>EXPECTED ALERTS · NEXT 120 MIN</h4>
                   </div>
                   <div className="alerts-stack">
                     {mlPredictionResult.predicted_alerts?.map((al, idx) => (
@@ -1184,7 +1253,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                 <div className="outcome-sub-card polaris-card">
                   <div className="sub-card-header">
                     <CheckCircle2 size={15} className="text-emerald" />
-                    <h4>PREVENTIVE OPERATIONAL ACTIONS</h4>
+                    <h4>RECOMMENDED ACTIONS</h4>
                   </div>
                   <div className="actions-stack">
                     {mlPredictionResult.preventive_actions?.map((act, idx) => (
@@ -1214,10 +1283,10 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
                 <div className="explainability-head">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <HelpCircle size={16} className="text-cyan" />
-                    <h4 className="section-title">WHY THIS PREDICTION? • MODEL FEATURE IMPORTANCE &amp; EXPLAINABILITY</h4>
+                    <h4 className="section-title">WHY THIS FORECAST CHANGED</h4>
                   </div>
                   <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>
-                    Calculated directly from Random Forest Decision Tree Gini-importance weights
+                    Relative influence of each submitted input on this result
                   </span>
                 </div>
 
@@ -1244,7 +1313,7 @@ export default function SimulationsView({ selectedStation, onOpenReport }) {
 
               <div className="prediction-audit-card polaris-card">
                 <div className="prediction-audit-head">
-                  <div><ShieldCheck size={16} className="text-emerald" /><h4>PREDICTION TRACEABILITY</h4></div>
+                  <div><ShieldCheck size={16} className="text-emerald" /><h4>FORECAST TRACE</h4></div>
                   <span>{mlPredictionResult.prediction_id || 'LOCAL-PREDICTION'}</span>
                 </div>
                 <div className="prediction-audit-grid">

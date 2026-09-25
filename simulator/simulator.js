@@ -7,6 +7,7 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 const TELEMETRY_ENDPOINT = `${BACKEND_URL}/api/telemetry`;
 const ALERT_ENDPOINT = `${BACKEND_URL}/api/alerts`;
 const DEVICE_INGEST_API_KEY = process.env.DEVICE_INGEST_API_KEY || '';
+const STREAM_INTERVAL_MS = Number(process.env.TELEMETRY_INTERVAL_MS || 2000);
 
 const STATIONS = {
   'station-maitri': {
@@ -116,6 +117,10 @@ function driftSensors(stationId) {
 
   s.temperature = +(s.temperature + (Math.random() * 0.4 - 0.2)).toFixed(2);
   s.battery_level = +(Math.max(60, Math.min(100, s.battery_level + (Math.random() * 0.2 - 0.1)))).toFixed(2);
+  // Keep both accepted payload aliases in sync. The API prefers `battery`
+  // when both fields are present, so leaving the legacy field unchanged made
+  // the UI appear frozen even though battery_level was drifting.
+  s.battery = s.battery_level;
   s.power_consumption = +(Math.max(50, Math.min(180, s.power_consumption + (Math.random() * 1.2 - 0.6)))).toFixed(2);
   s.generator_temperature = +(Math.max(68, Math.min(82, s.generator_temperature + (Math.random() * 0.6 - 0.3)))).toFixed(2);
   s.wind_speed = +(Math.max(10, Math.min(85, s.wind_speed + (Math.random() * 2.0 - 1.0)))).toFixed(2);
@@ -158,7 +163,7 @@ async function main() {
   };
 
   await tick();
-  setInterval(tick, 3000);
+  setInterval(tick, STREAM_INTERVAL_MS);
 }
 
 main();

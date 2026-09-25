@@ -57,7 +57,7 @@ export default function LogisticsView({ selectedStation }) {
       burnRate: isMaitri ? '1,167 L / day' : '1,105 L / day',
       health: isMaitri ? 'WARNING' : 'OPTIMAL',
       healthDesc: isMaitri ? 'Depletion alert in 43 days; resupply ship scheduled' : 'Reserves adequate for overwintering cycle',
-      color: isMaitri ? '#f59e0b' : '#10b981',
+      color: isMaitri ? '#946013' : '#187451',
       details: [
         { label: 'Trace Heating Loops', value: '4 / 4 Active (Glycol +65°C)' },
         { label: 'Anti-Waxing Additive', value: 'Poured & Mixed (0.8%)' },
@@ -76,7 +76,7 @@ export default function LogisticsView({ selectedStation }) {
       burnRate: isMaitri ? '460 L / day' : '490 L / day',
       health: 'OPTIMAL',
       healthDesc: isMaitri ? 'Heated conduit line from Lake Priyadarshini flowing at 8.2 L/min' : 'Seawater RO membrane bank producing 950 L/day potable water',
-      color: '#06b6d4',
+      color: '#147889',
       details: [
         { label: 'Potable Buffer Storage', value: isMaitri ? '14,800 L Buffer' : '28,400 L Reservoir' },
         { label: 'Daily Desal/Pumping Yield', value: isMaitri ? '520 L / day pump' : '950 L / day RO desal' },
@@ -95,7 +95,7 @@ export default function LogisticsView({ selectedStation }) {
       burnRate: isMaitri ? '48.5 kg / day' : '55.6 kg / day',
       health: 'OPTIMAL',
       healthDesc: 'Balanced caloric reserve (3,600 kcal/person/day) including fresh greens',
-      color: '#10b981',
+      color: '#187451',
       details: [
         { label: 'Cold Storage Freezer #1', value: '-22.4°C (Optimal)' },
         { label: 'Freeze-Dried MRE Packs', value: isMaitri ? '2,100 units' : '4,200 units' },
@@ -114,7 +114,7 @@ export default function LogisticsView({ selectedStation }) {
       burnRate: 'Stable on demand',
       health: 'OPTIMAL',
       healthDesc: 'Full polar trauma kit, surgical suite, and AIIMS New Delhi satellite link ready',
-      color: '#38bdf8',
+      color: '#146b80',
       details: [
         { label: 'Medical Oxygen Cylinders', value: isMaitri ? '18 / 20 Cylinders' : '32 / 35 Cylinders' },
         { label: 'Telemedicine Satellite Link', value: 'ONLINE (AIIMS New Delhi)' },
@@ -133,7 +133,7 @@ export default function LogisticsView({ selectedStation }) {
       burnRate: 'Routine maintenance usage',
       health: 'OPTIMAL',
       healthDesc: 'Alternator coils, glycol pumps, gasket seals, and satcom spare parts stocked',
-      color: '#a855f7',
+      color: '#705296',
       details: [
         { label: 'Diesel Alternator Spares', value: '2 Full Overhaul Kits' },
         { label: 'HVAC Heating Elements', value: '12 Replacement Units' },
@@ -204,13 +204,13 @@ export default function LogisticsView({ selectedStation }) {
           value={isMaitri ? '50,200 L' : '78,500 L'}
           status={isMaitri ? 'warning' : 'nominal'}
           icon={Fuel}
-          color="#f59e0b"
+          color="#946013"
           subtext={`${isMaitri ? '43 Days' : '71 Days'} Autonomy Remaining`}
           details={[
-            { label: 'Current Volume', value: isMaitri ? '50,200 L' : '78,500 L', color: '#f59e0b' },
-            { label: 'Max Capacity', value: isMaitri ? '77,000 L' : '105,000 L', color: '#f8fafc' },
-            { label: 'Burn Rate', value: isMaitri ? '1,167 L / day' : '1,105 L / day', color: '#38bdf8' },
-            { label: 'Tank Heating', value: '4 / 4 Glycol Loops Active', color: '#10b981' },
+            { label: 'Current Volume', value: isMaitri ? '50,200 L' : '78,500 L', color: '#946013' },
+            { label: 'Max Capacity', value: isMaitri ? '77,000 L' : '105,000 L', color: '#1d3044' },
+            { label: 'Burn Rate', value: isMaitri ? '1,167 L / day' : '1,105 L / day', color: '#146b80' },
+            { label: 'Tank Heating', value: '4 / 4 Glycol Loops Active', color: '#187451' },
           ]}
           interpretation="Polar diesel fuel reserve is maintained in active trace-heated vacuum-insulated bulk tanks."
           stationName={station.name}
@@ -233,13 +233,13 @@ export default function LogisticsView({ selectedStation }) {
           value={isMaitri ? '14,800 L' : '28,400 L'}
           status="nominal"
           icon={Droplets}
-          color="#06b6d4"
+          color="#147889"
           subtext={isMaitri ? 'Lake Priyadarshini heated intake active' : 'RO Desalination plant generating 950 L/d'}
           details={[
-            { label: 'Potable Buffer', value: isMaitri ? '14,800 L' : '28,400 L', color: '#06b6d4' },
-            { label: 'Daily Yield', value: isMaitri ? '520 L / day pump' : '950 L / day RO', color: '#10b981' },
-            { label: 'Daily Usage', value: isMaitri ? '460 L / day' : '490 L / day', color: '#38bdf8' },
-            { label: 'Purity Level', value: '0.18 NTU (Optimal)', color: '#10b981' },
+            { label: 'Potable Buffer', value: isMaitri ? '14,800 L' : '28,400 L', color: '#147889' },
+            { label: 'Daily Yield', value: isMaitri ? '520 L / day pump' : '950 L / day RO', color: '#187451' },
+            { label: 'Daily Usage', value: isMaitri ? '460 L / day' : '490 L / day', color: '#146b80' },
+            { label: 'Purity Level', value: '0.18 NTU (Optimal)', color: '#187451' },
           ]}
           interpretation="Water buffer sustains drinking, galley, and fire-suppression reserve margins."
           stationName={station.name}
@@ -262,13 +262,13 @@ export default function LogisticsView({ selectedStation }) {
           value={isMaitri ? '3,250 kg' : '6,120 kg'}
           status="nominal"
           icon={Utensils}
-          color="#10b981"
+          color="#187451"
           subtext={`${isMaitri ? '67 Days' : '110 Days'} Caloric Reserve`}
           details={[
-            { label: 'Current Inventory', value: isMaitri ? '3,250 kg' : '6,120 kg', color: '#10b981' },
-            { label: 'Caloric Ratio', value: '3,600 kcal/person/day', color: '#f8fafc' },
-            { label: 'Hydroponics Yield', value: '4.2 kg / week fresh', color: '#38bdf8' },
-            { label: 'Freezer Temp', value: '-22.4°C Nominal', color: '#10b981' },
+            { label: 'Current Inventory', value: isMaitri ? '3,250 kg' : '6,120 kg', color: '#187451' },
+            { label: 'Caloric Ratio', value: '3,600 kcal/person/day', color: '#1d3044' },
+            { label: 'Hydroponics Yield', value: '4.2 kg / week fresh', color: '#146b80' },
+            { label: 'Freezer Temp', value: '-22.4°C Nominal', color: '#187451' },
           ]}
           interpretation="Balanced multi-month nutritional inventory including emergency survival ration packs."
           stationName={station.name}
@@ -291,13 +291,13 @@ export default function LogisticsView({ selectedStation }) {
           value={isMaitri ? '38 Days' : '26 Days'}
           status="nominal"
           icon={Ship}
-          color="#38bdf8"
+          color="#146b80"
           subtext="MV Vasiliy Golovnin in Southern Ocean Transit"
           details={[
-            { label: 'Vessel Name', value: 'MV Vasiliy Golovnin', color: '#38bdf8' },
-            { label: 'Coordinates', value: '58°12′S, 32°45′E', color: '#f8fafc' },
-            { label: 'Cargo Payload', value: '650,000 L Fuel + 24 Containers', color: '#10b981' },
-            { label: 'Helicopter Air-Lift', value: 'Kamov Ka-32 Ready', color: '#38bdf8' },
+            { label: 'Vessel Name', value: 'MV Vasiliy Golovnin', color: '#146b80' },
+            { label: 'Coordinates', value: '58°12′S, 32°45′E', color: '#1d3044' },
+            { label: 'Cargo Payload', value: '650,000 L Fuel + 24 Containers', color: '#187451' },
+            { label: 'Helicopter Air-Lift', value: 'Kamov Ka-32 Ready', color: '#146b80' },
           ]}
           interpretation="Scheduled 44th Indian Antarctic Expedition annual relief voyage is progressing on course."
           stationName={station.name}
@@ -340,8 +340,8 @@ export default function LogisticsView({ selectedStation }) {
                   subtext={`Remaining: ${card.daysLeft} Days • Capacity: ${card.current} / ${card.capacity}`}
                   details={[
                     { label: 'Stock Level', value: card.current, color: card.color },
-                    { label: 'Max Capacity', value: card.capacity, color: '#f8fafc' },
-                    { label: 'Burn Rate', value: card.burnRate, color: '#38bdf8' },
+                    { label: 'Max Capacity', value: card.capacity, color: '#1d3044' },
+                    { label: 'Burn Rate', value: card.burnRate, color: '#146b80' },
                     ...(card.details || [])
                   ]}
                   interpretation={card.healthDesc}
@@ -416,14 +416,14 @@ export default function LogisticsView({ selectedStation }) {
                   percent={tank.percent}
                   status={tank.status.toLowerCase() === 'optimal' || tank.status.toLowerCase() === 'nominal' ? 'nominal' : 'warning'}
                   icon={Fuel}
-                  color={tank.percent < 70 ? '#f59e0b' : '#10b981'}
+                  color={tank.percent < 70 ? '#946013' : '#187451'}
                   subtext={`Tank Capacity: ${tank.capacity.toLocaleString()} L • Core Temp: ${tank.temp}°C`}
                   details={[
-                    { label: 'Current Level', value: `${tank.current.toLocaleString()} L`, color: tank.percent < 70 ? '#f59e0b' : '#10b981' },
-                    { label: 'Tank Capacity', value: `${tank.capacity.toLocaleString()} L`, color: '#f8fafc' },
-                    { label: 'Core Temp', value: `${tank.temp}°C`, color: '#38bdf8' },
-                    { label: 'Glycol Trace Jacket', value: tank.heating, color: '#10b981' },
-                    { label: 'Containment Sensor', value: 'Zero Leakage (Optimal)', color: '#10b981' },
+                    { label: 'Current Level', value: `${tank.current.toLocaleString()} L`, color: tank.percent < 70 ? '#946013' : '#187451' },
+                    { label: 'Tank Capacity', value: `${tank.capacity.toLocaleString()} L`, color: '#1d3044' },
+                    { label: 'Core Temp', value: `${tank.temp}°C`, color: '#146b80' },
+                    { label: 'Glycol Trace Jacket', value: tank.heating, color: '#187451' },
+                    { label: 'Containment Sensor', value: 'Zero Leakage (Optimal)', color: '#187451' },
                   ]}
                   interpretation="Double-walled Arctic containment tank equipped with differential pressure level sensors and temperature probes."
                   stationName={station.name}
@@ -442,7 +442,7 @@ export default function LogisticsView({ selectedStation }) {
                       <div className="tank-progress-track">
                         <div
                           className="tank-progress-fill"
-                          style={{ width: `${tank.percent}%`, backgroundColor: tank.percent < 70 ? '#f59e0b' : '#10b981' }}
+                          style={{ width: `${tank.percent}%`, backgroundColor: tank.percent < 70 ? '#946013' : '#187451' }}
                         />
                       </div>
                     </div>
@@ -467,20 +467,20 @@ export default function LogisticsView({ selectedStation }) {
                 <h3 className="section-title">5-Week Depletion & Projection Trend</h3>
               </div>
               <div className="stream-channel-legend" style={{ fontSize: '0.72rem', display: 'flex', gap: '0.75rem' }}>
-                <span style={{ color: '#f59e0b' }}>● Diesel (L)</span>
-                <span style={{ color: '#06b6d4' }}>● Water (L)</span>
+                <span style={{ color: '#946013' }}>● Diesel (L)</span>
+                <span style={{ color: '#147889' }}>● Water (L)</span>
               </div>
             </div>
             <div className="chart-box" style={{ height: 180, padding: '0.5rem 0' }}>
               <svg width="100%" height="100%" viewBox="0 0 520 140" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
                 <defs>
                   <linearGradient id="fuelGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#946013" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#946013" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#147889" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#147889" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
 
@@ -521,12 +521,12 @@ export default function LogisticsView({ selectedStation }) {
                   return (
                     <g>
                       <polygon points={areaPts} fill="url(#fuelGrad)" />
-                      <polyline fill="none" stroke="#f59e0b" strokeWidth="2" points={pts} strokeLinecap="round" strokeLinejoin="round" />
+                      <polyline fill="none" stroke="#946013" strokeWidth="2" points={pts} strokeLinecap="round" strokeLinejoin="round" />
                       {trendData.map((d, i) => {
                         const x = 55 + (i / (trendData.length - 1)) * 435;
                         const y = 15 + (1 - d.fuel / maxVal) * 95;
                         return (
-                          <circle key={i} cx={x} cy={y} r="2.5" fill="#f59e0b" stroke="#060b14" strokeWidth="1" />
+                          <circle key={i} cx={x} cy={y} r="2.5" fill="#946013" stroke="#060b14" strokeWidth="1" />
                         );
                       })}
                     </g>
@@ -543,12 +543,12 @@ export default function LogisticsView({ selectedStation }) {
                   }).join(' ');
                   return (
                     <g>
-                      <polyline fill="none" stroke="#06b6d4" strokeWidth="1.8" strokeDasharray={trendData.some(d => d.week.includes('Proj')) ? "3 3" : "none"} points={pts} strokeLinecap="round" strokeLinejoin="round" />
+                      <polyline fill="none" stroke="#147889" strokeWidth="1.8" strokeDasharray={trendData.some(d => d.week.includes('Proj')) ? "3 3" : "none"} points={pts} strokeLinecap="round" strokeLinejoin="round" />
                       {trendData.map((d, i) => {
                         const x = 55 + (i / (trendData.length - 1)) * 435;
                         const y = 15 + (1 - (d.water * 2.5) / maxVal) * 95;
                         return (
-                          <circle key={i} cx={x} cy={y} r="2.5" fill="#06b6d4" stroke="#060b14" strokeWidth="1" />
+                          <circle key={i} cx={x} cy={y} r="2.5" fill="#147889" stroke="#060b14" strokeWidth="1" />
                         );
                       })}
                     </g>

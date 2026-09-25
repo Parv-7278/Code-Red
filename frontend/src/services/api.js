@@ -2,6 +2,11 @@ import { formatStationDate, formatStationTime, getStationTimezone, getStationTim
 import { getAccessToken } from './supabaseClient.js';
 
 const BACKEND_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) || 'http://localhost:5000';
+const ML_API_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ML_API_URL) || 'http://localhost:8000';
+
+function uniqueServiceUrls(paths) {
+  return [...new Set(paths.filter(Boolean))];
+}
 
 async function getAuthHeaders(role = 'india_operator', assignedStation = null, operatorName = null) {
   const headers = {
@@ -15,11 +20,16 @@ async function getAuthHeaders(role = 'india_operator', assignedStation = null, o
   return headers;
 }
 
-async function unwrapApiResponse(res) {
-  const payload = await res.json();
-  if (!res.ok) {
-    throw new Error(payload.message || payload.error || `API request failed with HTTP ${res.status}`);
+async function readApiResponse(res) {
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok || payload.success === false) {
+    throw new Error(payload.message || payload.error || payload.detail || `Request failed (HTTP ${res.status}). Please try again.`);
   }
+  return payload;
+}
+
+async function unwrapApiResponse(res) {
+  const payload = await readApiResponse(res);
   return payload.data ?? payload;
 }
 
@@ -80,7 +90,7 @@ export async function getStationAlerts(stationId = null, role, assignedStation) 
   const res = await fetch(`${BACKEND_URL}/api/alerts${filterParam}`, {
     headers: await getAuthHeaders(role, assignedStation),
   });
-  return res.json();
+  return readApiResponse(res);
 }
 
 // -----------------------------------------------------------------------------
@@ -100,7 +110,7 @@ export async function fetchLatestTelemetry(stationId, role, assignedStation) {
   const res = await fetch(`${BACKEND_URL}/api/sensor-data/latest${filterParam}`, {
     headers: await getAuthHeaders(role, assignedStation),
   });
-  return res.json();
+  return readApiResponse(res);
 }
 
 export async function fetchStationStatus(stationId, role, assignedStation) {
@@ -130,28 +140,30 @@ export async function fetchQueueMetrics() {
   return res.json();
 }
 
-export async function triggerScenario(scenarioType, stationId = 'station-bharati') {
-  const res = await fetch(`${BACKEND_URL}/api/simulations/run`, {
+export async function triggerScenario(scenarioType, stationId = 'station-bharati', role, assignedStation) {
+  const res = await fetch(`${BACKEND_URL}/api/simulator/scenario`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ scenario_type: scenarioType, station_id: stationId }),
+    headers: await getAuthHeaders(role, assignedStation),
+    body: JSON.stringify({ scenarioType, stationId }),
   });
-  return res.json();
+  return readApiResponse(res);
 }
 
-export async function acknowledgeAlert(alertId) {
+export async function acknowledgeAlert(alertId, role, assignedStation) {
   const res = await fetch(`${BACKEND_URL}/api/alerts/${alertId}/ack`, {
     method: 'PATCH',
+    headers: await getAuthHeaders(role, assignedStation),
   });
-  return res.json();
+  return readApiResponse(res);
 }
 
-export async function clearAllAlerts(stationId = null) {
+export async function clearAllAlerts(stationId = null, role, assignedStation) {
   const filterParam = stationId ? `?stationId=${stationId}` : '';
   const res = await fetch(`${BACKEND_URL}/api/alerts/clear${filterParam}`, {
     method: 'DELETE',
+    headers: await getAuthHeaders(role, assignedStation),
   });
-  return res.json();
+  return readApiResponse(res);
 }
 
 // -----------------------------------------------------------------------------
@@ -222,6 +234,8 @@ export function generateClientSide24hReport(stationId = 'station-maitri') {
 
     return {
       station_id: stId,
+      source: 'demo',
+      is_fallback: true,
       station_name: fullName,
       generated_at: fmt(now),
       reporting_period: reportingPeriod,
@@ -407,6 +421,8 @@ export function generateClientSide24hReport(stationId = 'station-maitri') {
     return {
       success: true,
       station_id: 'all-stations',
+      source: 'demo',
+      is_fallback: true,
       station_name: 'All Antarctic Stations (India Control Centre)',
       generated_at: fmt(now),
       reporting_period: reportingPeriod,
@@ -428,6 +444,8 @@ export function generateClientSide24hReport(stationId = 'station-maitri') {
     return {
       success: true,
       station_id: isMaitri ? 'station-maitri' : 'station-bharati',
+      source: 'demo',
+      is_fallback: true,
       station_name: singleReport.station_name,
       generated_at: singleReport.generated_at,
       reporting_period: reportingPeriod,
@@ -451,15 +469,10 @@ export async function analyzeResearchData(params = {}, role, assignedStation) {
   const timeRange = params.time_range || params.timeRange || '7d';
   const userQuery = params.user_query || params.userQuery || null;
 
-  const primaryUrl = BACKEND_URL;
-  const alternateUrl = BACKEND_URL.includes('5000') 
-    ? BACKEND_URL.replace('5000', '8000') 
-    : 'http://localhost:5000';
-
-  const urlsToTry = [
-    `${primaryUrl}/api/research/ai-analyst/analyze`,
-    `${alternateUrl}/api/research/ai-analyst/analyze`
-  ];
+  const urlsToTry = uniqueServiceUrls([
+    `${BACKEND_URL}/api/research/ai-analyst/analyze`,
+    `${ML_API_URL}/api/research/ai-analyst/analyze`,
+  ]);
 
   for (const url of urlsToTry) {
     try {
@@ -493,7 +506,9 @@ export async function analyzeResearchData(params = {}, role, assignedStation) {
     station_id: stationId,
     analysis_type: analysisType,
     time_range: timeRange,
-    summary: `Analysis complete for ${isBharati ? 'Bharati' : 'Maitri'} Station across ${timeRange}. Telemetry and operational parameters remain nominal.`,
+    source: 'demo',
+    is_fallback: true,
+    summary: `The analysis service is unavailable. This demonstration view for ${isBharati ? 'Bharati' : 'Maitri'} does not verify current station conditions. Reconnect the service to analyze ${timeRange} of telemetry.`,
     success: true
   };
 }
@@ -505,11 +520,10 @@ export async function analyzeResearchData(params = {}, role, assignedStation) {
  */
 export async function fetchEnergyPrediction(stationId = 'maitri', predictionHours = [1, 6, 24], role, assignedStation) {
   const normId = stationId.toLowerCase().includes('bharati') ? 'bharati' : 'maitri';
-  const urlsToTry = [
-    'http://localhost:8000/api/ai/energy-prediction',
-    `${BACKEND_URL}/api/ai/energy-prediction`
-  ];
-  const uniqueUrls = [...new Set(urlsToTry)];
+  const uniqueUrls = uniqueServiceUrls([
+    `${ML_API_URL}/api/ai/energy-prediction`,
+    `${BACKEND_URL}/api/ai/energy-prediction`,
+  ]);
 
   for (const url of uniqueUrls) {
     try {
@@ -547,6 +561,8 @@ export async function fetchEnergyPrediction(stationId = 'maitri', predictionHour
     station_id: normId,
     station_name: isBharati ? 'BHARATI' : 'MAITRI',
     model: 'RandomForestRegressor (Offline Fallback)',
+    source: 'demo',
+    is_fallback: true,
     data_points_used: 168,
     prediction: {
       battery_1h: isBharati ? 88.4 : 78.5,
@@ -596,6 +612,8 @@ export async function fetchEnergyAIInsights(stationId = 'station-maitri', role, 
         station_id: normId,
         station_name: predictionRes.station_name || (isBharati ? 'BHARATI' : 'MAITRI'),
         model: predictionRes.model,
+        source: predictionRes.source,
+        is_fallback: Boolean(predictionRes.is_fallback),
         data_points_used: predictionRes.data_points_used,
         prediction: predictionRes.prediction,
         generator_risk: predictionRes.generator_risk,
@@ -648,6 +666,8 @@ export async function fetchEnergyAIInsights(stationId = 'station-maitri', role, 
     recommendations,
     confidence: 'HIGH',
     provider: 'POLARIS Microgrid AI Analyst',
+    source: 'demo',
+    is_fallback: true,
   };
 }
 
@@ -669,15 +689,10 @@ export async function askResearchAI(params = {}, role, assignedStation) {
     }
   }
 
-  const primaryUrl = BACKEND_URL;
-  const alternateUrl = BACKEND_URL.includes('5000') 
-    ? BACKEND_URL.replace('5000', '8000') 
-    : 'http://localhost:5000';
-
-  const urlsToTry = [
-    `${primaryUrl}/api/research/ai-analyst/ask`,
-    `${alternateUrl}/api/research/ai-analyst/ask`
-  ];
+  const urlsToTry = uniqueServiceUrls([
+    `${BACKEND_URL}/api/research/ai-analyst/ask`,
+    `${ML_API_URL}/api/research/ai-analyst/ask`,
+  ]);
 
   for (const url of urlsToTry) {
     try {
@@ -713,7 +728,9 @@ export async function askResearchAI(params = {}, role, assignedStation) {
     const rep = generateClientSide24hReport(stationId);
     const exec = rep.report?.executive_summary || rep.executive_summary || {};
     return {
-      answer: `24-Hour Comprehensive Operational & Research Report compiled for ${rep.station_name || stName}. Overall Station Status: ${exec.overall_status || 'NORMAL'} (Risk Index: ${exec.overall_risk_score ?? 18}/100). ${exec.ai_summary || 'All monitored modules synchronized.'}`,
+      answer: `Demonstration report for ${rep.station_name || stName}. The analysis service is unavailable; the report uses sample values and does not describe verified station conditions.`,
+      source: 'demo',
+      is_fallback: true,
       report: rep.report || rep,
       summaryReportData: rep,
       hasReportAction: true,
@@ -721,19 +738,13 @@ export async function askResearchAI(params = {}, role, assignedStation) {
     };
   }
 
-  let answer = `Analysis complete for ${stName} Station: Subsurface cryosphere profiles indicate steady compaction. CryoSat-2 and NISAR interferometry models confirm localized ice shelf grounding line equilibrium.`;
-
-  if (qLower.includes('compare') || qLower.includes('vs') || qLower.includes('past')) {
-    answer = `Historical Comparison (2020-2025): ${stName} Station thermal deviation is +0.42°C above the 5-year mean. Glacial accumulation rate remains within normal stochastic tolerance.`;
-  } else if (qLower.includes('anomal') || qLower.includes('warning') || qLower.includes('risk')) {
-    answer = isBharati 
-      ? `Bharati Observatory status: All primary telemetry channels nominal. Ku-Band ISRO radome tracking active with 0 active alerts.`
-      : `Maitri Observatory advisory: Generator G-02 core temperature elevated (+4.3°C above baseline, max 78.4°C). Recommended: trace-heating optimization.`;
-  }
+  const answer = `The research analysis service is unavailable for ${stName}. Reconnect the service to answer this question using telemetry. The displayed datasets are demonstrations; no satellite measurements or historical comparisons have been verified.`;
 
   return {
     answer,
     summary: answer,
+    source: 'demo',
+    is_fallback: true,
     station_id: stationId,
     success: true
   };
@@ -762,19 +773,12 @@ export async function generate24HourReport(params = {}, role, assignedStation) {
     }
   }
 
-  const primaryUrl = BACKEND_URL;
-  const alternateUrl = BACKEND_URL.includes('5000') 
-    ? BACKEND_URL.replace('5000', '8000') 
-    : BACKEND_URL.includes('8000') 
-      ? BACKEND_URL.replace('8000', '5000') 
-      : 'http://localhost:5000';
-
-  const urlsToTry = [
-    `${primaryUrl}/api/research/ai-analyst/report-24h`,
-    `${alternateUrl}/api/research/ai-analyst/report-24h`,
-    `${primaryUrl}/api/research/ai-analyst/analyze`,
-    `${alternateUrl}/api/research/ai-analyst/analyze`,
-  ];
+  const urlsToTry = uniqueServiceUrls([
+    `${BACKEND_URL}/api/research/ai-analyst/report-24h`,
+    `${ML_API_URL}/api/research/ai-analyst/report-24h`,
+    `${BACKEND_URL}/api/research/ai-analyst/analyze`,
+    `${ML_API_URL}/api/research/ai-analyst/analyze`,
+  ]);
 
   for (const url of urlsToTry) {
     try {
@@ -810,6 +814,149 @@ export async function generate24HourReport(params = {}, role, assignedStation) {
   return generateClientSide24hReport(targetStation);
 }
 
+const LOCAL_REPORT_SCHEDULE_KEY = 'polaris_12h_report_schedules';
+const LOCAL_REPORT_DELIVERIES_KEY = 'polaris_12h_report_deliveries';
+
+function readLocalReportState(key, fallback) {
+  try { return JSON.parse(window.localStorage.getItem(key) || '') || fallback; }
+  catch { return fallback; }
+}
+
+function writeLocalReportState(key, value) {
+  try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage may be unavailable */ }
+}
+
+async function generateClient12HourReport(targetStation, sendToHq, role, assignedStation) {
+  const stationIds = targetStation === 'all-stations' || targetStation === 'all'
+    ? ['station-maitri', 'station-bharati']
+    : [targetStation];
+  const packets = await Promise.all(stationIds.map(async (stationId) => {
+    const response = await fetchLatestTelemetry(stationId, role, assignedStation).catch(() => null);
+    return response?.data || {};
+  }));
+  const generatedAt = new Date();
+  const stationReports = Object.fromEntries(stationIds.map((stationId, index) => {
+    const packet = packets[index];
+    const isMaitri = stationId === 'station-maitri';
+    const generator = Number(packet.generator_temperature ?? (isMaitri ? 77 : 72));
+    const demand = Number(packet.power_consumption ?? (isMaitri ? 96 : 146));
+    const battery = Number(packet.battery_level ?? packet.battery ?? (isMaitri ? 71 : 88));
+    const wind = Number(packet.wind_speed ?? (isMaitri ? 39 : 48));
+    const risk = Math.min(100, (generator >= 85 ? 34 : 5) + (battery < 40 ? 34 : 4) + (wind >= 80 ? 24 : 3));
+    return [stationId, {
+      station_id: stationId,
+      station_name: isMaitri ? 'Maitri Research Station' : 'Bharati Research Station',
+      samples_analyzed: packet.station_id ? 1 : 0,
+      status: risk >= 60 ? 'CRITICAL' : risk >= 30 ? 'WATCH' : 'NOMINAL',
+      risk_score: risk,
+      telemetry: {
+        generator_temperature_c: { current: +generator.toFixed(2) },
+        demand_kw: { current: +demand.toFixed(2) },
+        battery_reserve_pct: { current: +battery.toFixed(2) },
+        wind_speed_kmh: { current: +wind.toFixed(2) },
+      },
+      summary: `${isMaitri ? 'Maitri' : 'Bharati'} latest packet reports ${generator.toFixed(1)}°C generator temperature, ${demand.toFixed(1)} kW demand and ${battery.toFixed(1)}% battery reserve.`,
+    }];
+  }));
+  const stationValues = Object.values(stationReports);
+  const report = {
+    success: true,
+    report_id: `POL-12H-${generatedAt.toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}-${stationIds.length === 2 ? 'FLEET' : stationIds[0].split('-')[1].toUpperCase()}`,
+    report_type: '12_HOUR_STATION_OPERATIONS_SUMMARY',
+    station_id: stationIds.length === 2 ? 'all-stations' : stationIds[0],
+    station_name: stationIds.length === 2 ? 'Maitri & Bharati Stations' : stationValues[0].station_name,
+    generated_at: generatedAt.toISOString(),
+    reporting_period: { start: new Date(generatedAt.getTime() - 12 * 3600000).toISOString(), end: generatedAt.toISOString(), hours: 12 },
+    recipient: { name: 'India Control Centre', organisation: 'NCPOR Mission Operations, Goa', channel: 'POLARIS demonstration reporting queue' },
+    executive_summary: {
+      overall_status: stationValues.some((entry) => entry.status === 'CRITICAL') ? 'CRITICAL' : stationValues.some((entry) => entry.status === 'WATCH') ? 'WATCH' : 'NOMINAL',
+      overall_risk_score: Math.max(...stationValues.map((entry) => entry.risk_score)),
+      stations_covered: stationIds.length,
+      ai_summary: stationValues.map((entry) => entry.summary).join(' '),
+    },
+    station_reports: stationReports,
+    delivery: { status: 'READY', delivered_at: null },
+    provenance: 'Client fallback generated from the latest available POLARIS telemetry packets.',
+    is_fallback: true,
+  };
+  if (sendToHq) {
+    const delivery = {
+      delivery_id: `DLV-${Date.now()}`,
+      report_id: report.report_id,
+      station_id: report.station_id,
+      station_name: report.station_name,
+      recipient: report.recipient,
+      trigger: 'MANUAL',
+      status: 'TRANSMITTED',
+      delivered_at: new Date().toISOString(),
+      transport: 'LOCAL_DEMONSTRATION_QUEUE',
+    };
+    report.delivery = delivery;
+    const deliveries = readLocalReportState(LOCAL_REPORT_DELIVERIES_KEY, []);
+    writeLocalReportState(LOCAL_REPORT_DELIVERIES_KEY, [delivery, ...deliveries].slice(0, 25));
+  }
+  return report;
+}
+
+export async function generate12HourReport(params = {}, role, assignedStation) {
+  const targetStation = params.stationId || params.station_id || 'station-maitri';
+  const sendToHq = Boolean(params.sendToHq ?? params.send_to_hq);
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/research/ai-analyst/report-12h`, {
+      method: 'POST',
+      headers: await getAuthHeaders(role, assignedStation),
+      body: JSON.stringify({ station_id: targetStation, send_to_hq: sendToHq }),
+    });
+    return await readApiResponse(res);
+  } catch {
+    return generateClient12HourReport(targetStation, sendToHq, role, assignedStation);
+  }
+}
+
+export async function get12HourReportSchedule(stationId, role, assignedStation) {
+  const query = encodeURIComponent(stationId || 'station-maitri');
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/research/ai-analyst/report-schedule?stationId=${query}`, {
+      headers: await getAuthHeaders(role, assignedStation),
+    });
+    return await unwrapApiResponse(res);
+  } catch {
+    const schedules = readLocalReportState(LOCAL_REPORT_SCHEDULE_KEY, {});
+    return schedules[stationId] || { station_id: stationId, enabled: false, cadence_hours: 12, recipient: 'India Control Centre · NCPOR Goa', next_dispatch_at: null, last_dispatch_at: null, service_scope: 'Browser demonstration fallback' };
+  }
+}
+
+export async function update12HourReportSchedule(stationId, enabled, role, assignedStation) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/research/ai-analyst/report-schedule`, {
+      method: 'PUT',
+      headers: await getAuthHeaders(role, assignedStation),
+      body: JSON.stringify({ station_id: stationId, enabled: Boolean(enabled) }),
+    });
+    return await unwrapApiResponse(res);
+  } catch {
+    const schedules = readLocalReportState(LOCAL_REPORT_SCHEDULE_KEY, {});
+    const schedule = { station_id: stationId, enabled: Boolean(enabled), cadence_hours: 12, recipient: 'India Control Centre · NCPOR Goa', updated_at: new Date().toISOString(), next_dispatch_at: enabled ? new Date(Date.now() + 12 * 3600000).toISOString() : null, last_dispatch_at: schedules[stationId]?.last_dispatch_at || null, service_scope: 'Browser demonstration fallback' };
+    writeLocalReportState(LOCAL_REPORT_SCHEDULE_KEY, { ...schedules, [stationId]: schedule });
+    return schedule;
+  }
+}
+
+export async function get12HourReportDeliveries(stationId, role, assignedStation) {
+  const query = encodeURIComponent(stationId || 'station-maitri');
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/research/ai-analyst/report-deliveries?stationId=${query}`, {
+      headers: await getAuthHeaders(role, assignedStation),
+    });
+    return await unwrapApiResponse(res);
+  } catch {
+    const deliveries = readLocalReportState(LOCAL_REPORT_DELIVERIES_KEY, []);
+    return stationId === 'all-stations' || stationId === 'all'
+      ? deliveries
+      : deliveries.filter((delivery) => delivery.station_id === stationId || delivery.station_id === 'all-stations');
+  }
+}
+
 export async function getAIAnalystStatus(role, assignedStation) {
   try {
     const res = await fetch(`${BACKEND_URL}/api/research/ai-analyst/status`, {
@@ -821,8 +968,10 @@ export async function getAIAnalystStatus(role, assignedStation) {
   }
 
   return {
-    status: 'ONLINE',
-    badge: 'AI ANALYSIS READY',
+    status: 'OFFLINE',
+    badge: 'DEMONSTRATION DATA',
+    source: 'demo',
+    is_fallback: true,
     engine: 'POLARIS Hybrid Python Analytics + AI Synthesis',
     supported_time_ranges: ['24h', '7d', '30d'],
     supported_analysis_types: [

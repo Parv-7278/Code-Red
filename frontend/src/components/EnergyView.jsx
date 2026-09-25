@@ -158,7 +158,7 @@ export default function EnergyView({
   }, [insightModalOpen]);
 
   const handleExecuteMitigation = (actionName) => {
-    setMitigationFeedback(`AI Directive Dispatched: [${actionName}] applied to microgrid controller.`);
+    setMitigationFeedback(`Action dispatched: [${actionName}] applied to the microgrid controller.`);
     setTimeout(() => setMitigationFeedback(null), 4000);
   };
 
@@ -228,8 +228,8 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
           <div className="e-weather-header">
             <div className="e-weather-cloud">
               <svg viewBox="0 0 40 30" width="34" height="26" fill="none">
-                <circle cx="12" cy="10" r="6" fill="#facc15" fillOpacity="0.8" />
-                <path d="M28 14C27.5 9 22 6 17 8C12 6 6 10 7 15C3 17 2 23 7 25C9 26 30 26 31 25C35 24 36 17 31 15C30 14.5 29 14 28 14Z" fill="#38bdf8" fillOpacity="0.25" stroke="#38bdf8" strokeWidth="1.5" />
+                <circle cx="12" cy="10" r="6" fill="#946013" fillOpacity="0.8" />
+                <path d="M28 14C27.5 9 22 6 17 8C12 6 6 10 7 15C3 17 2 23 7 25C9 26 30 26 31 25C35 24 36 17 31 15C30 14.5 29 14 28 14Z" fill="#146b80" fillOpacity="0.25" stroke="#146b80" strokeWidth="1.5" />
               </svg>
             </div>
             <div className="e-weather-temp-wrap">
@@ -271,7 +271,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
           <div className="e-time-digits mono-num">{liveClock.timeStrWithSeconds}</div>
           <div className="e-time-date">
             <span>{liveClock.dateStr}</span>
-            <span className="e-tz-badge" style={{ marginLeft: '6px', fontSize: '10px', padding: '2px 6px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+            <span className="e-tz-badge" style={{ marginLeft: '6px', fontSize: '10px', padding: '2px 6px', background: 'rgba(56, 189, 248, 0.15)', color: '#146b80', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
               {stationData.timezone_label || (isBharati ? 'UTC+5' : 'UTC+0')}
             </span>
           </div>
@@ -304,13 +304,13 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
               unit="kW"
               status="nominal"
               icon={Zap}
-              color="#10b981"
+              color="#187451"
               subtext="Aggregated Real-Time Station Output"
               details={[
-                { label: 'Total Output', value: `${energy.generation} kW`, color: '#10b981' },
-                { label: 'Genset G-01', value: `${energy.sources?.gen1?.current || 65} kW`, color: '#38bdf8' },
-                { label: 'Genset G-02', value: `${energy.sources?.gen2?.current || 0} kW`, color: '#38bdf8' },
-                { label: 'Solar/Wind Harvest', value: `${(energy.sources?.solar?.current || 0) + (energy.sources?.wind?.current || 0)} kW`, color: '#10b981' },
+                { label: 'Total Output', value: `${energy.generation} kW`, color: '#187451' },
+                { label: 'Genset G-01', value: `${energy.sources?.gen1?.current || 65} kW`, color: '#146b80' },
+                { label: 'Genset G-02', value: `${energy.sources?.gen2?.current || 0} kW`, color: '#146b80' },
+                { label: 'Solar/Wind Harvest', value: `${(energy.sources?.solar?.current || 0) + (energy.sources?.wind?.current || 0)} kW`, color: '#187451' },
               ]}
               interpretation="All power generating assets synchronized with the 415V 3-phase station distribution bus."
               stationName={stationData.name}
@@ -331,13 +331,13 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
               unit="kW"
               status="nominal"
               icon={Activity}
-              color="#0284c7"
+              color="#245b82"
               subtext="Combined Habitat & Science Lab Demand"
               details={[
-                { label: 'Active Station Load', value: `${energy.consumption} kW`, color: '#0284c7' },
-                { label: 'Heating Loops', value: `${Math.round(energy.consumption * 0.42)} kW`, color: '#f59e0b' },
-                { label: 'Science Instruments', value: `${Math.round(energy.consumption * 0.28)} kW`, color: '#06b6d4' },
-                { label: 'Base Life Support', value: `${Math.round(energy.consumption * 0.30)} kW`, color: '#10b981' },
+                { label: 'Active Station Load', value: `${energy.consumption} kW`, color: '#245b82' },
+                { label: 'Heating Loops', value: `${Math.round(energy.consumption * 0.42)} kW`, color: '#946013' },
+                { label: 'Science Instruments', value: `${Math.round(energy.consumption * 0.28)} kW`, color: '#147889' },
+                { label: 'Base Life Support', value: `${Math.round(energy.consumption * 0.30)} kW`, color: '#187451' },
               ]}
               interpretation="Station electrical demand is operating within standard diurnal limits."
               stationName={stationData.name}
@@ -359,13 +359,13 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
               percent={energy.batteryPercent}
               status="nominal"
               icon={BatteryCharging}
-              color="#10b981"
+              color="#187451"
               subtext="Uninterruptible Lithium-Titanate BESS"
               details={[
-                { label: 'State of Charge (SoC)', value: `${energy.batteryPercent}%`, color: '#10b981' },
-                { label: 'Current Charge', value: energy.batteryChargeKWh || '410 kWh', color: '#38bdf8' },
-                { label: 'Total Capacity', value: energy.batteryCapacityKWh || '500 kWh', color: '#f8fafc' },
-                { label: 'Autonomy Duration', value: '14.5 Hours', color: '#10b981' },
+                { label: 'State of Charge (SoC)', value: `${energy.batteryPercent}%`, color: '#187451' },
+                { label: 'Current Charge', value: energy.batteryChargeKWh || '410 kWh', color: '#146b80' },
+                { label: 'Total Capacity', value: energy.batteryCapacityKWh || '500 kWh', color: '#1d3044' },
+                { label: 'Autonomy Duration', value: '14.5 Hours', color: '#187451' },
               ]}
               interpretation="Battery bank is in float equilibrium with zero cell over-voltage warnings."
               stationName={stationData.name}
@@ -429,17 +429,17 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                       ? "M 40,76 Q 85,82 130,75 T 220,68 T 310,62 T 375,58"
                       : "M 40,86 Q 85,94 130,88 T 220,80 T 310,74 T 375,70"}
                     fill="none"
-                    stroke="#0284c7"
+                    stroke="#245b82"
                     strokeWidth="2.2"
                   />
                   {/* Consumption Data Points */}
-                  <circle cx="40" cy={isBharati ? 76 : 86} r="2.5" fill="#0284c7" />
-                  <circle cx="95" cy={isBharati ? 80 : 92} r="2.5" fill="#0284c7" />
-                  <circle cx="150" cy={isBharati ? 74 : 85} r="2.5" fill="#0284c7" />
-                  <circle cx="205" cy={isBharati ? 70 : 82} r="2.5" fill="#0284c7" />
-                  <circle cx="260" cy={isBharati ? 66 : 78} r="2.5" fill="#0284c7" />
-                  <circle cx="315" cy={isBharati ? 62 : 74} r="2.5" fill="#0284c7" />
-                  <circle cx="370" cy={isBharati ? 58 : 70} r="2.5" fill="#0284c7" />
+                  <circle cx="40" cy={isBharati ? 76 : 86} r="2.5" fill="#245b82" />
+                  <circle cx="95" cy={isBharati ? 80 : 92} r="2.5" fill="#245b82" />
+                  <circle cx="150" cy={isBharati ? 74 : 85} r="2.5" fill="#245b82" />
+                  <circle cx="205" cy={isBharati ? 70 : 82} r="2.5" fill="#245b82" />
+                  <circle cx="260" cy={isBharati ? 66 : 78} r="2.5" fill="#245b82" />
+                  <circle cx="315" cy={isBharati ? 62 : 74} r="2.5" fill="#245b82" />
+                  <circle cx="370" cy={isBharati ? 58 : 70} r="2.5" fill="#245b82" />
 
                   {/* Generation Curve (Green) */}
                   <path
@@ -447,17 +447,17 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                       ? "M 40,64 Q 85,58 130,60 T 220,48 T 310,50 T 375,38"
                       : "M 40,78 Q 85,72 130,76 T 220,64 T 310,68 T 375,52"}
                     fill="none"
-                    stroke="#10b981"
+                    stroke="#187451"
                     strokeWidth="2.2"
                   />
                   {/* Generation Data Points */}
-                  <circle cx="40" cy={isBharati ? 64 : 78} r="2.5" fill="#10b981" />
-                  <circle cx="95" cy={isBharati ? 59 : 73} r="2.5" fill="#10b981" />
-                  <circle cx="150" cy={isBharati ? 60 : 75} r="2.5" fill="#10b981" />
-                  <circle cx="205" cy={isBharati ? 50 : 65} r="2.5" fill="#10b981" />
-                  <circle cx="260" cy={isBharati ? 53 : 71} r="2.5" fill="#10b981" />
-                  <circle cx="315" cy={isBharati ? 49 : 67} r="2.5" fill="#10b981" />
-                  <circle cx="370" cy={isBharati ? 38 : 52} r="3" fill="#ffffff" stroke="#10b981" strokeWidth="2" />
+                  <circle cx="40" cy={isBharati ? 64 : 78} r="2.5" fill="#187451" />
+                  <circle cx="95" cy={isBharati ? 59 : 73} r="2.5" fill="#187451" />
+                  <circle cx="150" cy={isBharati ? 60 : 75} r="2.5" fill="#187451" />
+                  <circle cx="205" cy={isBharati ? 50 : 65} r="2.5" fill="#187451" />
+                  <circle cx="260" cy={isBharati ? 53 : 71} r="2.5" fill="#187451" />
+                  <circle cx="315" cy={isBharati ? 49 : 67} r="2.5" fill="#187451" />
+                  <circle cx="370" cy={isBharati ? 38 : 52} r="3" fill="#ffffff" stroke="#187451" strokeWidth="2" />
 
                   {/* X-Axis Horizontal Base Line */}
                   <line x1="35" y1="135" x2="375" y2="135" stroke="rgba(255,255,255,0.1)" />
@@ -481,11 +481,11 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                   <div className="donut-relative-box">
                     <svg width="86" height="86" viewBox="0 0 100 100">
                       <circle cx="50" cy="50" r="38" fill="transparent" stroke="rgba(30,58,95,0.3)" strokeWidth="11" />
-                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#0284c7" strokeWidth="11" strokeDasharray="100 138" strokeDashoffset="0" transform="rotate(-90 50 50)" />
-                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#06b6d4" strokeWidth="11" strokeDasharray="43 195" strokeDashoffset="-100" transform="rotate(-90 50 50)" />
-                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f59e0b" strokeWidth="11" strokeDasharray="36 202" strokeDashoffset="-143" transform="rotate(-90 50 50)" />
-                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#10b981" strokeWidth="11" strokeDasharray="19 219" strokeDashoffset="-179" transform="rotate(-90 50 50)" />
-                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#8b5cf6" strokeWidth="11" strokeDasharray="40 198" strokeDashoffset="-198" transform="rotate(-90 50 50)" />
+                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#245b82" strokeWidth="11" strokeDasharray="100 138" strokeDashoffset="0" transform="rotate(-90 50 50)" />
+                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#147889" strokeWidth="11" strokeDasharray="43 195" strokeDashoffset="-100" transform="rotate(-90 50 50)" />
+                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#946013" strokeWidth="11" strokeDasharray="36 202" strokeDashoffset="-143" transform="rotate(-90 50 50)" />
+                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#187451" strokeWidth="11" strokeDasharray="19 219" strokeDashoffset="-179" transform="rotate(-90 50 50)" />
+                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#705296" strokeWidth="11" strokeDasharray="40 198" strokeDashoffset="-198" transform="rotate(-90 50 50)" />
                     </svg>
                     <div className="donut-center-txt">
                       <span className="donut-val mono-num">{energy.consumption} <span className="d-unit">kW</span></span>
@@ -523,15 +523,15 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 percent={energy.sources.gen1.loadPct}
                 status={energy.sources.gen1.status.toLowerCase().includes('running') ? 'nominal' : 'warning'}
                 icon={Cpu}
-                color="#10b981"
+                color="#187451"
                 subtext={`Max Rating: ${energy.sources.gen1.max} kW • Runtime: ${energy.sources.gen1.runtime}`}
                 details={[
-                  { label: 'Current Output', value: `${energy.sources.gen1.current} kW`, color: '#10b981' },
-                  { label: 'Max Rating', value: `${energy.sources.gen1.max} kW`, color: '#f8fafc' },
-                  { label: 'Load Factor', value: `${energy.sources.gen1.loadPct}%`, color: '#10b981' },
-                  { label: 'Coolant Temp', value: isBharati ? '+68.2°C' : '+72.4°C', color: '#10b981' },
-                  { label: 'Oil Pressure', value: '4.8 bar', color: '#38bdf8' },
-                  { label: 'Total Engine Hours', value: energy.sources.gen1.runtime, color: '#f8fafc' },
+                  { label: 'Current Output', value: `${energy.sources.gen1.current} kW`, color: '#187451' },
+                  { label: 'Max Rating', value: `${energy.sources.gen1.max} kW`, color: '#1d3044' },
+                  { label: 'Load Factor', value: `${energy.sources.gen1.loadPct}%`, color: '#187451' },
+                  { label: 'Coolant Temp', value: isBharati ? '+68.2°C' : '+72.4°C', color: '#187451' },
+                  { label: 'Oil Pressure', value: '4.8 bar', color: '#146b80' },
+                  { label: 'Total Engine Hours', value: energy.sources.gen1.runtime, color: '#1d3044' },
                 ]}
                 interpretation="Primary continuous baseload heavy diesel generator supplying synchronous 50Hz 415V 3-phase station microgrid."
                 stationName={stationData.name}
@@ -565,14 +565,14 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 percent={energy.sources.gen2.loadPct}
                 status={energy.sources.gen2.status.toLowerCase().includes('warning') ? 'warning' : 'nominal'}
                 icon={Cpu}
-                color={energy.sources.gen2.status.toLowerCase().includes('warning') ? '#f59e0b' : '#10b981'}
+                color={energy.sources.gen2.status.toLowerCase().includes('warning') ? '#946013' : '#187451'}
                 subtext={`Max Rating: ${energy.sources.gen2.max} kW • Runtime: ${energy.sources.gen2.runtime}`}
                 details={[
-                  { label: 'Current Output', value: `${energy.sources.gen2.current} kW`, color: '#38bdf8' },
-                  { label: 'Max Rating', value: `${energy.sources.gen2.max} kW`, color: '#f8fafc' },
-                  { label: 'Load Factor', value: `${energy.sources.gen2.loadPct}%`, color: '#f59e0b' },
-                  { label: 'Stator Temp', value: isBharati ? '+78.5°C (Warm)' : '+76.8°C', color: '#f59e0b' },
-                  { label: 'Auto Start Link', value: 'Armed (ATS Ready)', color: '#10b981' },
+                  { label: 'Current Output', value: `${energy.sources.gen2.current} kW`, color: '#146b80' },
+                  { label: 'Max Rating', value: `${energy.sources.gen2.max} kW`, color: '#1d3044' },
+                  { label: 'Load Factor', value: `${energy.sources.gen2.loadPct}%`, color: '#946013' },
+                  { label: 'Stator Temp', value: isBharati ? '+78.5°C (Warm)' : '+76.8°C', color: '#946013' },
+                  { label: 'Auto Start Link', value: 'Armed (ATS Ready)', color: '#187451' },
                 ]}
                 interpretation="Standby / peaking diesel generator configured for automated sync upon primary bus step-load transients."
                 stationName={stationData.name}
@@ -610,10 +610,10 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 subtext={`Max Rating: ${energy.sources.solar.max} kW • Status: ${energy.sources.solar.status}`}
                 details={[
                   { label: 'Active Yield', value: `${energy.sources.solar.current} kW`, color: '#eab308' },
-                  { label: 'Array Nameplate', value: `${energy.sources.solar.max} kW`, color: '#f8fafc' },
+                  { label: 'Array Nameplate', value: `${energy.sources.solar.max} kW`, color: '#1d3044' },
                   { label: 'Solar Irradiance', value: '380 W/m²', color: '#eab308' },
-                  { label: 'MPPT Tracking Eff', value: '98.6%', color: '#10b981' },
-                  { label: 'Inverter Status', value: 'Grid-Tie Synchronized', color: '#10b981' },
+                  { label: 'MPPT Tracking Eff', value: '98.6%', color: '#187451' },
+                  { label: 'Inverter Status', value: 'Grid-Tie Synchronized', color: '#187451' },
                 ]}
                 interpretation="Bifacial Antarctic solar photovoltaic array capturing direct sunlight and high-albedo snow surface reflection."
                 stationName={stationData.name}
@@ -647,14 +647,14 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 percent={energy.sources.wind.loadPct}
                 status="nominal"
                 icon={Wind}
-                color="#06b6d4"
+                color="#147889"
                 subtext={`Max Rating: ${energy.sources.wind.max} kW • Status: ${energy.sources.wind.status}`}
                 details={[
-                  { label: 'Active Output', value: `${energy.sources.wind.current} kW`, color: '#06b6d4' },
-                  { label: 'Turbine Capacity', value: `${energy.sources.wind.max} kW`, color: '#f8fafc' },
-                  { label: 'Rotor RPM', value: '28.4 RPM', color: '#38bdf8' },
-                  { label: 'Nacelle De-Icing', value: 'Active Heating Nominal', color: '#10b981' },
-                  { label: 'Brake Lock', value: 'Disengaged / Generation Active', color: '#10b981' },
+                  { label: 'Active Output', value: `${energy.sources.wind.current} kW`, color: '#147889' },
+                  { label: 'Turbine Capacity', value: `${energy.sources.wind.max} kW`, color: '#1d3044' },
+                  { label: 'Rotor RPM', value: '28.4 RPM', color: '#146b80' },
+                  { label: 'Nacelle De-Icing', value: 'Active Heating Nominal', color: '#187451' },
+                  { label: 'Brake Lock', value: 'Disengaged / Generation Active', color: '#187451' },
                 ]}
                 interpretation="Direct-drive arctic cold-climate wind turbines harnessing continuous katabatic airflow."
                 stationName={stationData.name}
@@ -692,7 +692,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
             value={`${energy.consumption} kW`}
             status="nominal"
             icon={Activity}
-            color="#0284c7"
+            color="#245b82"
             subtext="Detailed Subsystem Load Profile"
             details={energy.breakdown?.map(b => ({
               label: b.name,
@@ -731,11 +731,11 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 <div className="bd-donut-wrap">
                   <svg width="84" height="84" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="38" fill="transparent" stroke="rgba(30,58,95,0.3)" strokeWidth="11" />
-                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#0284c7" strokeWidth="11" strokeDasharray="100 138" strokeDashoffset="0" transform="rotate(-90 50 50)" />
-                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#06b6d4" strokeWidth="11" strokeDasharray="43 195" strokeDashoffset="-100" transform="rotate(-90 50 50)" />
-                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f59e0b" strokeWidth="11" strokeDasharray="36 202" strokeDashoffset="-143" transform="rotate(-90 50 50)" />
-                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#10b981" strokeWidth="11" strokeDasharray="19 219" strokeDashoffset="-179" transform="rotate(-90 50 50)" />
-                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#8b5cf6" strokeWidth="11" strokeDasharray="40 198" strokeDashoffset="-198" transform="rotate(-90 50 50)" />
+                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#245b82" strokeWidth="11" strokeDasharray="100 138" strokeDashoffset="0" transform="rotate(-90 50 50)" />
+                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#147889" strokeWidth="11" strokeDasharray="43 195" strokeDashoffset="-100" transform="rotate(-90 50 50)" />
+                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#946013" strokeWidth="11" strokeDasharray="36 202" strokeDashoffset="-143" transform="rotate(-90 50 50)" />
+                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#187451" strokeWidth="11" strokeDasharray="19 219" strokeDashoffset="-179" transform="rotate(-90 50 50)" />
+                    <circle cx="50" cy="50" r="38" fill="transparent" stroke="#705296" strokeWidth="11" strokeDasharray="40 198" strokeDashoffset="-198" transform="rotate(-90 50 50)" />
                   </svg>
                   <div className="bd-center-label">
                     <span className="bd-c-val mono-num">{energy.consumption} <span className="d-unit">kW</span></span>
@@ -765,14 +765,14 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
             percent={energy.batteryPercent}
             status="nominal"
             icon={BatteryCharging}
-            color="#10b981"
+            color="#187451"
             subtext="500 kWh Lithium-Titanate Uninterruptible Battery Bank"
             details={[
-              { label: 'State of Charge (SoC)', value: `${energy.batteryPercent}%`, color: '#10b981' },
-              { label: 'Stored Energy', value: energy.batteryChargeKWh || '410 kWh', color: '#38bdf8' },
-              { label: 'Nameplate Capacity', value: energy.batteryCapacityKWh || '500 kWh', color: '#f8fafc' },
-              { label: 'Float Inverter Status', value: 'Online (Synchronized)', color: '#10b981' },
-              { label: 'Cell Voltage Spread', value: '4 mV (Optimal)', color: '#10b981' },
+              { label: 'State of Charge (SoC)', value: `${energy.batteryPercent}%`, color: '#187451' },
+              { label: 'Stored Energy', value: energy.batteryChargeKWh || '410 kWh', color: '#146b80' },
+              { label: 'Nameplate Capacity', value: energy.batteryCapacityKWh || '500 kWh', color: '#1d3044' },
+              { label: 'Float Inverter Status', value: 'Online (Synchronized)', color: '#187451' },
+              { label: 'Cell Voltage Spread', value: '4 mV (Optimal)', color: '#187451' },
             ]}
             interpretation="BESS provides clean sine-wave buffering for sensitive atmospheric physics and spectrometry payloads."
             stationName={stationData.name}
@@ -810,8 +810,8 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 <svg viewBox="0 0 260 75" className="battery-svg">
                   <defs>
                     <linearGradient id="battGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                      <stop offset="0%" stopColor="#187451" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#187451" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
                   <line x1="25" y1="12" x2="255" y2="12" stroke="rgba(255,255,255,0.05)" />
@@ -823,8 +823,8 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                   <text x="20" y="63" fill="#64748b" fontSize="6.5" textAnchor="end" className="mono-num">50</text>
 
                   <polygon points="30,42 65,38 100,40 135,33 170,30 205,32 250,28 250,60 30,60" fill="url(#battGrad)" />
-                  <path d="M 30,42 L 65,38 L 100,40 L 135,33 L 170,30 L 205,32 L 250,28" fill="none" stroke="#10b981" strokeWidth="1.8" />
-                  <circle cx="250" cy="28" r="2.5" fill="#10b981" />
+                  <path d="M 30,42 L 65,38 L 100,40 L 135,33 L 170,30 L 205,32 L 250,28" fill="none" stroke="#187451" strokeWidth="1.8" />
+                  <circle cx="250" cy="28" r="2.5" fill="#187451" />
 
                   <text x="30" y="70" fill="#64748b" fontSize="6" textAnchor="middle" className="mono-num">00:00</text>
                   <text x="74" y="70" fill="#64748b" fontSize="6" textAnchor="middle" className="mono-num">04:00</text>
@@ -845,14 +845,14 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
             percent={energy.fuelBarPercent}
             status={energy.fuelDays < 45 ? 'warning' : 'nominal'}
             icon={Fuel}
-            color="#f59e0b"
+            color="#946013"
             subtext={`Total Volume: ${energy.fuelLiters} • Daily Burn: ${energy.dailyUsageL}`}
             details={[
-              { label: 'Days Remaining', value: `${energy.fuelDays} Days`, color: '#f59e0b' },
-              { label: 'Total Liters', value: energy.fuelLiters || '50,200 L', color: '#f8fafc' },
-              { label: 'Daily Consumption', value: energy.dailyUsageL || '1,167 L/day', color: '#38bdf8' },
-              { label: 'Tank Trace Heat', value: '-4.2°C (Active)', color: '#10b981' },
-              { label: 'Resupply Window', value: '35 Days until MV Vasiliy Golovnin', color: '#f59e0b' },
+              { label: 'Days Remaining', value: `${energy.fuelDays} Days`, color: '#946013' },
+              { label: 'Total Liters', value: energy.fuelLiters || '50,200 L', color: '#1d3044' },
+              { label: 'Daily Consumption', value: energy.dailyUsageL || '1,167 L/day', color: '#146b80' },
+              { label: 'Tank Trace Heat', value: '-4.2°C (Active)', color: '#187451' },
+              { label: 'Resupply Window', value: '35 Days until MV Vasiliy Golovnin', color: '#946013' },
             ]}
             interpretation="Arctic-grade low-temperature fuel tanks heated continuously to avoid paraffin waxing."
             stationName={stationData.name}
@@ -904,15 +904,15 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                   <text x="16" y="30" fill="#64748b" fontSize="5.5" textAnchor="end" className="mono-num">1.5k</text>
                   <text x="16" y="46" fill="#64748b" fontSize="5.5" textAnchor="end" className="mono-num">1.0k</text>
 
-                  <path d="M 25,24 L 75,20 L 125,32 L 175,34" fill="none" stroke="#f59e0b" strokeWidth="1.8" />
-                  <circle cx="25" cy="24" r="2" fill="#f59e0b" />
-                  <circle cx="75" cy="20" r="2" fill="#f59e0b" />
-                  <circle cx="125" cy="32" r="2" fill="#f59e0b" />
-                  <circle cx="175" cy="34" r="2" fill="#f59e0b" />
+                  <path d="M 25,24 L 75,20 L 125,32 L 175,34" fill="none" stroke="#946013" strokeWidth="1.8" />
+                  <circle cx="25" cy="24" r="2" fill="#946013" />
+                  <circle cx="75" cy="20" r="2" fill="#946013" />
+                  <circle cx="125" cy="32" r="2" fill="#946013" />
+                  <circle cx="175" cy="34" r="2" fill="#946013" />
 
-                  <path d="M 175,34 L 215,38 L 250,42" fill="none" stroke="#38bdf8" strokeWidth="1.8" strokeDasharray="3 3" />
-                  <circle cx="215" cy="38" r="2" fill="none" stroke="#38bdf8" />
-                  <circle cx="250" cy="42" r="2" fill="none" stroke="#38bdf8" />
+                  <path d="M 175,34 L 215,38 L 250,42" fill="none" stroke="#146b80" strokeWidth="1.8" strokeDasharray="3 3" />
+                  <circle cx="215" cy="38" r="2" fill="none" stroke="#146b80" />
+                  <circle cx="250" cy="42" r="2" fill="none" stroke="#146b80" />
 
                   <text x="35" y="52" fill="#64748b" fontSize="5.5" textAnchor="middle">19 May</text>
                   <text x="105" y="52" fill="#64748b" fontSize="5.5" textAnchor="middle">21 May</text>
@@ -976,8 +976,8 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 <text x="25" y="43" fill="#64748b" fontSize="6.5" textAnchor="end" className="mono-num">150</text>
                 <text x="25" y="68" fill="#64748b" fontSize="6.5" textAnchor="end" className="mono-num">100</text>
 
-                <path d="M 35,46 L 90,44 L 145,47 L 200,43 L 255,48 L 310,45 L 365,49" fill="none" stroke="#0284c7" strokeWidth="1.8" />
-                <path d="M 35,38 L 90,36 L 145,34 L 200,38 L 255,35 L 310,36 L 365,33" fill="none" stroke="#10b981" strokeWidth="1.8" />
+                <path d="M 35,46 L 90,44 L 145,47 L 200,43 L 255,48 L 310,45 L 365,49" fill="none" stroke="#245b82" strokeWidth="1.8" />
+                <path d="M 35,38 L 90,36 L 145,34 L 200,38 L 255,35 L 310,36 L 365,33" fill="none" stroke="#187451" strokeWidth="1.8" />
 
                 <text x="35" y="82" fill="#64748b" fontSize="6" textAnchor="middle">26 May</text>
                 <text x="90" y="82" fill="#64748b" fontSize="6" textAnchor="middle">27 May</text>
@@ -995,7 +995,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
             <div className="card-header-with-action">
               <div className="ai-title-wrap">
                 <Sparkles size={14} className="text-cyan animate-pulse" />
-                <span className="card-title">AI PREDICTIVE FORECASTING MODEL</span>
+                <span className="card-title">MICROGRID FORECAST</span>
               </div>
               <div className="ai-header-controls">
                 <span className="ai-pred-station-tag">{stationData.name.toUpperCase()}</span>
@@ -1014,7 +1014,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
             {isAnalyzing ? (
               <div className="ai-scanning-state" style={{ padding: '28px 10px', textAlign: 'center' }}>
                 <RefreshCw size={20} className="animate-spin text-cyan" />
-                <div style={{ fontSize: '0.74rem', color: '#38bdf8', marginTop: '8px', fontWeight: 600 }}>
+                <div style={{ fontSize: '0.74rem', color: '#146b80', marginTop: '8px', fontWeight: 600 }}>
                   Computing multi-horizon forecasts on {stationData.name} telemetry...
                 </div>
                 <div style={{ fontSize: '0.62rem', color: '#64748b', marginTop: '2px' }}>
@@ -1025,17 +1025,17 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
               <div className="ai-pred-container">
                 {/* Visual Horizon Summary Bar */}
                 <div style={{ 
-                  background: 'rgba(15, 23, 42, 0.7)', 
+                  background: '#f4f7f9',
                   borderRadius: '6px', 
                   padding: '8px 10px',
                   border: '1px solid rgba(56, 189, 248, 0.2)',
                   marginBottom: '8px'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.05em' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 800, color: '#146b80', letterSpacing: '0.05em' }}>
                       PROJECTED MICROGRID CONDITIONS: NOW vs IN 6H vs AFTER 1 DAY
                     </span>
-                    <span style={{ fontSize: '0.58rem', color: '#10b981', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.58rem', color: '#187451', fontWeight: 700 }}>
                       ✓ ML Regressor Active
                     </span>
                   </div>
@@ -1044,27 +1044,27 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
                     {/* Column 1: Live Now */}
                     <div style={{ 
-                      background: 'rgba(30, 41, 59, 0.6)', 
+                      background: '#f4f7f9',
                       padding: '8px 6px', 
                       borderRadius: '4px', 
                       border: '1px solid rgba(255, 255, 255, 0.08)',
                       textAlign: 'center'
                     }}>
-                      <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#94a3b8', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '3px' }}>
+                      <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#536579', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '3px' }}>
                         NOW (LIVE)
                       </div>
                       <div style={{ marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '0.62rem' }}>
                         <div>
                           <span style={{ color: '#64748b' }}>Batt: </span>
-                          <strong style={{ color: '#10b981' }}>{energy.batteryPercent}%</strong>
+                          <strong style={{ color: '#187451' }}>{energy.batteryPercent}%</strong>
                         </div>
                         <div>
                           <span style={{ color: '#64748b' }}>Load: </span>
-                          <strong style={{ color: '#38bdf8' }}>{energy.consumption} kW</strong>
+                          <strong style={{ color: '#146b80' }}>{energy.consumption} kW</strong>
                         </div>
                         <div>
                           <span style={{ color: '#64748b' }}>Temp: </span>
-                          <strong style={{ color: isBharati ? '#10b981' : '#f59e0b' }}>{isBharati ? '69.8°C' : '78.4°C'}</strong>
+                          <strong style={{ color: isBharati ? '#187451' : '#946013' }}>{isBharati ? '69.8°C' : '78.4°C'}</strong>
                         </div>
                       </div>
                     </div>
@@ -1086,28 +1086,28 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                           border: '1px solid rgba(56, 189, 248, 0.35)',
                           textAlign: 'center'
                         }}>
-                          <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#38bdf8', borderBottom: '1px solid rgba(56,189,248,0.2)', paddingBottom: '3px' }}>
+                          <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#146b80', borderBottom: '1px solid rgba(56,189,248,0.2)', paddingBottom: '3px' }}>
                             IN 6 HOURS
                           </div>
                           <div style={{ marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '0.62rem' }}>
                             <div>
-                              <span style={{ color: '#94a3b8' }}>Batt: </span>
-                              <strong style={{ color: '#38bdf8' }}>{b6}%</strong>
-                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: bDelta >= 0 ? '#10b981' : '#f59e0b' }}>
+                              <span style={{ color: '#536579' }}>Batt: </span>
+                              <strong style={{ color: '#146b80' }}>{b6}%</strong>
+                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: bDelta >= 0 ? '#187451' : '#946013' }}>
                                 ({bDelta >= 0 ? `+${bDelta}` : bDelta}%)
                               </span>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8' }}>Load: </span>
-                              <strong style={{ color: '#f59e0b' }}>{p6} kW</strong>
-                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: '#94a3b8' }}>
+                              <span style={{ color: '#536579' }}>Load: </span>
+                              <strong style={{ color: '#946013' }}>{p6} kW</strong>
+                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: '#536579' }}>
                                 ({pDelta >= 0 ? `+${pDelta}` : pDelta})
                               </span>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8' }}>Temp: </span>
-                              <strong style={{ color: t6 >= 85 ? '#ef4444' : '#e2e8f0' }}>{t6}°C</strong>
-                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: tDelta >= 0 ? '#f59e0b' : '#10b981' }}>
+                              <span style={{ color: '#536579' }}>Temp: </span>
+                              <strong style={{ color: t6 >= 85 ? '#b73b37' : '#e2e8f0' }}>{t6}°C</strong>
+                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: tDelta >= 0 ? '#946013' : '#187451' }}>
                                 ({tDelta >= 0 ? `+${tDelta}` : tDelta})
                               </span>
                             </div>
@@ -1133,28 +1133,28 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                           border: '1px solid rgba(245, 158, 11, 0.35)',
                           textAlign: 'center'
                         }}>
-                          <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#f59e0b', borderBottom: '1px solid rgba(245,158,11,0.2)', paddingBottom: '3px' }}>
+                          <div style={{ fontSize: '0.58rem', fontWeight: 800, color: '#946013', borderBottom: '1px solid rgba(245,158,11,0.2)', paddingBottom: '3px' }}>
                             AFTER 1 DAY (24H)
                           </div>
                           <div style={{ marginTop: '5px', display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '0.62rem' }}>
                             <div>
-                              <span style={{ color: '#94a3b8' }}>Batt: </span>
-                              <strong style={{ color: b24 < 65 ? '#f59e0b' : '#10b981' }}>{b24}%</strong>
-                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: bDelta >= 0 ? '#10b981' : '#f59e0b' }}>
+                              <span style={{ color: '#536579' }}>Batt: </span>
+                              <strong style={{ color: b24 < 65 ? '#946013' : '#187451' }}>{b24}%</strong>
+                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: bDelta >= 0 ? '#187451' : '#946013' }}>
                                 ({bDelta >= 0 ? `+${bDelta}` : bDelta}%)
                               </span>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8' }}>Load: </span>
-                              <strong style={{ color: '#f59e0b' }}>{p24} kW</strong>
-                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: '#94a3b8' }}>
+                              <span style={{ color: '#536579' }}>Load: </span>
+                              <strong style={{ color: '#946013' }}>{p24} kW</strong>
+                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: '#536579' }}>
                                 ({pDelta >= 0 ? `+${pDelta}` : pDelta})
                               </span>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8' }}>Temp: </span>
-                              <strong style={{ color: t24 >= 85 ? '#ef4444' : '#e2e8f0' }}>{t24}°C</strong>
-                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: tDelta >= 0 ? '#f59e0b' : '#10b981' }}>
+                              <span style={{ color: '#536579' }}>Temp: </span>
+                              <strong style={{ color: t24 >= 85 ? '#b73b37' : '#e2e8f0' }}>{t24}°C</strong>
+                              <span style={{ fontSize: '0.52rem', marginLeft: '2px', color: tDelta >= 0 ? '#946013' : '#187451' }}>
                                 ({tDelta >= 0 ? `+${tDelta}` : tDelta})
                               </span>
                             </div>
@@ -1168,19 +1168,19 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 {/* Generator Risk, Battery Risk & Confidence Badges */}
                 <div className="ai-pred-risks-row" style={{ marginTop: '4px' }}>
                   <div className="ai-pred-risk-item">
-                    <span style={{ color: '#94a3b8' }}>Thermal Risk:</span>
+                    <span style={{ color: '#536579' }}>Thermal Risk:</span>
                     <span className={`ai-pred-badge ${(aiInsightsData.generator_risk || 'NORMAL').toLowerCase()}`}>
                       {aiInsightsData.generator_risk || 'NORMAL'}
                     </span>
                   </div>
                   <div className="ai-pred-risk-item">
-                    <span style={{ color: '#94a3b8' }}>Grid Risk:</span>
+                    <span style={{ color: '#536579' }}>Grid Risk:</span>
                     <span className={`ai-pred-badge ${(aiInsightsData.energy_risk || 'NORMAL').toLowerCase()}`}>
                       {aiInsightsData.energy_risk || 'NORMAL'}
                     </span>
                   </div>
                   <div className="ai-pred-risk-item">
-                    <span style={{ color: '#94a3b8' }}>ML Confidence:</span>
+                    <span style={{ color: '#536579' }}>ML Confidence:</span>
                     <span className="ai-pred-conf-score">
                       {Math.round((aiInsightsData.confidence || 0.88) * 100)}%
                     </span>
@@ -1193,7 +1193,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                     <Bot size={14} />
                   </div>
                   <p className="ai-summary-text" style={{ fontSize: '0.62rem' }}>
-                    <strong>24h Forecast Advisory: </strong>
+                    <strong>24-hour operating note: </strong>
                     {aiInsightsData.recommendation || aiInsightsData.summary}
                   </p>
                 </div>
@@ -1210,7 +1210,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 className="ai-view-details-btn"
                 onClick={() => setInsightModalOpen(true)}
               >
-                View Full Diagnostic Breakdown
+                Review forecast details
               </button>
             </div>
           </div>
@@ -1243,7 +1243,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
             percent={energyStatus.score}
             status={energyStatus.score >= 85 ? 'nominal' : 'warning'}
             icon={ShieldCheck}
-            color="#10b981"
+            color="#187451"
             subtext={`Microgrid Health: ${energyStatus.rating.toUpperCase()}`}
             details={(energyStatus.subsystems || []).map(s => ({
               label: s.label,
@@ -1262,7 +1262,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                     cy="50" 
                     r="42" 
                     fill="transparent" 
-                    stroke="#10b981" 
+                    stroke="#187451"
                     strokeWidth="7" 
                     strokeDasharray={2 * Math.PI * 42}
                     strokeDashoffset={2 * Math.PI * 42 * (1 - energyStatus.score / 100)}
@@ -1273,7 +1273,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 </svg>
                 <div className="e-gauge-center">
                   <span className="e-gauge-score mono-num">{energyStatus.score}<span className="den">/100</span></span>
-                  <span className="e-good-badge" style={{ color: energyStatus.rating === 'Optimal' ? '#00e699' : '#10b981' }}>{energyStatus.rating}</span>
+                  <span className="e-good-badge" style={{ color: energyStatus.rating === 'Optimal' ? '#187451' : '#187451' }}>{energyStatus.rating}</span>
                 </div>
               </div>
             </div>
@@ -1295,7 +1295,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                   details={[
                     { label: 'Subsystem Name', value: sub.label, color: sub.color },
                     { label: 'Diagnostic Rating', value: sub.val, color: sub.color },
-                    { label: 'SCADA Telemetry', value: 'Live Bus Synced', color: '#38bdf8' }
+                    { label: 'SCADA Telemetry', value: 'Live Bus Synced', color: '#146b80' }
                   ]}
                   interpretation={`Operating parameters for ${sub.label} are continually ingested and verified against safe polar engineering margins.`}
                   stationName={stationData.name}
@@ -1419,13 +1419,13 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 </div>
                 <div>
                   <div className="energy-diag-badge-row">
-                    <span className="energy-diag-tag-live">REAL-TIME MICROGRID AI DIAGNOSTICS</span>
+                    <span className="energy-diag-tag-live">MICROGRID FORECAST REVIEW</span>
                     <span className="energy-diag-station-tag">{stationData.name.toUpperCase()} STATION</span>
                     <span className="energy-diag-conf-tag">CONFIDENCE: {aiInsightsData.confidence || 'HIGH'}</span>
                     <span className="energy-diag-conf-tag">TZ: {stationData.timezone_label || (isBharati ? 'UTC+5' : 'UTC+0')}</span>
                   </div>
                   <h3 className="energy-diag-title">
-                    {stationData.name} Station Microgrid AI Telemetry &amp; Diagnostic Synthesis
+                    {stationData.name} microgrid telemetry and forecast
                   </h3>
                   <div className="energy-diag-meta-line">
                     <span className="energy-diag-meta-item">
@@ -1467,7 +1467,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 onClick={() => setModalTab('predictive')}
               >
                 <Sparkles size={13} />
-                <span>AI Predictive Model (1h / 6h / 24h)</span>
+                <span>Forecast model (1h / 6h / 24h)</span>
               </button>
               <button 
                 className={`energy-diag-tab-btn ${modalTab === 'overview' ? 'active' : ''}`}
@@ -1519,7 +1519,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 background: 'rgba(16, 185, 129, 0.15)',
                 borderBottom: '1px solid rgba(16, 185, 129, 0.3)',
                 padding: '8px 20px',
-                color: '#10b981',
+                color: '#187451',
                 fontSize: '0.72rem',
                 display: 'flex',
                 alignItems: 'center',
@@ -1528,7 +1528,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 <span>{mitigationFeedback}</span>
                 <button 
                   onClick={() => setMitigationFeedback(null)}
-                  style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: '#187451', cursor: 'pointer' }}
                 >
                   <X size={12} />
                 </button>
@@ -1573,13 +1573,13 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                 </div>
 
                 <div className="energy-diag-hero-item">
-                  <div className="energy-diag-hero-icon" style={{ color: '#f59e0b' }}>
+                  <div className="energy-diag-hero-icon" style={{ color: '#946013' }}>
                     <Fuel size={18} />
                   </div>
                   <div>
                     <div className="energy-diag-hero-val">{energy.fuelDays}</div>
                     <span className="energy-diag-hero-lbl">Fuel Reserve Runway</span>
-                    <span className="energy-diag-hero-sub" style={{ color: '#f59e0b' }}>{energy.fuelLiters} ({energy.dailyUsageL}/day)</span>
+                    <span className="energy-diag-hero-sub" style={{ color: '#946013' }}>{energy.fuelLiters} ({energy.dailyUsageL}/day)</span>
                   </div>
                 </div>
               </div>
@@ -1587,21 +1587,21 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
               {/* TAB 0: AI Predictive Model & Multi-Horizon Analysis */}
               {modalTab === 'predictive' && (
                 <>
-                  <div className="energy-diag-callout" style={{ borderLeft: '3px solid #38bdf8' }}>
+                  <div className="energy-diag-callout" style={{ borderLeft: '3px solid #146b80' }}>
                     <div className="energy-diag-callout-icon">
                       <Sparkles size={16} />
                     </div>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <h4 style={{ fontSize: '0.76rem', fontWeight: '800', color: '#38bdf8', margin: 0 }}>
-                          AI PREDICTIVE ENERGY ANALYSIS ({stationData.name.toUpperCase()})
+                        <h4 style={{ fontSize: '0.76rem', fontWeight: '800', color: '#146b80', margin: 0 }}>
+                          ENERGY FORECAST ({stationData.name.toUpperCase()})
                         </h4>
                         <span className="ai-pred-station-tag">{stationData.name.toUpperCase()} DATASET</span>
                       </div>
                       <p className="energy-diag-callout-text" style={{ fontSize: '0.68rem', lineHeight: 1.4 }}>
                         {aiInsightsData.recommendation || aiInsightsData.summary}
                       </p>
-                      <div style={{ display: 'flex', gap: '16px', marginTop: '6px', fontSize: '0.62rem', color: '#94a3b8' }}>
+                      <div style={{ display: 'flex', gap: '16px', marginTop: '6px', fontSize: '0.62rem', color: '#536579' }}>
                         <span><strong>Model:</strong> {aiInsightsData.model || 'RandomForestRegressor'}</span>
                         <span><strong>Data Points Ingested:</strong> {aiInsightsData.data_points_used || 168}</span>
                         <span><strong>Confidence:</strong> {Math.round((aiInsightsData.confidence || 0.82) * 100)}%</span>
@@ -1642,10 +1642,10 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                           padding: '12px' 
                         }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '0.74rem', fontWeight: '800', color: h.isLive ? '#e2e8f0' : h.hKey === '6h' ? '#38bdf8' : '#f59e0b' }}>
+                            <span style={{ fontSize: '0.74rem', fontWeight: '800', color: h.isLive ? '#e2e8f0' : h.hKey === '6h' ? '#146b80' : '#946013' }}>
                               {h.horizon}
                             </span>
-                            <span style={{ fontSize: '0.58rem', color: '#94a3b8', background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: '4px' }}>
+                            <span style={{ fontSize: '0.58rem', color: '#536579', background: 'rgba(227, 234, 239, 0.6)', padding: '2px 6px', borderRadius: '4px' }}>
                               {h.timeLabel}
                             </span>
                           </div>
@@ -1654,41 +1654,41 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                             {/* Battery */}
                             <div style={{ background: 'rgba(2, 132, 199, 0.1)', padding: '6px 8px', borderRadius: '4px', border: '1px solid rgba(2, 132, 199, 0.25)' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.58rem', color: '#94a3b8' }}>BATTERY RESERVE</span>
+                                <span style={{ fontSize: '0.58rem', color: '#536579' }}>BATTERY RESERVE</span>
                                 {!h.isLive && (
-                                  <span style={{ fontSize: '0.55rem', fontWeight: 700, color: bDelta >= 0 ? '#10b981' : '#f59e0b' }}>
+                                  <span style={{ fontSize: '0.55rem', fontWeight: 700, color: bDelta >= 0 ? '#187451' : '#946013' }}>
                                     {bDelta >= 0 ? `+${bDelta}%` : `${bDelta}%`}
                                   </span>
                                 )}
                               </div>
-                              <div style={{ fontSize: '0.92rem', fontWeight: '800', color: batt < 65 ? '#f59e0b' : '#10b981' }}>{batt}%</div>
+                              <div style={{ fontSize: '0.92rem', fontWeight: '800', color: batt < 65 ? '#946013' : '#187451' }}>{batt}%</div>
                             </div>
 
                             {/* Power Draw */}
                             <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '6px 8px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.58rem', color: '#94a3b8' }}>POWER DEMAND</span>
+                                <span style={{ fontSize: '0.58rem', color: '#536579' }}>POWER DEMAND</span>
                                 {!h.isLive && (
-                                  <span style={{ fontSize: '0.55rem', fontWeight: 700, color: '#94a3b8' }}>
+                                  <span style={{ fontSize: '0.55rem', fontWeight: 700, color: '#536579' }}>
                                     {pDelta >= 0 ? `+${pDelta} kW` : `${pDelta} kW`}
                                   </span>
                                 )}
                               </div>
-                              <div style={{ fontSize: '0.92rem', fontWeight: '800', color: '#f59e0b' }}>{power} kW</div>
+                              <div style={{ fontSize: '0.92rem', fontWeight: '800', color: '#946013' }}>{power} kW</div>
                             </div>
 
                             {/* Generator Core Temp */}
                             <div style={{ background: 'rgba(239, 68, 68, 0.08)', padding: '6px 8px', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.58rem', color: '#94a3b8' }}>GENERATOR CORE TEMP</span>
+                                <span style={{ fontSize: '0.58rem', color: '#536579' }}>GENERATOR CORE TEMP</span>
                                 {!h.isLive && (
-                                  <span style={{ fontSize: '0.55rem', fontWeight: 700, color: tDelta >= 0 ? '#f59e0b' : '#10b981' }}>
+                                  <span style={{ fontSize: '0.55rem', fontWeight: 700, color: tDelta >= 0 ? '#946013' : '#187451' }}>
                                     {tDelta >= 0 ? `+${tDelta}°C` : `${tDelta}°C`}
                                   </span>
                                 )}
                               </div>
-                              <div style={{ fontSize: '0.92rem', fontWeight: '800', color: temp >= 85 ? '#ef4444' : '#e2e8f0' }}>{temp}°C</div>
-                              <span style={{ fontSize: '0.55rem', color: temp >= 95 ? '#ef4444' : temp >= 85 ? '#f59e0b' : '#10b981' }}>
+                              <div style={{ fontSize: '0.92rem', fontWeight: '800', color: temp >= 85 ? '#b73b37' : '#e2e8f0' }}>{temp}°C</div>
+                              <span style={{ fontSize: '0.55rem', color: temp >= 95 ? '#b73b37' : temp >= 85 ? '#946013' : '#187451' }}>
                                 {temp >= 95 ? 'CRITICAL THERMAL RUNAWAY (>95°C)' : temp >= 85 ? 'HIGH TEMP WARNING (≥85°C)' : '✓ Normal Thermal Margin'}
                               </span>
                             </div>
@@ -1711,17 +1711,17 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                             {aiInsightsData.generator_risk || 'NORMAL'}
                           </span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#536579' }}>
                           <span>Warning Level Threshold:</span>
-                          <span style={{ color: '#f59e0b', fontWeight: 600 }}>85.0°C</span>
+                          <span style={{ color: '#946013', fontWeight: 600 }}>85.0°C</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#536579' }}>
                           <span>Critical Shutdown Threshold:</span>
-                          <span style={{ color: '#ef4444', fontWeight: 600 }}>95.0°C</span>
+                          <span style={{ color: '#b73b37', fontWeight: 600 }}>95.0°C</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#536579' }}>
                           <span>Predicted 24h Peak Core:</span>
-                          <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{aiInsightsData.prediction?.generator_temp_24h ?? 83.4}°C</span>
+                          <span style={{ fontWeight: 700, color: '#1d3044' }}>{aiInsightsData.prediction?.generator_temp_24h ?? 83.4}°C</span>
                         </div>
                       </div>
                     </div>
@@ -1737,17 +1737,17 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                             {aiInsightsData.energy_risk || 'NORMAL'}
                           </span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#536579' }}>
                           <span>Battery Reserve Warning Threshold:</span>
-                          <span style={{ color: '#f59e0b', fontWeight: 600 }}>&lt; 65.0%</span>
+                          <span style={{ color: '#946013', fontWeight: 600 }}>&lt; 65.0%</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#536579' }}>
                           <span>Battery Critical Depletion Threshold:</span>
-                          <span style={{ color: '#ef4444', fontWeight: 600 }}>&lt; 38.0%</span>
+                          <span style={{ color: '#b73b37', fontWeight: 600 }}>&lt; 38.0%</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#536579' }}>
                           <span>Predicted 24h Charge:</span>
-                          <span style={{ fontWeight: 700, color: '#10b981' }}>{aiInsightsData.prediction?.battery_24h ?? 78.3}%</span>
+                          <span style={{ fontWeight: 700, color: '#187451' }}>{aiInsightsData.prediction?.battery_24h ?? 78.3}%</span>
                         </div>
                       </div>
                     </div>
@@ -1763,8 +1763,8 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                       <Bot size={16} />
                     </div>
                     <div>
-                      <h4 style={{ fontSize: '0.74rem', fontWeight: '800', color: '#38bdf8', margin: '0 0 4px 0' }}>
-                        AI Microgrid Operational Synthesis
+                      <h4 style={{ fontSize: '0.74rem', fontWeight: '800', color: '#146b80', margin: '0 0 4px 0' }}>
+                         Microgrid operating summary
                       </h4>
                       <p className="energy-diag-callout-text">
                         {aiInsightsData.summary}
@@ -1780,7 +1780,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {Object.entries(energy.sources || {}).map(([key, src]) => (
                           <div key={key} style={{
-                            background: 'rgba(10, 17, 30, 0.6)',
+                            background: '#f4f7f9',
                             border: '1px solid rgba(56, 189, 248, 0.15)',
                             borderRadius: '6px',
                             padding: '8px 10px',
@@ -1789,14 +1789,14 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                             alignItems: 'center'
                           }}>
                             <div>
-                              <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#ffffff' }}>{src.name}</div>
-                              <div style={{ fontSize: '0.62rem', color: '#94a3b8' }}>{src.runtime}</div>
+                              <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#1d3044' }}>{src.name}</div>
+                              <div style={{ fontSize: '0.62rem', color: '#536579' }}>{src.runtime}</div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                              <div className="mono-num" style={{ fontSize: '0.76rem', fontWeight: '800', color: '#38bdf8' }}>
+                              <div className="mono-num" style={{ fontSize: '0.76rem', fontWeight: '800', color: '#146b80' }}>
                                 {src.current} kW <span style={{ fontSize: '0.6rem', color: '#64748b' }}>/ {src.max} kW</span>
                               </div>
-                              <div style={{ fontSize: '0.6rem', color: '#10b981', fontWeight: '700' }}>{src.loadPct}% Load</div>
+                              <div style={{ fontSize: '0.6rem', color: '#187451', fontWeight: '700' }}>{src.loadPct}% Load</div>
                             </div>
                           </div>
                         ))}
@@ -1810,7 +1810,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {(energy.breakdown || []).map((b, idx) => (
                           <div key={idx} style={{
-                            background: 'rgba(10, 17, 30, 0.6)',
+                            background: '#f4f7f9',
                             border: '1px solid rgba(56, 189, 248, 0.15)',
                             borderRadius: '6px',
                             padding: '8px 10px',
@@ -1820,9 +1820,9 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: b.color }} />
-                              <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#ffffff' }}>{b.name}</span>
+                              <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#1d3044' }}>{b.name}</span>
                             </div>
-                            <div className="mono-num" style={{ fontSize: '0.74rem', fontWeight: '700', color: '#e2e8f0' }}>
+                            <div className="mono-num" style={{ fontSize: '0.74rem', fontWeight: '700', color: '#1d3044' }}>
                               {b.kw} kW ({b.pct}%)
                             </div>
                           </div>
@@ -1846,7 +1846,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                     <div className="energy-diag-gen-metrics-row">
                       <div>
                         <span className="energy-diag-gen-m-lbl">Core Temperature</span>
-                        <span className="energy-diag-gen-m-val mono-num" style={{ color: '#10b981' }}>{isBharati ? '71.5°C' : '68.2°C'}</span>
+                        <span className="energy-diag-gen-m-val mono-num" style={{ color: '#187451' }}>{isBharati ? '71.5°C' : '68.2°C'}</span>
                       </div>
                       <div>
                         <span className="energy-diag-gen-m-lbl">Warning Limit</span>
@@ -1878,7 +1878,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                     <div className="energy-diag-gen-metrics-row">
                       <div>
                         <span className="energy-diag-gen-m-lbl">Core Temperature</span>
-                        <span className="energy-diag-gen-m-val mono-num" style={{ color: isBharati ? '#10b981' : '#f59e0b' }}>
+                        <span className="energy-diag-gen-m-val mono-num" style={{ color: isBharati ? '#187451' : '#946013' }}>
                           {isBharati ? '69.8°C' : '78.4°C'}
                         </span>
                       </div>
@@ -1905,14 +1905,14 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                       <div className="energy-diag-gen-name">
                         {isBharati ? 'Auxiliary Generator 3 (Cold Emergency Standby)' : 'Diesel Generator G-03 (Cold Standby)'}
                       </div>
-                      <span className="energy-diag-gen-status optimal" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.3)' }}>
+                      <span className="energy-diag-gen-status optimal" style={{ background: 'rgba(56, 189, 248, 0.12)', color: '#146b80', borderColor: 'rgba(56, 189, 248, 0.3)' }}>
                         READY FOR AUTO-CRANK (15s)
                       </span>
                     </div>
                     <div className="energy-diag-gen-metrics-row">
                       <div>
                         <span className="energy-diag-gen-m-lbl">Block Pre-Heater</span>
-                        <span className="energy-diag-gen-m-val mono-num" style={{ color: '#10b981' }}>+45.0°C (Active)</span>
+                        <span className="energy-diag-gen-m-val mono-num" style={{ color: '#187451' }}>+45.0°C (Active)</span>
                       </div>
                       <div>
                         <span className="energy-diag-gen-m-lbl">Starter Battery</span>
@@ -1924,7 +1924,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                       </div>
                       <div>
                         <span className="energy-diag-gen-m-lbl">Auto-Bus Sync</span>
-                        <span className="energy-diag-gen-m-val mono-num" style={{ color: '#10b981' }}>ARMED</span>
+                        <span className="energy-diag-gen-m-val mono-num" style={{ color: '#187451' }}>ARMED</span>
                       </div>
                     </div>
                   </div>
@@ -1932,7 +1932,7 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                   <div className="energy-diag-directive-card warning">
                     <ShieldAlert size={16} className="text-amber" style={{ flexShrink: 0, marginTop: '2px' }} />
                     <div>
-                      <div className="energy-diag-dir-title">AI Thermal Balancing Advisory</div>
+                      <div className="energy-diag-dir-title">Thermal balancing advisory</div>
                       <p className="energy-diag-dir-desc">
                         {isBharati 
                           ? 'CHP heat-recovery loops are effectively warming living habitat glycol circuits. Maintain 65 kW baseload dispatch.'
@@ -1952,24 +1952,24 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                     </span>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>State of Charge (SOC)</span>
-                        <span className="mono-num" style={{ fontSize: '0.85rem', fontWeight: '800', color: '#10b981' }}>{energy.batteryPercent}%</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>State of Charge (SOC)</span>
+                        <span className="mono-num" style={{ fontSize: '0.85rem', fontWeight: '800', color: '#187451' }}>{energy.batteryPercent}%</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Usable Energy Storage</span>
-                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#ffffff' }}>{energy.batteryChargeKWh} / {energy.batteryCapacityKWh}</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Usable Energy Storage</span>
+                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#1d3044' }}>{energy.batteryChargeKWh} / {energy.batteryCapacityKWh}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>State of Health (SOH)</span>
-                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#10b981' }}>94.2%</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>State of Health (SOH)</span>
+                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#187451' }}>94.2%</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Inverter Bus Efficiency</span>
-                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#38bdf8' }}>96.8% (400V 3Φ 50Hz)</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Inverter Bus Efficiency</span>
+                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#146b80' }}>96.8% (400V 3Φ 50Hz)</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Peak-Shaving Buffer</span>
-                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#10b981' }}>ARMED ({isBharati ? 'ISRO Radome Pass' : 'Storm Gale'})</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Peak-Shaving Buffer</span>
+                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#187451' }}>ARMED ({isBharati ? 'ISRO Radome Pass' : 'Storm Gale'})</span>
                       </div>
                     </div>
                   </div>
@@ -1980,24 +1980,24 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                     </span>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Total Usable Fuel</span>
-                        <span className="mono-num" style={{ fontSize: '0.85rem', fontWeight: '800', color: '#f59e0b' }}>{energy.fuelLiters}</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Total Usable Fuel</span>
+                        <span className="mono-num" style={{ fontSize: '0.85rem', fontWeight: '800', color: '#946013' }}>{energy.fuelLiters}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Daily Burn Rate</span>
-                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#ffffff' }}>{energy.dailyUsageL} / day</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Daily Burn Rate</span>
+                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#1d3044' }}>{energy.dailyUsageL} / day</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Projected Operational Runway</span>
-                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#10b981' }}>{energy.fuelDays}</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Projected Operational Runway</span>
+                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#187451' }}>{energy.fuelDays}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Tank Storage Capacity</span>
-                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#38bdf8' }}>{energy.fuelBarPercent}% Full</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Tank Storage Capacity</span>
+                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#146b80' }}>{energy.fuelBarPercent}% Full</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Resupply Window Risk</span>
-                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#10b981' }}>LOW (Exceeds 35-day winter min)</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Resupply Window Risk</span>
+                        <span className="mono-num" style={{ fontSize: '0.74rem', color: '#187451' }}>LOW (Exceeds 35-day winter min)</span>
                       </div>
                     </div>
                   </div>
@@ -2012,29 +2012,29 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                       <Building2 size={14} /> Station Critical Subsystem Loads
                     </span>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{ background: 'rgba(10, 17, 30, 0.6)', padding: '8px 10px', borderRadius: '6px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
-                        <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#ffffff' }}>
+                      <div style={{ background: '#f4f7f9', padding: '8px 10px', borderRadius: '6px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
+                        <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#1d3044' }}>
                           {isBharati ? 'ISRO Satellite Ground Station Radome' : 'Lake Priyadarshini Water Intake Heating'}
                         </div>
-                        <div style={{ fontSize: '0.62rem', color: '#10b981', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#187451', marginTop: '2px' }}>
                           {isBharati ? '50 kW continuous with 15 kW tracking burst buffer' : '8 kW anti-freeze trace heating nominal'}
                         </div>
                       </div>
 
-                      <div style={{ background: 'rgba(10, 17, 30, 0.6)', padding: '8px 10px', borderRadius: '6px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
-                        <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#ffffff' }}>
+                      <div style={{ background: '#f4f7f9', padding: '8px 10px', borderRadius: '6px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
+                        <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#1d3044' }}>
                           {isBharati ? 'Seawater Reverse Osmosis Desalination' : 'Habitation & Environmental Life Support'}
                         </div>
-                        <div style={{ fontSize: '0.62rem', color: '#38bdf8', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#146b80', marginTop: '2px' }}>
                           {isBharati ? '24 kW load maintaining 4,200 L daily potable output' : '44 kW base habitation electrical draw'}
                         </div>
                       </div>
 
-                      <div style={{ background: 'rgba(10, 17, 30, 0.6)', padding: '8px 10px', borderRadius: '6px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
-                        <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#ffffff' }}>
+                      <div style={{ background: '#f4f7f9', padding: '8px 10px', borderRadius: '6px', border: '1px solid rgba(56, 189, 248, 0.15)' }}>
+                        <div style={{ fontSize: '0.72rem', fontWeight: '700', color: '#1d3044' }}>
                           Scientific &amp; Analytical Research Labs
                         </div>
-                        <div style={{ fontSize: '0.62rem', color: '#a78bfa', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.62rem', color: '#705296', marginTop: '2px' }}>
                           {isBharati ? '21 kW (Oceanography, Seismology & Atmospheric Physics)' : '19 kW (Atmospheric Physics, Geomagnetism & Biology)'}
                         </div>
                       </div>
@@ -2047,20 +2047,20 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
                     </span>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Ambient Surface Temperature</span>
-                        <span className="mono-num" style={{ fontSize: '0.72rem', fontWeight: '700', color: '#ffffff' }}>{weather.temp}{weather.unit}</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Ambient Surface Temperature</span>
+                        <span className="mono-num" style={{ fontSize: '0.72rem', fontWeight: '700', color: '#1d3044' }}>{weather.temp}{weather.unit}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Katabatic Wind Velocity</span>
-                        <span className="mono-num" style={{ fontSize: '0.72rem', fontWeight: '700', color: '#38bdf8' }}>{weather.windSpeed} ({weather.windDir})</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Katabatic Wind Velocity</span>
+                        <span className="mono-num" style={{ fontSize: '0.72rem', fontWeight: '700', color: '#146b80' }}>{weather.windSpeed} ({weather.windDir})</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Atmospheric Barometric Pressure</span>
-                        <span className="mono-num" style={{ fontSize: '0.72rem', fontWeight: '700', color: '#ffffff' }}>{weather.pressure}</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Atmospheric Barometric Pressure</span>
+                        <span className="mono-num" style={{ fontSize: '0.72rem', fontWeight: '700', color: '#1d3044' }}>{weather.pressure}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Calculated Surface Wind Chill</span>
-                        <span className="mono-num" style={{ fontSize: '0.72rem', fontWeight: '700', color: '#38bdf8' }}>{isBharati ? '-28.6°C Wind Chill' : '-32.1°C Wind Chill'}</span>
+                        <span style={{ fontSize: '0.68rem', color: '#536579' }}>Calculated Surface Wind Chill</span>
+                        <span className="mono-num" style={{ fontSize: '0.72rem', fontWeight: '700', color: '#146b80' }}>{isBharati ? '-28.6°C Wind Chill' : '-32.1°C Wind Chill'}</span>
                       </div>
                     </div>
                   </div>
@@ -2083,8 +2083,8 @@ ${(aiInsightsData.recommendations || []).map((r, i) => `${i + 1}. ${r}`).join('\
               {/* TAB 6: Engineering Directives & Automation Controls */}
               {modalTab === 'directives' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <span style={{ fontSize: '0.74rem', fontWeight: '800', color: '#38bdf8', marginBottom: '4px' }}>
-                    Prioritized AI Microgrid Directives
+                  <span style={{ fontSize: '0.74rem', fontWeight: '800', color: '#146b80', marginBottom: '4px' }}>
+                    Prioritized microgrid actions
                   </span>
                   {(aiInsightsData.recommendations || []).map((rec, idx) => (
                     <div key={idx} className="energy-diag-directive-card optimal">

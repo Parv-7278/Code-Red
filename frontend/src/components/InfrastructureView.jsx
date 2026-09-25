@@ -166,8 +166,8 @@ export default function InfrastructureView({ selectedStation = 'station-maitri' 
               <svg width="115" height="115" className="gauge-svg">
                 <defs>
                   <linearGradient id="infraHealthGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00e699" />
-                    <stop offset="100%" stopColor="#06b6d4" />
+                    <stop offset="0%" stopColor="#187451" />
+                    <stop offset="100%" stopColor="#147889" />
                   </linearGradient>
                 </defs>
                 <circle
@@ -194,7 +194,7 @@ export default function InfrastructureView({ selectedStation = 'station-maitri' 
               </svg>
               <div className="infra-gauge-center">
                 <div className="infra-gauge-score mono-num">{healthScore}<span className="score-den">/100</span></div>
-                <span className="infra-good-badge" style={{ color: healthData.ratingColor || '#10b981' }}>{healthData.rating}</span>
+                <span className="infra-good-badge" style={{ color: healthData.ratingColor || '#187451' }}>{healthData.rating}</span>
               </div>
             </div>
           </div>
@@ -202,11 +202,11 @@ export default function InfrastructureView({ selectedStation = 'station-maitri' 
           {/* Subsystem Health Bars */}
           <div className="infra-health-bars-list">
             {[
-              { label: 'Infrastructure', score: healthData.infrastructure, color: '#10b981', icon: Building2 },
-              { label: 'Energy', score: healthData.energy, color: '#10b981', icon: Zap },
-              { label: 'Logistics', score: healthData.logistics, color: '#10b981', icon: Package },
-              { label: 'Environment', score: healthData.environment, color: healthData.environment >= 90 ? '#10b981' : '#facc15', icon: Mountain },
-              { label: 'Communication', score: healthData.communication, color: '#10b981', icon: Radio },
+              { label: 'Infrastructure', score: healthData.infrastructure, color: '#187451', icon: Building2 },
+              { label: 'Energy', score: healthData.energy, color: '#187451', icon: Zap },
+              { label: 'Logistics', score: healthData.logistics, color: '#187451', icon: Package },
+              { label: 'Environment', score: healthData.environment, color: healthData.environment >= 90 ? '#187451' : '#946013', icon: Mountain },
+              { label: 'Communication', score: healthData.communication, color: '#187451', icon: Radio },
             ].map((bar, i) => {
               const BarIcon = bar.icon;
               return (
@@ -306,10 +306,10 @@ export default function InfrastructureView({ selectedStation = 'station-maitri' 
             <div className="twin-compass-widget">
               <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
                 <circle cx="22" cy="22" r="20" stroke="rgba(56, 189, 248, 0.3)" strokeWidth="1.2" strokeDasharray="3 3" />
-                <polygon points="22,6 25.5,22 18.5,22" fill="#ef4444" />
+                <polygon points="22,6 25.5,22 18.5,22" fill="#b73b37" />
                 <polygon points="22,38 25.5,22 18.5,22" fill="#94a3b8" />
                 <circle cx="22" cy="22" r="2.5" fill="#ffffff" />
-                <text x="22" y="5" fill="#f87171" fontSize="6.5" fontWeight="bold" textAnchor="middle">N</text>
+                <text x="22" y="5" fill="#b73b37" fontSize="6.5" fontWeight="bold" textAnchor="middle">N</text>
                 <text x="40" y="24" fill="#64748b" fontSize="6.5" fontWeight="bold" textAnchor="middle">E</text>
                 <text x="22" y="43" fill="#64748b" fontSize="6.5" fontWeight="bold" textAnchor="middle">S</text>
                 <text x="4" y="24" fill="#64748b" fontSize="6.5" fontWeight="bold" textAnchor="middle">W</text>
@@ -367,14 +367,14 @@ export default function InfrastructureView({ selectedStation = 'station-maitri' 
                   value={b.metricVal}
                   status={isWarning ? 'warning' : 'nominal'}
                   icon={Building2}
-                  color={isWarning ? '#f59e0b' : '#10b981'}
+                  color={isWarning ? '#946013' : '#187451'}
                   subtext={`Area: ${b.area || 'N/A'} • Occupancy: ${b.occupancy || 'N/A'}`}
                   details={[
-                    { label: 'Category', value: b.type || 'Structure', color: '#38bdf8' },
-                    { label: 'Built Year', value: b.builtYear || '2012', color: '#f8fafc' },
-                    { label: 'Occupancy', value: b.occupancy || 'Nominal', color: '#10b981' },
-                    { label: 'Floor Area', value: b.area || 'N/A', color: '#f8fafc' },
-                    { label: 'SCADA Health', value: b.maintenance?.health || '96%', color: '#10b981' },
+                    { label: 'Category', value: b.type || 'Structure', color: '#146b80' },
+                    { label: 'Built Year', value: b.builtYear || '2012', color: '#1d3044' },
+                    { label: 'Occupancy', value: b.occupancy || 'Nominal', color: '#187451' },
+                    { label: 'Floor Area', value: b.area || 'N/A', color: '#1d3044' },
+                    { label: 'SCADA Health', value: b.maintenance?.health || '96%', color: '#187451' },
                   ]}
                   interpretation={b.description || 'Polar research station structure engineered for extreme low temperature and wind load resilience.'}
                   stationName={stationData.name}

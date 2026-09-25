@@ -257,8 +257,8 @@ export default function DetailModal(props) {
                   <svg viewBox={`0 0 ${svgW} ${svgH}`} className="drilldown-waveform-svg">
                     <defs>
                       <linearGradient id="drilldownGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.45" />
-                        <stop offset="100%" stopColor="#0284c7" stopOpacity="0.0" />
+                        <stop offset="0%" stopColor="#146b80" stopOpacity="0.45" />
+                        <stop offset="100%" stopColor="#245b82" stopOpacity="0.0" />
                       </linearGradient>
                     </defs>
 
@@ -282,7 +282,7 @@ export default function DetailModal(props) {
                       <path
                         d={pathD}
                         fill="none"
-                        stroke="#38bdf8"
+                        stroke="#146b80"
                         strokeWidth="2.4"
                         strokeLinecap="round"
                         style={{ filter: 'drop-shadow(0 0 6px rgba(56, 189, 248, 0.6))' }}
@@ -296,8 +296,8 @@ export default function DetailModal(props) {
                           cx={c.x}
                           cy={c.y}
                           r={i === coords.length - 1 ? 4.5 : 2.5}
-                          fill={i === coords.length - 1 ? '#38bdf8' : '#ffffff'}
-                          stroke={i === coords.length - 1 ? '#ffffff' : '#0284c7'}
+                          fill={i === coords.length - 1 ? '#146b80' : '#ffffff'}
+                          stroke={i === coords.length - 1 ? '#ffffff' : '#245b82'}
                           strokeWidth="1.5"
                         />
                         <text
@@ -412,7 +412,7 @@ export default function DetailModal(props) {
                 <div className="sim-report-badge-row">
                   <span className="sim-report-tag">PREDICTIVE INTELLIGENCE ALERT</span>
                   <span className="sim-report-category">{data.subsystem || 'STATION SCADA TELEMETRY'}</span>
-                  <span className={`sim-report-risk-badge ${(data.riskLevel?.includes('HIGH') || data.riskLevel?.includes('84%')) ? 'critical' : data.riskLevel?.includes('MEDIUM') ? 'warning' : 'optimal'}`} style={{ color: data.riskLevel?.includes('HARVEST') ? '#38bdf8' : undefined, background: data.riskLevel?.includes('HARVEST') ? 'rgba(56, 189, 248, 0.15)' : undefined, border: data.riskLevel?.includes('HARVEST') ? '1px solid rgba(56, 189, 248, 0.4)' : undefined }}>
+                  <span className={`sim-report-risk-badge ${(data.riskLevel?.includes('HIGH') || data.riskLevel?.includes('84%')) ? 'critical' : data.riskLevel?.includes('MEDIUM') ? 'warning' : 'optimal'}`} style={{ color: data.riskLevel?.includes('HARVEST') ? '#146b80' : undefined, background: data.riskLevel?.includes('HARVEST') ? 'rgba(56, 189, 248, 0.15)' : undefined, border: data.riskLevel?.includes('HARVEST') ? '1px solid rgba(56, 189, 248, 0.4)' : undefined }}>
                     {data.riskLevel || 'ANOMALY DETECTED'}
                   </span>
                 </div>

@@ -517,11 +517,11 @@ export default function CommunicationView({ selectedStation }) {
                   <svg width="100%" height="100%" viewBox="0 0 540 180" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
                     <defs>
                       <linearGradient id="fifoGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.9} />
+                        <stop offset="0%" stopColor="#946013" stopOpacity={0.9} />
                         <stop offset="100%" stopColor="#d97706" stopOpacity={0.6} />
                       </linearGradient>
                       <linearGradient id="priorityGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.95} />
+                        <stop offset="0%" stopColor="#187451" stopOpacity={0.95} />
                         <stop offset="100%" stopColor="#059669" stopOpacity={0.6} />
                       </linearGradient>
                     </defs>
@@ -579,14 +579,14 @@ export default function CommunicationView({ selectedStation }) {
                             height={hWithout}
                             rx="3"
                             fill="url(#fifoGrad)"
-                            stroke={isHovered ? '#fbbf24' : 'none'}
+                            stroke={isHovered ? '#946013' : 'none'}
                             strokeWidth="1"
                           />
                           <text 
                             x={groupX + 17} 
                             y={yWithout - 4} 
                             textAnchor="middle" 
-                            fill="#f59e0b" 
+                            fill="#946013"
                             fontSize="8" 
                             fontFamily="monospace"
                             fontWeight="bold"
@@ -602,14 +602,14 @@ export default function CommunicationView({ selectedStation }) {
                             height={hWith}
                             rx="3"
                             fill="url(#priorityGrad)"
-                            stroke={isHovered ? '#34d399' : 'none'}
+                            stroke={isHovered ? '#187451' : 'none'}
                             strokeWidth="1"
                           />
                           <text 
                             x={groupX + 59} 
                             y={yWith - 4} 
                             textAnchor="middle" 
-                            fill="#10b981" 
+                            fill="#187451"
                             fontSize="8" 
                             fontFamily="monospace"
                             fontWeight="bold"
@@ -622,7 +622,7 @@ export default function CommunicationView({ selectedStation }) {
                             x={groupX + 38}
                             y="162"
                             textAnchor="middle"
-                            fill={isHovered ? '#38bdf8' : '#94a3b8'}
+                            fill={isHovered ? '#146b80' : '#94a3b8'}
                             fontSize="8.5"
                             fontWeight={isHovered ? 'bold' : 'normal'}
                           >
@@ -634,7 +634,7 @@ export default function CommunicationView({ selectedStation }) {
                             x={groupX + 38}
                             y="174"
                             textAnchor="middle"
-                            fill={idx === 0 ? '#34d399' : idx === 1 ? '#38bdf8' : '#64748b'}
+                            fill={idx === 0 ? '#187451' : idx === 1 ? '#146b80' : '#64748b'}
                             fontSize="7.5"
                             fontFamily="monospace"
                             fontWeight="bold"

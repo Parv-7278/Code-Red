@@ -41,6 +41,18 @@ import { usePredictive } from '../context/PredictiveContext';
 import { getStationLayout } from '../data/stationLayouts';
 import './StationDigitalTwinMap.css';
 
+function splitRoomLabel(label) {
+  if (!label || label.length <= 21) return [label];
+  const words = label.split(' ');
+  const lines = ['', ''];
+  for (const word of words) {
+    const firstCandidate = `${lines[0]} ${word}`.trim();
+    if (!lines[1] && firstCandidate.length <= Math.ceil(label.length / 2) + 3) lines[0] = firstCandidate;
+    else lines[1] = `${lines[1]} ${word}`.trim();
+  }
+  return lines.filter(Boolean).slice(0, 2);
+}
+
 export default function StationDigitalTwinMap({ selectedStation = 'station-maitri', onRoomSelect }) {
   const { role, isStationOperator, assignedStation } = useAuth();
   const predictiveContext = usePredictive ? usePredictive() : null;
@@ -76,8 +88,8 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
   const [isAudioMuted, setIsAudioMuted] = useState(true);
   
   // Pan & Zoom state
-  const [scale, setScale] = useState(0.85);
-  const [pan, setPan] = useState({ x: -20, y: -10 });
+  const [scale, setScale] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
@@ -158,8 +170,8 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
   };
 
   const handleResetView = () => {
-    setScale(0.85);
-    setPan({ x: -20, y: -10 });
+    setScale(1);
+    setPan({ x: 0, y: 0 });
     playAudioBeep(520, 'sine', 0.05);
   };
 
@@ -572,9 +584,9 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                     <path d="M 330 670 L 600 670 L 600 500" className="power-conduit-line" />
                     <path d="M 600 500 L 800 500 L 800 200 L 1050 200" className="power-conduit-line" />
                     <path d="M 800 500 L 800 780 L 1150 780" className="power-conduit-line" />
-                    <circle cx="330" cy="330" r="8" fill="#f59e0b" />
-                    <circle cx="330" cy="670" r="8" fill="#10b981" />
-                    <circle cx="800" cy="500" r="6" fill="#f59e0b" />
+                    <circle cx="330" cy="330" r="8" fill="#946013" />
+                    <circle cx="330" cy="670" r="8" fill="#187451" />
+                    <circle cx="800" cy="500" r="6" fill="#946013" />
                   </>
                 ) : (
                   // Maitri Diesel Substation grid overlay
@@ -585,9 +597,9 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                     <path d="M 800 410 L 800 230 L 670 230" className="power-conduit-line" />
                     <path d="M 800 230 L 990 230" className="power-conduit-line" />
                     <path d="M 600 750 L 320 750" className="power-conduit-line" />
-                    <circle cx="600" cy="750" r="8" fill="#f59e0b" />
-                    <circle cx="320" cy="750" r="8" fill="#f59e0b" />
-                    <circle cx="800" cy="680" r="6" fill="#f59e0b" />
+                    <circle cx="600" cy="750" r="8" fill="#946013" />
+                    <circle cx="320" cy="750" r="8" fill="#946013" />
+                    <circle cx="800" cy="680" r="6" fill="#946013" />
                   </>
                 )}
               </g>
@@ -619,10 +631,11 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                 const isSelected = room.id === selectedRoomId;
                 const isFilteredOut = filteredRooms.find(r => r.id === room.id) === undefined;
                 const aiPrediction = getAiPredictionForRoom(room);
+                const roomLabelLines = splitRoomLabel(room.name);
                 
                 // Status styles
                 const statusClass = `status-${room.status}`;
-                const statusColor = room.status === 'critical' ? '#ef4444' : room.status === 'warning' ? '#f59e0b' : '#10b981';
+                const statusColor = room.status === 'critical' ? '#b73b37' : room.status === 'warning' ? '#946013' : '#187451';
 
                 return (
                   <g 
@@ -660,10 +673,10 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                     {/* 1. Maitri Diesel Generator Turbines */}
                     {room.id === 'maitri-generator' && (
                       <g opacity="0.8" pointerEvents="none">
-                        <rect x={room.x + 25} y={room.y + 35} width="85" height="50" rx="6" fill="#1a2e4a" stroke="#f59e0b" strokeWidth="1.5" />
-                        <circle cx={room.x + 67} cy={room.y + 60} r="18" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="4 2" />
-                        <rect x={room.x + 130} y={room.y + 35} width="85" height="50" rx="6" fill="#1a2e4a" stroke="#f59e0b" strokeWidth="1.5" />
-                        <circle cx={room.x + 172} cy={room.y + 60} r="18" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="4 2" />
+                        <rect x={room.x + 25} y={room.y + 35} width="85" height="50" rx="6" fill="#1a2e4a" stroke="#946013" strokeWidth="1.5" />
+                        <circle cx={room.x + 67} cy={room.y + 60} r="18" fill="none" stroke="#946013" strokeWidth="2" strokeDasharray="4 2" />
+                        <rect x={room.x + 130} y={room.y + 35} width="85" height="50" rx="6" fill="#1a2e4a" stroke="#946013" strokeWidth="1.5" />
+                        <circle cx={room.x + 172} cy={room.y + 60} r="18" fill="none" stroke="#946013" strokeWidth="2" strokeDasharray="4 2" />
                       </g>
                     )}
 
@@ -679,33 +692,33 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                     {/* 3. Bharati Integrated Energy Block (CHP Turbines) */}
                     {room.id === 'bharati-energy-block' && (
                       <g opacity="0.85" pointerEvents="none">
-                        <rect x={room.x + 20} y={room.y + 40} width="75" height="60" rx="5" fill="#1e2e4a" stroke="#f59e0b" strokeWidth="1.5" />
-                        <circle cx={room.x + 57} cy={room.y + 70} r="18" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="3 3" />
-                        <rect x={room.x + 110} y={room.y + 40} width="75" height="60" rx="5" fill="#1e2e4a" stroke="#f59e0b" strokeWidth="1.5" />
-                        <circle cx={room.x + 147} cy={room.y + 70} r="18" fill="none" stroke="#f59e0b" strokeWidth="2" strokeDasharray="3 3" />
-                        <text x={room.x + 105} y={room.y + 120} fill="#f59e0b" fontSize="8.5" fontWeight="700" textAnchor="middle">CHP CO-GEN UNIT</text>
+                        <rect x={room.x + 20} y={room.y + 40} width="75" height="60" rx="5" fill="#1e2e4a" stroke="#946013" strokeWidth="1.5" />
+                        <circle cx={room.x + 57} cy={room.y + 70} r="18" fill="none" stroke="#946013" strokeWidth="2" strokeDasharray="3 3" />
+                        <rect x={room.x + 110} y={room.y + 40} width="75" height="60" rx="5" fill="#1e2e4a" stroke="#946013" strokeWidth="1.5" />
+                        <circle cx={room.x + 147} cy={room.y + 70} r="18" fill="none" stroke="#946013" strokeWidth="2" strokeDasharray="3 3" />
+                        <text x={room.x + 105} y={room.y + 120} fill="#946013" fontSize="8.5" fontWeight="700" textAnchor="middle">CHP CO-GEN UNIT</text>
                       </g>
                     )}
 
                     {/* 4. Bharati BESS Lithium Battery Storage Racks */}
                     {room.id === 'bharati-bess' && (
                       <g opacity="0.85" pointerEvents="none">
-                        <rect x={room.x + 20} y={room.y + 40} width="40" height="70" rx="4" fill="#0c2d3a" stroke="#10b981" strokeWidth="1.5" />
-                        <rect x={room.x + 70} y={room.y + 40} width="40" height="70" rx="4" fill="#0c2d3a" stroke="#10b981" strokeWidth="1.5" />
-                        <rect x={room.x + 120} y={room.y + 40} width="40" height="70" rx="4" fill="#0c2d3a" stroke="#10b981" strokeWidth="1.5" />
-                        <rect x={room.x + 170} y={room.y + 40} width="35" height="70" rx="4" fill="#0c2d3a" stroke="#10b981" strokeWidth="1.5" />
-                        <text x={room.x + 115} y={room.y + 125} fill="#10b981" fontSize="8.5" fontWeight="700" textAnchor="middle">1,200 kWh BESS RACKS</text>
+                        <rect x={room.x + 20} y={room.y + 40} width="40" height="70" rx="4" fill="#0c2d3a" stroke="#187451" strokeWidth="1.5" />
+                        <rect x={room.x + 70} y={room.y + 40} width="40" height="70" rx="4" fill="#0c2d3a" stroke="#187451" strokeWidth="1.5" />
+                        <rect x={room.x + 120} y={room.y + 40} width="40" height="70" rx="4" fill="#0c2d3a" stroke="#187451" strokeWidth="1.5" />
+                        <rect x={room.x + 170} y={room.y + 40} width="35" height="70" rx="4" fill="#0c2d3a" stroke="#187451" strokeWidth="1.5" />
+                        <text x={room.x + 115} y={room.y + 125} fill="#187451" fontSize="8.5" fontWeight="700" textAnchor="middle">1,200 kWh BESS RACKS</text>
                       </g>
                     )}
 
                     {/* 5. Bharati ISRO Satellite Ground Gateway (Tracking Radome Dish) */}
                     {room.id === 'bharati-satcom' && (
                       <g opacity="0.85" pointerEvents="none">
-                        <circle cx={room.x + room.w / 2} cy={room.y + 60} r="28" fill="#0e2a47" stroke="#38bdf8" strokeWidth="2" />
+                        <circle cx={room.x + room.w / 2} cy={room.y + 60} r="28" fill="#0e2a47" stroke="#146b80" strokeWidth="2" />
                         <circle cx={room.x + room.w / 2} cy={room.y + 60} r="18" fill="none" stroke="#00e5ff" strokeWidth="1.5" strokeDasharray="4 2" />
-                        <line x1={room.x + room.w / 2} y1={room.y + 32} x2={room.x + room.w / 2} y2={room.y + 88} stroke="#38bdf8" strokeWidth="1.5" />
-                        <line x1={room.x + room.w / 2 - 28} y1={room.y + 60} x2={room.x + room.w / 2 + 28} y2={room.y + 60} stroke="#38bdf8" strokeWidth="1.5" />
-                        <text x={room.x + room.w / 2} y={room.y + 108} fill="#38bdf8" fontSize="8.5" fontWeight="700" textAnchor="middle">ISRO TRACKING RADOME</text>
+                        <line x1={room.x + room.w / 2} y1={room.y + 32} x2={room.x + room.w / 2} y2={room.y + 88} stroke="#146b80" strokeWidth="1.5" />
+                        <line x1={room.x + room.w / 2 - 28} y1={room.y + 60} x2={room.x + room.w / 2 + 28} y2={room.y + 60} stroke="#146b80" strokeWidth="1.5" />
+                        <text x={room.x + room.w / 2} y={room.y + 108} fill="#146b80" fontSize="8.5" fontWeight="700" textAnchor="middle">ISRO TRACKING RADOME</text>
                       </g>
                     )}
 
@@ -721,21 +734,21 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                     {/* 7. Operations / Control Bridge Consoles */}
                     {(room.id === 'maitri-control' || room.id === 'bharati-ops-center') && (
                       <g opacity="0.7" pointerEvents="none">
-                        <rect x={room.x + 30} y={room.y + 35} width="60" height="20" rx="3" fill="#1e3a5f" stroke="#38bdf8" />
-                        <rect x={room.x + 100} y={room.y + 35} width="60" height="20" rx="3" fill="#1e3a5f" stroke="#38bdf8" />
-                        <rect x={room.x + 170} y={room.y + 35} width="60" height="20" rx="3" fill="#1e3a5f" stroke="#38bdf8" />
-                        <path d={`M ${room.x + 40} ${room.y + 110} Q ${room.x + room.w / 2} ${room.y + 130} ${room.x + room.w - 40} ${room.y + 110}`} stroke="#38bdf8" strokeWidth="3" fill="none" />
+                        <rect x={room.x + 30} y={room.y + 35} width="60" height="20" rx="3" fill="#1e3a5f" stroke="#146b80" />
+                        <rect x={room.x + 100} y={room.y + 35} width="60" height="20" rx="3" fill="#1e3a5f" stroke="#146b80" />
+                        <rect x={room.x + 170} y={room.y + 35} width="60" height="20" rx="3" fill="#1e3a5f" stroke="#146b80" />
+                        <path d={`M ${room.x + 40} ${room.y + 110} Q ${room.x + room.w / 2} ${room.y + 130} ${room.x + room.w - 40} ${room.y + 110}`} stroke="#146b80" strokeWidth="3" fill="none" />
                       </g>
                     )}
 
                     {/* 8. Server / Data Center Racks */}
                     {(room.id === 'maitri-server' || room.id === 'bharati-datacenter') && (
                       <g opacity="0.75" pointerEvents="none">
-                        <rect x={room.x + 25} y={room.y + 35} width="50" height="60" rx="3" fill="#0b1b30" stroke="#38bdf8" />
+                        <rect x={room.x + 25} y={room.y + 35} width="50" height="60" rx="3" fill="#0b1b30" stroke="#146b80" />
                         <line x1={room.x + 30} y1={room.y + 45} x2={room.x + 70} y2={room.y + 45} stroke="#00e5ff" strokeWidth="2" />
                         <line x1={room.x + 30} y1={room.y + 55} x2={room.x + 70} y2={room.y + 55} stroke="#00e5ff" strokeWidth="2" />
                         <line x1={room.x + 30} y1={room.y + 65} x2={room.x + 70} y2={room.y + 65} stroke="#00e5ff" strokeWidth="2" />
-                        <rect x={room.x + 95} y={room.y + 35} width="50" height="60" rx="3" fill="#0b1b30" stroke="#38bdf8" />
+                        <rect x={room.x + 95} y={room.y + 35} width="50" height="60" rx="3" fill="#0b1b30" stroke="#146b80" />
                         <line x1={room.x + 100} y1={room.y + 45} x2={room.x + 140} y2={room.y + 45} stroke="#00e5ff" strokeWidth="2" />
                         <line x1={room.x + 100} y1={room.y + 55} x2={room.x + 140} y2={room.y + 55} stroke="#00e5ff" strokeWidth="2" />
                         <line x1={room.x + 100} y1={room.y + 65} x2={room.x + 140} y2={room.y + 65} stroke="#00e5ff" strokeWidth="2" />
@@ -745,8 +758,8 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                     {/* 9. Medical Trauma Cross */}
                     {(room.id === 'maitri-medical' || room.id === 'bharati-medical') && (
                       <g opacity="0.65" pointerEvents="none">
-                        <rect x={room.x + room.w / 2 - 12} y={room.y + 35} width="24" height="48" rx="3" fill="#ef4444" opacity="0.4" />
-                        <rect x={room.x + room.w / 2 - 24} y={room.y + 47} width="48" height="24" rx="3" fill="#ef4444" opacity="0.4" />
+                        <rect x={room.x + room.w / 2 - 12} y={room.y + 35} width="24" height="48" rx="3" fill="#b73b37" opacity="0.4" />
+                        <rect x={room.x + room.w / 2 - 24} y={room.y + 47} width="48" height="24" rx="3" fill="#b73b37" opacity="0.4" />
                       </g>
                     )}
 
@@ -763,7 +776,7 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                           className="room-ai-highlight-outline"
                         />
                         <g transform={`translate(${room.x + room.w - 28}, ${room.y + 12})`}>
-                          <circle cx="0" cy="0" r="10" fill="#8b5cf6" className="ai-badge-pulse" />
+                          <circle cx="0" cy="0" r="10" fill="#705296" className="ai-badge-pulse" />
                           <circle cx="0" cy="0" r="7" fill="#6d28d9" />
                           <text x="0" y="3" fill="#ffffff" fontSize="8" fontWeight="800" textAnchor="middle">AI</text>
                         </g>
@@ -786,10 +799,12 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                     {/* Room Header Label Bar in SVG */}
                     <text 
                       x={room.x + room.w / 2} 
-                      y={room.y + room.h - 45} 
+                      y={room.y + room.h - (roomLabelLines.length > 1 ? 58 : 45)}
                       className="room-label-text"
                     >
-                      {room.name}
+                      {roomLabelLines.map((line, index) => (
+                        <tspan key={line} x={room.x + room.w / 2} dy={index === 0 ? 0 : 14}>{line}</tspan>
+                      ))}
                     </text>
 
                     {/* Room Status Pill & Quick Subsystem Stats */}
@@ -873,10 +888,10 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
                     const cy = r.y + 35;
                     return (
                       <g key={member.id} className="crew-dot-marker" transform={`translate(${cx}, ${cy})`}>
-                        <circle cx="0" cy="0" r="10" fill="none" stroke="#38bdf8" className="crew-beacon-pulse" />
-                        <circle cx="0" cy="0" r="5" fill="#38bdf8" stroke="#ffffff" strokeWidth="1.5" />
+                        <circle cx="0" cy="0" r="10" fill="none" stroke="#146b80" className="crew-beacon-pulse" />
+                        <circle cx="0" cy="0" r="5" fill="#146b80" stroke="#ffffff" strokeWidth="1.5" />
                         {activeLayer === 'CREW' && (
-                          <text x="0" y="16" fill="#38bdf8" fontSize="8" fontWeight="600" textAnchor="middle">
+                          <text x="0" y="16" fill="#146b80" fontSize="8" fontWeight="600" textAnchor="middle">
                             {member.name.split(' ')[0]}
                           </text>
                         )}
@@ -1051,7 +1066,7 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
               <span className="ins-section-title">
                 <Cpu size={12} /> Architectural Specification
               </span>
-              <p style={{ fontSize: '0.75rem', color: '#cbd5e1', lineHeight: '1.45' }}>
+              <p style={{ fontSize: '0.75rem', color: '#536579', lineHeight: '1.45' }}>
                 {selectedRoom.description}
               </p>
             </div>
@@ -1113,7 +1128,7 @@ export default function StationDigitalTwinMap({ selectedStation = 'station-maitr
               </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {selectedRoom.logs?.map((log, i) => (
-                  <div key={i} style={{ fontSize: '0.68rem', color: '#94a3b8', fontFamily: 'var(--font-mono, monospace)' }}>
+                  <div key={i} style={{ fontSize: '0.68rem', color: '#536579', fontFamily: 'var(--font-mono, monospace)' }}>
                     • {log}
                   </div>
                 ))}

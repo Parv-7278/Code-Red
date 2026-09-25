@@ -24,7 +24,7 @@ export default function ExpandableTelemetryCard({
   unit = '',
   status = 'nominal',
   icon: Icon = Activity,
-  color = '#38bdf8',
+  color = '#146b80',
   percent,
   subtext,
   details = [],
@@ -184,7 +184,7 @@ export default function ExpandableTelemetryCard({
                           className="exp-range-fill" 
                           style={{ 
                             width: `${Math.min(Math.max(percent, 0), 100)}%`,
-                            backgroundColor: color || '#10b981'
+                            backgroundColor: color || '#187451'
                           }} 
                         />
                       </div>
@@ -216,7 +216,7 @@ export default function ExpandableTelemetryCard({
                   {/* Detailed Sub-Metrics Grid */}
                   {details && details.length > 0 && (
                     <div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#536579', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
                         Subsystem Parameters & Sensor Array
                       </div>
                       <div className="exp-details-grid">
@@ -243,7 +243,7 @@ export default function ExpandableTelemetryCard({
                         <p className="exp-callout-text">{interpretation}</p>
                       )}
                       {recommendation && (
-                        <p className="exp-callout-text" style={{ color: '#38bdf8', fontWeight: 600 }}>
+                        <p className="exp-callout-text" style={{ color: '#146b80', fontWeight: 600 }}>
                           💡 Recommendation: {recommendation}
                         </p>
                       )}
@@ -252,13 +252,13 @@ export default function ExpandableTelemetryCard({
 
                   {/* Event Log / History */}
                   {logs && logs.length > 0 && (
-                    <div style={{ background: 'rgba(8, 14, 28, 0.6)', border: '1px solid rgba(56, 189, 248, 0.12)', borderRadius: '8px', padding: '10px 14px' }}>
-                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
+                    <div style={{ background: '#f4f7f9', border: '1px solid rgba(56, 189, 248, 0.12)', borderRadius: '8px', padding: '10px 14px' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#146b80', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
                         <Clock size={12} /> Recent SCADA Event History
                       </span>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         {logs.map((log, i) => (
-                          <div key={i} style={{ fontSize: '0.7rem', color: '#94a3b8', fontFamily: 'var(--font-mono, monospace)' }}>
+                          <div key={i} style={{ fontSize: '0.7rem', color: '#536579', fontFamily: 'var(--font-mono, monospace)' }}>
                             • {typeof log === 'string' ? log : `${log.time || ''} - ${log.message || log.text}`}
                           </div>
                         ))}

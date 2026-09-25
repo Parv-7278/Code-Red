@@ -45,7 +45,10 @@ const sensorDataHistory = [];
 async function processSensorData(data) {
   const stationId = data.station_id || 'station-bharati';
   const nowIso = new Date().toISOString();
-  const batt = Number(data.battery !== undefined ? data.battery : data.battery_level ?? 95);
+  // `battery_level` is the canonical live sensor field. Older simulator
+  // payloads may also include a legacy `battery` alias that can lag behind;
+  // prefer the canonical field so state-of-charge updates never appear frozen.
+  const batt = Number(data.battery_level !== undefined ? data.battery_level : data.battery ?? 95);
 
   const formattedRecord = {
     station_id: stationId,

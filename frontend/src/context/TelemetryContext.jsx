@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { fetchLatestTelemetry, fetchQueueMetrics, fetchAlerts, getStationHealth } from '../services/api';
+import { fetchLatestTelemetry, fetchQueueMetrics, fetchAlerts } from '../services/api';
 import { useAuth } from './AuthContext';
 
 const TelemetryContext = createContext(null);
@@ -22,6 +22,9 @@ export function TelemetryProvider({ children }) {
 
   const [isLoadingStationData, setIsLoadingStationData] = useState(false);
   const [isSimulatorOnline, setIsSimulatorOnline] = useState(false);
+  const [connectionError, setConnectionError] = useState(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const [hasFetchedAlerts, setHasFetchedAlerts] = useState(false);
   const [telemetry, setTelemetry] = useState({});
   const [alerts, setAlerts] = useState([]);
   const [queueMetrics, setQueueMetrics] = useState({
@@ -37,33 +40,33 @@ export function TelemetryProvider({ children }) {
     },
   });
 
-  const wsRef = useRef(null);
+  const socketRef = useRef(null);
+  const requestSequence = useRef(0);
+  const latestPacketAt = useRef(0);
 
   // Synchronize when auth changes (e.g. logging in as Maitri or Bharati operator)
   useEffect(() => {
     if (isStationOperator && assignedStation) {
       setSelectedStationState(assignedStation);
+    } else if (isIndiaOperator) {
+      setSelectedStationState('all-stations');
     }
-  }, [isStationOperator, assignedStation]);
+    setAlerts([]);
+    setHasFetchedAlerts(false);
+    setTelemetry({});
+    setIsSimulatorOnline(false);
+    latestPacketAt.current = 0;
+  }, [isStationOperator, isIndiaOperator, assignedStation, role]);
 
   // Centralized Station Switcher with immediate stale-data clearing & WS re-subscription
   const setSelectedStation = useCallback((stationId) => {
     if (isIndiaOperator) {
       setIsLoadingStationData(true);
+      requestSequence.current += 1;
+      latestPacketAt.current = 0;
+      setIsSimulatorOnline(false);
       setSelectedStationState(stationId);
 
-      // Notify WebSocket server of station context change
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          action: 'set_station',
-          station_id: stationId === 'all-stations' ? 'station-maitri' : stationId
-        }));
-      }
-
-      // Finish loading transition
-      setTimeout(() => {
-        setIsLoadingStationData(false);
-      }, 150);
     } else if (isStationOperator && assignedStation) {
       setSelectedStationState(assignedStation);
     }
@@ -71,106 +74,134 @@ export function TelemetryProvider({ children }) {
 
   // Fetch Latest Station Telemetry & Alerts
   const refreshData = useCallback(async () => {
+    const requestId = ++requestSequence.current;
     try {
       const stationFilter = isStationOperator ? assignedStation : (selectedStation === 'all-stations' ? undefined : selectedStation);
       const [telRes, metricRes, alertRes] = await Promise.all([
-        fetchLatestTelemetry(stationFilter),
+        fetchLatestTelemetry(stationFilter, role, assignedStation),
         fetchQueueMetrics().catch(() => null),
-        fetchAlerts(stationFilter).catch(() => null),
+        fetchAlerts(stationFilter, role, assignedStation).catch(() => null),
       ]);
+      if (requestId !== requestSequence.current) return;
 
       if (telRes && telRes.success && telRes.data) {
-        setTelemetry((prev) => ({ ...prev, ...telRes.data }));
-        setIsSimulatorOnline(true);
+        // The collection endpoint returns { stationId: packet }, while a
+        // station-filtered request returns the packet directly. Normalize both
+        // shapes before merging so Maitri/Bharati views keep receiving updates.
+        const telemetryByStation = telRes.data.station_id
+          ? { [telRes.data.station_id]: telRes.data }
+          : telRes.data;
+        setTelemetry((prev) => ({ ...prev, ...telemetryByStation }));
+        const readings = Object.values(telemetryByStation);
+        const newest = Math.max(0, ...readings.map((reading) => Date.parse(reading.timestamp || reading.recorded_at) || 0));
+        latestPacketAt.current = Math.max(latestPacketAt.current, newest);
+        setIsSimulatorOnline(Date.now() - latestPacketAt.current < 30000);
+        setLastSyncedAt(new Date().toISOString());
+        setConnectionError(null);
       }
       if (metricRes && metricRes.success && metricRes.data) {
         setQueueMetrics(metricRes.data);
       }
       if (alertRes && alertRes.success && alertRes.data) {
         setAlerts(alertRes.data);
+        setHasFetchedAlerts(true);
       }
     } catch (err) {
-      console.warn('[TelemetryContext] Backend synchronization notice:', err.message);
+      if (requestId !== requestSequence.current) return;
+      setConnectionError('Telemetry service unavailable. Showing the last received readings or demonstration data.');
+      setIsSimulatorOnline(Date.now() - latestPacketAt.current < 30000);
+    } finally {
+      if (requestId === requestSequence.current) setIsLoadingStationData(false);
     }
-  }, [isStationOperator, assignedStation, selectedStation]);
+  }, [isStationOperator, assignedStation, selectedStation, role]);
 
-  // Connect to WebSocket on Mount and maintain live streaming
+  // Connect to the Node telemetry bus. Socket.IO is used here because the
+  // backend publishes processed satellite-link packets through Socket.IO;
+  // a native WebSocket connection cannot consume that protocol reliably.
   useEffect(() => {
     refreshData();
 
-    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/telemetry';
-    let socket;
+    const socketUrl = import.meta.env.VITE_SOCKET_URL
+      || (import.meta.env.PROD ? window.location.origin : 'http://localhost:5000');
+    const socketPath = import.meta.env.VITE_SOCKET_PATH
+      || (import.meta.env.PROD ? '/backend/socket.io' : '/socket.io');
+    let socket = null;
+    let disposed = false;
 
-    try {
-      socket = new WebSocket(wsUrl);
-      wsRef.current = socket;
+    const receiveTelemetry = (message) => {
+      const packet = message?.data?.station_id ? message.data : message;
+      const stationId = packet?.station_id || message?.station_id;
+      if (!stationId || (isStationOperator && stationId !== assignedStation)) return;
 
-      socket.onopen = () => {
-        setIsSimulatorOnline(true);
-        const currentTarget = isStationOperator ? assignedStation : (selectedStation === 'all-stations' ? 'station-maitri' : selectedStation);
-        socket.send(JSON.stringify({
-          action: 'set_station',
-          station_id: currentTarget
-        }));
-      };
+      const receivedAt = packet.recorded_at || packet.timestamp || message?.received_at || new Date().toISOString();
+      setTelemetry((prev) => ({
+        ...prev,
+        [stationId]: {
+          ...prev[stationId],
+          ...packet,
+          station_id: stationId,
+          temperature: packet.temperature ?? packet.ambient_temperature_c,
+          wind_speed: packet.wind_speed ?? packet.wind_speed_kmh,
+          battery: packet.battery ?? packet.battery_level ?? packet.battery_level_percent,
+          battery_level: packet.battery_level ?? packet.battery ?? packet.battery_level_percent,
+          power_consumption: packet.power_consumption ?? packet.power_consumption_kw,
+          power_generation: packet.power_generation ?? packet.power_generation_kw ?? prev[stationId]?.power_generation,
+          generator_temperature: packet.generator_temperature ?? packet.generator_core_temp_c,
+          generator_status: packet.generator_status ?? packet.system_status ?? 'RUNNING',
+          timestamp: receivedAt,
+          recorded_at: receivedAt,
+        },
+      }));
+      latestPacketAt.current = Date.parse(receivedAt) || Date.now();
+      setLastSyncedAt(new Date().toISOString());
+      setIsSimulatorOnline(true);
+      setConnectionError(null);
+    };
 
-      socket.onmessage = (event) => {
-        try {
-          const packet = JSON.parse(event.data);
-          if (packet.packet_type === 'EMERGENCY_ALERT' && packet.data) {
-            const newAlert = packet.data;
-            if (!isStationOperator || newAlert.station_id === assignedStation) {
-              setAlerts((prev) => [newAlert, ...prev.filter(a => a.id !== newAlert.id)].slice(0, 50));
-            }
-          } else if (packet.station_id) {
-            setTelemetry((prev) => ({
-              ...prev,
-              [packet.station_id]: {
-                ...prev[packet.station_id],
-                station_id: packet.station_id,
-                station_name: packet.station_name,
-                temperature: packet.ambient_temperature_c,
-                wind_speed: packet.wind_speed_kmh,
-                battery: packet.battery_level_percent,
-                battery_level: packet.battery_level_percent,
-                power_consumption: packet.power_consumption_kw,
-                power_generation: packet.power_generation_kw,
-                generator_temperature: packet.generator_core_temp_c,
-                generator_status: packet.system_status || 'RUNNING',
-                seismic_frequency: packet.seismic_frequency_hz,
-                geomagnetic_kp: packet.geomagnetic_kp_index,
-                latency_ms: packet.comms_latency_ms,
-                timestamp: packet.timestamp,
-                time_label: packet.time_label,
-              }
-            }));
-            setIsSimulatorOnline(true);
-          }
-        } catch (err) {
-          console.debug('[TelemetryContext] Non-JSON WS packet:', event.data);
-        }
-      };
+    const receiveEmergency = (message) => {
+      const alert = message?.data || message;
+      if (!alert?.station_id || (isStationOperator && alert.station_id !== assignedStation)) return;
+      setAlerts((prev) => [alert, ...prev.filter((item) => item.id !== alert.id)].slice(0, 50));
+    };
 
-      socket.onerror = () => {
-        // Will fallback to periodic polling
-      };
+    import('socket.io-client').then(({ io }) => {
+      if (disposed) return;
+      socket = io(socketUrl, {
+        path: socketPath,
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        timeout: 5000,
+      });
+      socketRef.current = socket;
+      socket.on('telemetry_update', receiveTelemetry);
+      socket.on('emergency_alert', receiveEmergency);
+      socket.on('queue_metrics', setQueueMetrics);
+      socket.on('connect_error', () => {
+        setIsSimulatorOnline(Date.now() - latestPacketAt.current < 30000);
+      });
+      socket.on('disconnect', () => {
+        setIsSimulatorOnline(Date.now() - latestPacketAt.current < 30000);
+      });
+    }).catch(() => {
+      setIsSimulatorOnline(Date.now() - latestPacketAt.current < 30000);
+    });
 
-      socket.onclose = () => {
-        setIsSimulatorOnline(false);
-      };
-    } catch (e) {
-      console.warn('[TelemetryContext] WebSocket initialization notice:', e.message);
-    }
-
-    const interval = setInterval(refreshData, 3000);
+    // Polling remains a slower recovery path if a restrictive network blocks
+    // the real-time transport.
+    const interval = setInterval(refreshData, 5000);
 
     return () => {
+      requestSequence.current += 1;
+      disposed = true;
       clearInterval(interval);
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.close();
-      }
+      socket?.off('telemetry_update', receiveTelemetry);
+      socket?.off('emergency_alert', receiveEmergency);
+      socket?.off('queue_metrics', setQueueMetrics);
+      socket?.disconnect();
+      socketRef.current = null;
     };
-  }, [refreshData, isStationOperator, assignedStation, selectedStation]);
+  }, [refreshData, isStationOperator, assignedStation]);
 
   const activeStationId = isStationOperator ? (assignedStation || 'station-maitri') : selectedStation;
   const effectiveId = activeStationId === 'all-stations' ? 'station-maitri' : activeStationId;
@@ -213,8 +244,14 @@ export function TelemetryProvider({ children }) {
         stationAlerts,
         queueMetrics,
         isSimulatorOnline,
+        connectionError,
+        lastSyncedAt,
+        hasFetchedAlerts,
+        dataSource: telemetry[effectiveId] ? (isSimulatorOnline ? 'simulated-telemetry' : 'last-received') : 'demonstration',
         isLoadingStationData,
         refreshData,
+        refreshTelemetry: refreshData,
+        liveTelemetry: currentTelemetry,
       }}
     >
       {children}
