@@ -64,7 +64,7 @@ export default function AIPredictionCenter({ onOpenFullModal }) {
     {
       pred: genPred,
       icon: Flame,
-      iconColor: '#f87171',
+      iconColor: '#b73b37',
       iconBg: 'rgba(239, 68, 68, 0.15)',
       label: 'GENERATOR OVERHEATING RISK',
       primaryStat: `Predicted breach: ${genPred?.time_to_breach || '18 min'}`,
@@ -75,7 +75,7 @@ export default function AIPredictionCenter({ onOpenFullModal }) {
     {
       pred: battPred,
       icon: Battery,
-      iconColor: '#fbbf24',
+      iconColor: '#946013',
       iconBg: 'rgba(245, 158, 11, 0.15)',
       label: 'BATTERY DEPLETION',
       primaryStat: `Est. critical level: ${battPred?.time_to_breach || '4h 32m'}`,
@@ -86,7 +86,7 @@ export default function AIPredictionCenter({ onOpenFullModal }) {
     {
       pred: pwrPred,
       icon: Zap,
-      iconColor: '#38bdf8',
+      iconColor: '#146b80',
       iconBg: 'rgba(56, 189, 248, 0.15)',
       label: 'POWER DEMAND',
       primaryStat: 'Expected increase: +12%',
@@ -97,7 +97,7 @@ export default function AIPredictionCenter({ onOpenFullModal }) {
     {
       pred: commPred,
       icon: Radio,
-      iconColor: '#a855f7',
+      iconColor: '#705296',
       iconBg: 'rgba(168, 85, 247, 0.15)',
       label: 'COMMUNICATION',
       primaryStat: `Latency degradation: ${commPred?.risk_level || 'LOW'}`,

@@ -227,10 +227,13 @@ export default function SummaryReportModal({
   };
 
   const handlePrint = () => {
+    document.body.classList.add('print-summary-report');
+    const cleanup = () => document.body.classList.remove('print-summary-report');
+    window.addEventListener('afterprint', cleanup, { once: true });
     window.print();
   };
 
-  const statusColor = exec.overall_status === 'CRITICAL' ? '#ef4444' : exec.overall_status === 'WARNING' ? '#f59e0b' : '#10b981';
+  const statusColor = exec.overall_status === 'CRITICAL' ? '#b73b37' : exec.overall_status === 'WARNING' ? '#946013' : '#187451';
   const riskScore = exec.overall_risk_score ?? 18;
 
   return (
@@ -938,7 +941,7 @@ export default function SummaryReportModal({
                   <div className="log-progress-bar-bg">
                     <div 
                       className="log-progress-bar-fill" 
-                      style={{ width: `${it.percent}%`, backgroundColor: it.color || '#10b981' }}
+                      style={{ width: `${it.percent}%`, backgroundColor: it.color || '#187451' }}
                     />
                   </div>
                   <div className="log-footer-row">

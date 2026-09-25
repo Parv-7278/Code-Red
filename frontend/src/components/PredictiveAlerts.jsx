@@ -59,16 +59,16 @@ export default function PredictiveAlerts({ insights: insightsProp, onOpenInsight
 
   const insights = rawInsights.map(item => {
     let Icon = AlertTriangle;
-    let iconColor = '#f59e0b';
+    let iconColor = '#946013';
     let iconBg = 'rgba(245, 158, 11, 0.15)';
 
     if (item.severity === 'high') {
       Icon = AlertOctagon;
-      iconColor = '#ef4444';
+      iconColor = '#b73b37';
       iconBg = 'rgba(239, 68, 68, 0.15)';
     } else if (item.severity === 'info') {
       Icon = Radio;
-      iconColor = '#38bdf8';
+      iconColor = '#146b80';
       iconBg = 'rgba(56, 189, 248, 0.15)';
     }
 
@@ -111,7 +111,7 @@ export default function PredictiveAlerts({ insights: insightsProp, onOpenInsight
           <Activity size={14} className="text-amber" />
           <span className="card-title">PREDICTIVE ALERTS &amp; INSIGHTS</span>
         </div>
-        <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>
+        <span style={{ fontSize: '0.62rem', color: '#536579' }}>
           {insights.length} Active Signals
         </span>
       </div>

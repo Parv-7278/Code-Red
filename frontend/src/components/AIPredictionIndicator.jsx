@@ -47,12 +47,15 @@ export default function AIPredictionIndicator({
       <div
         className={`ai-compact-pill ${riskClass} ${className}`}
         onClick={() => openPredictionCenter(primary, category)}
-        title={`AI Prediction: ${primary.title} (${primary.risk_level}) - Click to inspect`}
+        onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') openPredictionCenter(primary, category); }}
+        role="button"
+        tabIndex={0}
+        title={`Forecast: ${primary.title} (${primary.risk_level}) — open details`}
       >
         <span className="ai-pill-dot" />
         <Sparkles size={12} className="ai-pill-sparkle" />
         <span className="ai-pill-txt">
-          {customText || `AI Forecast: ${primary.title.split(' ')[0]} ${primary.time_to_breach !== 'No Breach Expected' ? `in ${primary.time_to_breach}` : 'Nominal'} (${primary.confidence}%)`}
+          {customText || `Forecast: ${primary.title.split(' ')[0]} ${primary.time_to_breach !== 'No Breach Expected' ? `in ${primary.time_to_breach}` : 'Nominal'} (${primary.confidence}%)`}
         </span>
         <ChevronRight size={12} className="ai-pill-arrow" />
       </div>
@@ -63,13 +66,16 @@ export default function AIPredictionIndicator({
     <div
       className={`ai-section-indicator-card ${riskClass} ${className}`}
       onClick={() => openPredictionCenter(primary, category)}
+      onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') openPredictionCenter(primary, category); }}
+      role="button"
+      tabIndex={0}
     >
       <div className="ai-card-glow-edge" />
       <div className="ai-ind-header">
         <div className="ai-ind-title-left">
           <div className="ai-sparkle-badge">
             <Sparkles size={13} />
-            <span>AI PREDICTION</span>
+            <span>FORWARD FORECAST</span>
           </div>
           {isSimulating && <span className="ai-sim-tag">SIMULATION MODE</span>}
           <span className="ai-ind-category">{category.toUpperCase()} FORECAST</span>
@@ -114,7 +120,7 @@ export default function AIPredictionIndicator({
       {showViewAll && (
         <div className="ai-ind-footer">
           <span className="ai-ind-cta">
-            Inspect Full AI Predictive Curve & Physics Model
+            Review forecast curve and evidence
           </span>
           <ArrowRight size={13} className="ai-cta-arrow" />
         </div>

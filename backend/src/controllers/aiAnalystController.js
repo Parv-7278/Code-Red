@@ -1,17 +1,19 @@
 const AIAnalystService = require('../services/aiAnalystService');
+const reportDispatchService = require('../services/reportDispatchService');
 
 exports.getAIAnalystStatus = async (req, res) => {
   res.json({
     status: 'ONLINE',
     badge: 'AI ANALYSIS READY',
     engine: 'POLARIS Hybrid Python Analytics + AI Synthesis',
-    supported_time_ranges: ['24h', '7d', '30d'],
+    supported_time_ranges: ['12h', '24h', '7d', '30d'],
     supported_analysis_types: [
       'trends',
       'anomalies',
       'correlations',
       'summary',
       'summary_24h',
+      'operations_summary_12h',
       'compare',
       'forecast',
       'energy_env',
@@ -37,6 +39,37 @@ exports.generate24hSummaryReport = async (req, res) => {
       error: err.message,
     });
   }
+};
+
+exports.generate12hSummaryReport = async (req, res) => {
+  try {
+    const { station_id = req.query.stationId || 'station-maitri', send_to_hq = false } = req.body;
+    const userRole = req.headers['x-user-role'] || 'india_operator';
+    const report = reportDispatchService.generate12HourReport(station_id, userRole);
+    if (send_to_hq) {
+      report.delivery = reportDispatchService.transmitToIndiaHQ(report, userRole, 'MANUAL');
+    }
+    return res.json(report);
+  } catch (err) {
+    console.error('[12h Report Error]:', err);
+    return res.status(500).json({ success: false, message: 'Failed to generate the 12-hour station report.', error: err.message });
+  }
+};
+
+exports.get12hReportSchedule = (req, res) => {
+  const stationId = req.query.stationId || req.query.station_id || 'station-maitri';
+  return res.json({ success: true, data: reportDispatchService.getSchedule(stationId) });
+};
+
+exports.update12hReportSchedule = (req, res) => {
+  const stationId = req.body.station_id || req.body.stationId || 'station-maitri';
+  const userRole = req.headers['x-user-role'] || 'india_operator';
+  return res.json({ success: true, data: reportDispatchService.updateSchedule(stationId, req.body.enabled, userRole) });
+};
+
+exports.get12hReportDeliveries = (req, res) => {
+  const stationId = req.query.stationId || req.query.station_id || null;
+  return res.json({ success: true, data: reportDispatchService.listDeliveries(stationId) });
 };
 
 

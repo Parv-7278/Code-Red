@@ -236,7 +236,7 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
             <div>
               <div className="report-badge-row">
                 <span className="report-tag-live">AI SATELLITE &amp; CRYOSPHERE ANALYSIS</span>
-                <span className="report-station-tag" style={{ borderColor: '#38bdf8', color: '#38bdf8' }}>
+                <span className="report-station-tag" style={{ borderColor: '#146b80', color: '#146b80' }}>
                   {stationDisplayName.toUpperCase()} STATION
                 </span>
                 <span className="report-status-pill warning">
@@ -382,7 +382,7 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
         <div className="report-modal-body" style={{ padding: '18px 22px' }}>
           
           {/* Top Quick Anomaly Highlight */}
-          <div className="ai-multimodal-banner" style={{ background: 'linear-gradient(135deg, rgba(14, 23, 42, 0.9) 0%, rgba(245, 158, 11, 0.08) 100%)', borderColor: 'rgba(245, 158, 11, 0.35)', marginBottom: '16px' }}>
+          <div className="ai-multimodal-banner" style={{ background: 'linear-gradient(135deg, #f4f7f9 0%, rgba(245, 158, 11, 0.08) 100%)', borderColor: 'rgba(245, 158, 11, 0.35)', marginBottom: '16px' }}>
             <div className="ai-banner-header">
               <div className="ai-banner-title-group">
                 <Sparkles size={14} className="text-amber" />
@@ -390,7 +390,7 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
               </div>
               <span className="ai-provider-badge">ISRO NISAR SAR Differential Engine v3.2</span>
             </div>
-            <p className="ai-banner-summary" style={{ fontSize: '0.78rem', lineHeight: '1.45', color: '#e2e8f0' }}>
+            <p className="ai-banner-summary" style={{ fontSize: '0.78rem', lineHeight: '1.45', color: '#1d3044' }}>
               <strong>Satellite Advisory:</strong> Synthetic Aperture Radar (SAR) interferometry and multispectral altimetry confirm a localized surface ice velocity acceleration ({isBharati ? '+12.0%' : '+12.4%'}) along the {stationDisplayName} northern ice sector compared to the 30-day baseline. Grounding line bedrock anchoring remains secure at {isBharati ? '88.4%' : '91.2%'}.
             </p>
           </div>
@@ -457,25 +457,25 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
               </div>
 
               {/* Interactive 12-Month Waveform Graph */}
-              <div style={{ background: 'rgba(11, 19, 36, 0.7)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#146b80', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                       12-Month Longitudinal Ice Velocity Progression (m/yr)
                     </span>
-                    <p style={{ margin: '2px 0 0 0', fontSize: '0.66rem', color: '#94a3b8' }}>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '0.66rem', color: '#536579' }}>
                       Click on any monthly point to view detailed satellite telemetry observations.
                     </p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.66rem' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#38bdf8' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#38bdf8' }} /> Observed (SAR)
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#146b80' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#146b80' }} /> Observed (SAR)
                     </span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#64748b' }}>
                       <span style={{ width: '12px', height: '2px', background: '#64748b', borderStyle: 'dashed' }} /> 10-Yr Baseline
                     </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#ef4444' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} /> Velocity Surge
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#b73b37' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#b73b37' }} /> Velocity Surge
                     </span>
                   </div>
                 </div>
@@ -485,8 +485,8 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                   <svg viewBox={`0 0 ${svgW} ${svgH}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
                     <defs>
                       <linearGradient id="satVelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#0284c7" stopOpacity="0.0" />
+                        <stop offset="0%" stopColor="#146b80" stopOpacity="0.4" />
+                        <stop offset="100%" stopColor="#245b82" stopOpacity="0.0" />
                       </linearGradient>
                     </defs>
 
@@ -522,7 +522,7 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                       <path
                         d={velPathD}
                         fill="none"
-                        stroke="#38bdf8"
+                        stroke="#146b80"
                         strokeWidth="2.6"
                         strokeLinecap="round"
                         style={{ filter: 'drop-shadow(0 0 6px rgba(56, 189, 248, 0.6))' }}
@@ -533,8 +533,8 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                     {velCoords.map((c, i) => {
                       const isSelected = i === selectedMonthIdx;
                       const isSurge = c.d.isSurge;
-                      const ptColor = isSurge ? '#ef4444' : isSelected ? '#38bdf8' : '#ffffff';
-                      const strokeColor = isSurge ? '#ffffff' : '#0284c7';
+                      const ptColor = isSurge ? '#b73b37' : isSelected ? '#146b80' : '#ffffff';
+                      const strokeColor = isSurge ? '#ffffff' : '#245b82';
 
                       return (
                         <g 
@@ -548,7 +548,7 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                               cy={c.y}
                               r="8"
                               fill="none"
-                              stroke={isSurge ? '#ef4444' : '#38bdf8'}
+                              stroke={isSurge ? '#b73b37' : '#146b80'}
                               strokeWidth="1.5"
                               strokeDasharray="2 2"
                               className="animate-pulse"
@@ -565,7 +565,7 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                           <text
                             x={c.x}
                             y={svgH - 6}
-                            fill={isSelected ? '#38bdf8' : '#64748b'}
+                            fill={isSelected ? '#146b80' : '#64748b'}
                             fontSize="8.5"
                             fontWeight={isSelected ? 'bold' : 'normal'}
                             fontFamily="monospace"
@@ -580,22 +580,22 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                 </div>
 
                 {/* Selected Point Inspector */}
-                <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(14, 23, 42, 0.8)', borderRadius: '6px', border: '1px solid rgba(45, 78, 128, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ marginTop: '10px', padding: '8px 12px', background: '#f4f7f9', borderRadius: '6px', border: '1px solid rgba(45, 78, 128, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#38bdf8' }}>
+                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#146b80' }}>
                       📅 Month: {currentMonthData.month}
                     </span>
-                    <span style={{ fontSize: '0.72rem', color: '#e2e8f0' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#1d3044' }}>
                       Observed Velocity: <strong className={currentMonthData.isSurge ? 'text-red' : 'text-cyan'}>{currentMonthData.vel} m/yr</strong>
                     </span>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#536579' }}>
                       Baseline: {currentMonthData.baseline} m/yr
                     </span>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#536579' }}>
                       Thermal Skin Temp: {currentMonthData.temp}°C
                     </span>
                   </div>
-                  <span style={{ fontSize: '0.7rem', color: currentMonthData.isSurge ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                  <span style={{ fontSize: '0.7rem', color: currentMonthData.isSurge ? '#b73b37' : '#187451', fontWeight: 700 }}>
                     {currentMonthData.note}
                   </span>
                 </div>
@@ -603,33 +603,33 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
 
               {/* Satellite Sensor Matrix */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
-                <div style={{ background: 'rgba(14, 23, 42, 0.7)', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '10px 12px' }}>
-                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>ISRO NISAR SAR Phase</span>
-                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#38bdf8', marginTop: '2px' }} className="mono-num">
+                <div style={{ background: '#f4f7f9', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '10px 12px' }}>
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#536579', textTransform: 'uppercase' }}>ISRO NISAR SAR Phase</span>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#146b80', marginTop: '2px' }} className="mono-num">
                     0.78 rad / pass
                   </div>
                   <span style={{ fontSize: '0.58rem', color: '#64748b' }}>Interferometric fringe displacement rate</span>
                 </div>
 
-                <div style={{ background: 'rgba(14, 23, 42, 0.7)', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '10px 12px' }}>
-                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>TIR Skin Temperature</span>
-                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#38bdf8', marginTop: '2px' }} className="mono-num">
+                <div style={{ background: '#f4f7f9', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '10px 12px' }}>
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#536579', textTransform: 'uppercase' }}>TIR Skin Temperature</span>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#146b80', marginTop: '2px' }} className="mono-num">
                     -18.2°C (MODIS / Landsat-9)
                   </div>
                   <span style={{ fontSize: '0.58rem', color: '#64748b' }}>+1.3°C above 10-year seasonal median</span>
                 </div>
 
-                <div style={{ background: 'rgba(14, 23, 42, 0.7)', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '10px 12px' }}>
-                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Microwave Penetration</span>
-                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#10b981', marginTop: '2px' }} className="mono-num">
+                <div style={{ background: '#f4f7f9', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '10px 12px' }}>
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#536579', textTransform: 'uppercase' }}>Microwave Penetration</span>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#187451', marginTop: '2px' }} className="mono-num">
                     4.8 Meters (L-Band SAR)
                   </div>
                   <span style={{ fontSize: '0.58rem', color: '#64748b' }}>Detects subsurface firn liquid pockets</span>
                 </div>
 
-                <div style={{ background: 'rgba(14, 23, 42, 0.7)', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '10px 12px' }}>
-                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Surface Optical Albedo</span>
-                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#38bdf8', marginTop: '2px' }} className="mono-num">
+                <div style={{ background: '#f4f7f9', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '10px 12px' }}>
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#536579', textTransform: 'uppercase' }}>Surface Optical Albedo</span>
+                  <div style={{ fontSize: '1rem', fontWeight: 800, color: '#146b80', marginTop: '2px' }} className="mono-num">
                     0.84 (Cartosat-3 Multispectral)
                   </div>
                   <span style={{ fontSize: '0.58rem', color: '#64748b' }}>Stable cryospheric solar reflectance</span>
@@ -644,11 +644,11 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
               ================================================================ */}
           {activeTab === 'glaciology' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ background: 'rgba(11, 19, 36, 0.7)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#146b80', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Subsurface Firn Stratigraphy &amp; Core Density Strata
                 </span>
-                <p style={{ margin: '2px 0 12px 0', fontSize: '0.66rem', color: '#94a3b8' }}>
+                <p style={{ margin: '2px 0 12px 0', fontSize: '0.66rem', color: '#536579' }}>
                   Borehole telemetry &amp; Shallow Seismic Firn Inversion ({stationDisplayName} Glaciological Sector).
                 </p>
 
@@ -661,28 +661,28 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                     <span>Status</span>
                   </div>
                   <div className="sim-rep-row" style={{ gridTemplateColumns: '1.2fr 1fr 1fr 1.2fr 1fr' }}>
-                    <span style={{ fontWeight: 600, color: '#ffffff' }}>Fresh Snow &amp; Wind Crust</span>
+                    <span style={{ fontWeight: 600, color: '#1d3044' }}>Fresh Snow &amp; Wind Crust</span>
                     <span>0 – 15 Meters</span>
                     <span className="mono-num">350 kg/m³</span>
                     <span className="mono-num text-cyan">-22.4°C</span>
                     <span className="text-emerald font-bold">STABLE</span>
                   </div>
                   <div className="sim-rep-row" style={{ gridTemplateColumns: '1.2fr 1fr 1fr 1.2fr 1fr' }}>
-                    <span style={{ fontWeight: 600, color: '#ffffff' }}>Densified Firn Layer</span>
+                    <span style={{ fontWeight: 600, color: '#1d3044' }}>Densified Firn Layer</span>
                     <span>15 – 40 Meters</span>
                     <span className="mono-num">580 kg/m³</span>
                     <span className="mono-num text-cyan">-19.6°C</span>
                     <span className="text-amber font-bold">COMPACTING</span>
                   </div>
                   <div className="sim-rep-row" style={{ gridTemplateColumns: '1.2fr 1fr 1fr 1.2fr 1fr' }}>
-                    <span style={{ fontWeight: 600, color: '#ffffff' }}>Pore Close-Off Transition</span>
+                    <span style={{ fontWeight: 600, color: '#1d3044' }}>Pore Close-Off Transition</span>
                     <span>40 – 80 Meters</span>
                     <span className="mono-num">820 kg/m³</span>
                     <span className="mono-num text-cyan">-17.8°C</span>
                     <span className="text-emerald font-bold">NOMINAL</span>
                   </div>
                   <div className="sim-rep-row" style={{ gridTemplateColumns: '1.2fr 1fr 1fr 1.2fr 1fr' }}>
-                    <span style={{ fontWeight: 600, color: '#ffffff' }}>Solid Glacial Basal Ice</span>
+                    <span style={{ fontWeight: 600, color: '#1d3044' }}>Solid Glacial Basal Ice</span>
                     <span>80 – 120+ Meters</span>
                     <span className="mono-num">910 kg/m³</span>
                     <span className="mono-num text-cyan">-14.2°C</span>
@@ -692,22 +692,22 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-                <div style={{ background: 'rgba(14, 23, 42, 0.8)', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '12px' }}>
+                <div style={{ background: '#f4f7f9', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                     <Activity size={14} className="text-cyan" />
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#ffffff' }}>Crevasse &amp; Strain Rate Tensor</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1d3044' }}>Crevasse &amp; Strain Rate Tensor</span>
                   </div>
-                  <p style={{ fontSize: '0.68rem', color: '#94a3b8', margin: 0, lineHeight: '1.4' }}>
+                  <p style={{ fontSize: '0.68rem', color: '#536579', margin: 0, lineHeight: '1.4' }}>
                     Surface principal strain rate: <strong className="text-amber mono-num">1.4 × 10⁻⁴ yr⁻¹</strong>. Micro-fissuring detected along lateral shear margins, but no transverse crevasse expansion observed near station transit trails.
                   </p>
                 </div>
 
-                <div style={{ background: 'rgba(14, 23, 42, 0.8)', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '12px' }}>
+                <div style={{ background: '#f4f7f9', border: '1px solid rgba(45, 78, 128, 0.35)', borderRadius: '6px', padding: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                     <Gauge size={14} className="text-emerald" />
-                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#ffffff' }}>Subglacial Hydraulic Pressure</span>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1d3044' }}>Subglacial Hydraulic Pressure</span>
                   </div>
-                  <p style={{ fontSize: '0.68rem', color: '#94a3b8', margin: 0, lineHeight: '1.4' }}>
+                  <p style={{ fontSize: '0.68rem', color: '#536579', margin: 0, lineHeight: '1.4' }}>
                     Piezometer reading at Bedrock Interface: <strong className="text-emerald mono-num">12.8 bar</strong>. Basal hydrological drainage network in stable winter equilibrium without pressurized lake discharge.
                   </p>
                 </div>
@@ -720,11 +720,11 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
               ================================================================ */}
           {activeTab === 'gnss' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ background: 'rgba(11, 19, 36, 0.7)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#38bdf8', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#146b80', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Continuous Geodetic &amp; Kinematic GNSS Ground Stations
                 </span>
-                <p style={{ margin: '2px 0 12px 0', fontSize: '0.66rem', color: '#94a3b8' }}>
+                <p style={{ margin: '2px 0 12px 0', fontSize: '0.66rem', color: '#536579' }}>
                   ISRO NavIC + GPS dual-frequency carrier phase differential positioning stations.
                 </p>
 
@@ -737,28 +737,28 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                     <span>Status</span>
                   </div>
                   <div className="sim-rep-row" style={{ gridTemplateColumns: '1.4fr 1.1fr 1fr 1fr 1fr' }}>
-                    <span style={{ fontWeight: 600, color: '#ffffff' }}>GNSS-01 (Oasis Moraine)</span>
+                    <span style={{ fontWeight: 600, color: '#1d3044' }}>GNSS-01 (Oasis Moraine)</span>
                     <span>Southern Oasis Rim</span>
                     <span className="mono-num text-cyan">3.8 cm / month</span>
                     <span className="mono-num text-emerald">100% (NavIC/GPS)</span>
                     <span className="text-emerald font-bold">NOMINAL</span>
                   </div>
                   <div className="sim-rep-row" style={{ gridTemplateColumns: '1.4fr 1.1fr 1fr 1fr 1fr' }}>
-                    <span style={{ fontWeight: 600, color: '#ffffff' }}>GNSS-02 (Ice Tongue B-4)</span>
+                    <span style={{ fontWeight: 600, color: '#1d3044' }}>GNSS-02 (Ice Tongue B-4)</span>
                     <span>Northern Shear Margin</span>
                     <span className="mono-num text-red font-bold">14.1 cm / month (+12%)</span>
                     <span className="mono-num text-emerald">100% (Dual-Freq)</span>
                     <span className="text-red font-bold">SURGE DETECTED</span>
                   </div>
                   <div className="sim-rep-row" style={{ gridTemplateColumns: '1.4fr 1.1fr 1fr 1fr 1fr' }}>
-                    <span style={{ fontWeight: 600, color: '#ffffff' }}>GNSS-03 (Nunatak Bedrock)</span>
+                    <span style={{ fontWeight: 600, color: '#1d3044' }}>GNSS-03 (Nunatak Bedrock)</span>
                     <span>Nunatak Pinning Ridge</span>
                     <span className="mono-num text-emerald">0.2 cm / month (Rebound)</span>
                     <span className="mono-num text-emerald">100% (Geodetic)</span>
                     <span className="text-emerald font-bold">LOCKED REF</span>
                   </div>
                   <div className="sim-rep-row" style={{ gridTemplateColumns: '1.4fr 1.1fr 1fr 1fr 1fr' }}>
-                    <span style={{ fontWeight: 600, color: '#ffffff' }}>GNSS-04 (Priyadarshini / Coastal)</span>
+                    <span style={{ fontWeight: 600, color: '#1d3044' }}>GNSS-04 (Priyadarshini / Coastal)</span>
                     <span>Basin Discharge Margin</span>
                     <span className="mono-num text-cyan">4.1 cm / month</span>
                     <span className="mono-num text-emerald">99.8%</span>
@@ -767,14 +767,14 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                 </div>
               </div>
 
-              <div style={{ padding: '10px 14px', background: 'rgba(14, 23, 42, 0.8)', borderRadius: '6px', border: '1px solid rgba(56, 189, 248, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ padding: '10px 14px', background: '#f4f7f9', borderRadius: '6px', border: '1px solid rgba(56, 189, 248, 0.25)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Radio size={14} className="text-cyan animate-pulse" />
-                  <span style={{ fontSize: '0.72rem', color: '#e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#1d3044' }}>
                     Kinematic Positioning Accuracy: <strong>Horizontal ±1.8 mm | Vertical ±3.2 mm (Epoch Rate: 1 Hz)</strong>
                   </span>
                 </div>
-                <span style={{ fontSize: '0.66rem', color: '#38bdf8', fontWeight: 700 }}>
+                <span style={{ fontSize: '0.66rem', color: '#146b80', fontWeight: 700 }}>
                   ISRO Space Applications Centre (SAC) Real-Time Correction Feed
                 </span>
               </div>
@@ -786,7 +786,7 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
               ================================================================ */}
           {activeTab === 'directives' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="sim-directives-box" style={{ background: 'rgba(11, 19, 36, 0.85)', borderColor: 'rgba(56, 189, 248, 0.3)' }}>
+              <div className="sim-directives-box" style={{ background: '#f4f7f9', borderColor: 'rgba(56, 189, 248, 0.3)' }}>
                 <div className="directive-block">
                   <span className="dir-tag text-cyan">PHYSICAL MECHANISM CAUSALITY &amp; SYNTHESIS:</span>
                   <p className="dir-text" style={{ fontSize: '0.74rem', lineHeight: '1.45' }}>
@@ -795,11 +795,11 @@ Multi-temporal differential SAR interferometry indicates a localized surface ice
                 </div>
               </div>
 
-              <div style={{ background: 'rgba(14, 23, 42, 0.85)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '6px', padding: '12px 14px' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#f59e0b', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '6px', padding: '12px 14px' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#946013', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
                   Mandatory Expedition Directives &amp; Field Actions:
                 </span>
-                <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.72rem', color: '#e2e8f0' }}>
+                <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.72rem', color: '#1d3044' }}>
                   <li>
                     <strong>Directive GL-01:</strong> Task resident glaciology field team to increase GNSS stake survey frequency from bi-weekly to 48-hour continuous kinematic logging.
                   </li>

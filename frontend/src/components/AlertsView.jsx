@@ -25,8 +25,8 @@ import { triggerScenario, acknowledgeAlert } from '../services/api';
 import { Sparkles, ArrowRight, Activity, ChevronRight } from 'lucide-react';
 
 export default function AlertsView({ selectedStation }) {
-  const { isIndiaOperator, assignedStation } = useAuth();
-  const { alerts: liveAlerts, triggerAnomaly, refreshTelemetry } = useTelemetry();
+  const { role, isIndiaOperator, assignedStation } = useAuth();
+  const { alerts: liveAlerts, hasFetchedAlerts, refreshData } = useTelemetry();
   const { predictiveData, openPredictionCenter, isSimulating } = usePredictive();
 
   const [activeAlertTab, setActiveAlertTab] = useState('active'); // 'active' | 'predictive'
@@ -35,6 +35,9 @@ export default function AlertsView({ selectedStation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [acknowledgedIds, setAcknowledgedIds] = useState(new Set());
   const [injectingScenario, setInjectingScenario] = useState(null);
+  const [pendingAcknowledgment, setPendingAcknowledgment] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const [actionMessage, setActionMessage] = useState(null);
 
   useEffect(() => {
     if (!isIndiaOperator && assignedStation) {
@@ -123,37 +126,56 @@ export default function AlertsView({ selectedStation }) {
     }
   ];
 
-  const handleAcknowledge = async (id) => {
-    setAcknowledgedIds(prev => new Set([...prev, id]));
+  const handleAcknowledge = async (id, isExample) => {
+    setPendingAcknowledgment(id);
+    setActionError(null);
     try {
-      await acknowledgeAlert(id);
+      if (!isExample) await acknowledgeAlert(id, role, assignedStation);
+      setAcknowledgedIds(prev => new Set([...prev, id]));
+      setActionMessage(isExample ? 'Example acknowledged for this session. No operational incident was changed.' : 'Incident acknowledged.');
+      if (!isExample) await refreshData();
     } catch (err) {
-      console.warn('Backend ack note:', err);
+      setActionError(`Could not acknowledge incident: ${err.message}`);
+    } finally {
+      setPendingAcknowledgment(null);
     }
   };
 
   const handleTriggerScenario = async (scenarioType) => {
     setInjectingScenario(scenarioType);
+    setActionError(null);
+    setActionMessage(null);
     try {
-      if (triggerAnomaly) {
-        triggerAnomaly();
-      }
       const targetStation = stationFilter !== 'ALL'
         ? stationFilter
         : selectedStation === 'station-bharati'
           ? 'station-bharati'
           : 'station-maitri';
-      await triggerScenario(scenarioType, targetStation);
-      if (refreshTelemetry) refreshTelemetry();
+      const result = await triggerScenario(scenarioType, targetStation, role, assignedStation);
+      setActionMessage(result.message || 'Test scenario received.');
+      await refreshData();
     } catch (err) {
-      console.warn('Scenario triggered:', err);
+      setActionError(`Scenario was not applied: ${err.message}`);
     } finally {
-      setTimeout(() => setInjectingScenario(null), 1500);
+      setInjectingScenario(null);
     }
   };
 
   // Filter alerts by Station, Severity, and Search Query
-  const accessibleAlerts = masterAlerts.filter((a) => {
+  const showExamples = !hasFetchedAlerts && liveAlerts.length === 0;
+  const incidentPool = showExamples ? masterAlerts.map((incident) => ({ ...incident, isExample: true })) : liveAlerts.map((incident) => ({
+    ...incident,
+    stationId: incident.station_id,
+    stationName: incident.station_id === 'station-bharati' ? 'Bharati' : 'Maitri',
+    title: incident.message || 'Station incident',
+    severity: ['CRITICAL', 'HIGH', 'WARNING', 'INFO'].includes(incident.priority) ? incident.priority : 'INFO',
+    priority: ({ CRITICAL: 'P1', HIGH: 'P2', WARNING: 'P3' })[incident.priority] || 'P4',
+    subsystem: incident.category || 'Telemetry',
+    timestamp: incident.triggered_at ? new Date(incident.triggered_at).toLocaleString() : 'Time unavailable',
+    details: incident.sensor_key ? `${incident.sensor_key}: ${incident.sensor_value ?? '—'} · Threshold: ${incident.threshold_value ?? '—'}` : 'Review the station readings before taking action.',
+    recommendedAction: incident.recommended_action || 'Inspect the affected subsystem and follow the station response procedure.',
+  }));
+  const accessibleAlerts = incidentPool.filter((a) => {
     if (!isIndiaOperator && assignedStation && a.stationId !== assignedStation) {
       return false;
     }
@@ -185,10 +207,13 @@ export default function AlertsView({ selectedStation }) {
 
   return (
     <div className="tab-page-container alerts-view-container">
+      {actionError && <p className="ui-feedback ui-feedback-error" role="alert">{actionError}</p>}
+      {actionMessage && <p className="ui-feedback" role="status">{actionMessage}</p>}
+      {showExamples && <p className="ui-feedback" role="status">Demonstration incidents · The incident service has not connected. Example acknowledgments are local to this session.</p>}
       {/* Top Banner Header */}
       <div className="tab-page-header">
         <div>
-          <h2 className="tab-page-title">Mission Incident Management & Emergency Operations Center</h2>
+          <h2 className="tab-page-title">Incident management</h2>
           <span className="tab-page-subtitle">
             {selectedStation === 'all-stations'
               ? 'Unified Maitri and Bharati alert telemetry, fault correlation and SCADA incident dispatch'
@@ -197,7 +222,7 @@ export default function AlertsView({ selectedStation }) {
         </div>
         <div className="header-status-badge">
           <ShieldAlert size={14} className="text-amber" />
-          <span>INCIDENT ESCALATION PROTOCOL: LEVEL 2 ACTIVE</span>
+          <span>{showExamples ? 'Demonstration data' : `${criticalCount} critical incidents`}</span>
         </div>
       </div>
 
@@ -216,7 +241,7 @@ export default function AlertsView({ selectedStation }) {
           onClick={() => setActiveAlertTab('predictive')}
         >
           <Sparkles size={14} className="text-cyan" />
-          <span>AI Predicted Early Warnings ({predictiveData?.predictions?.length || 7})</span>
+          <span>Predicted risks ({predictiveData?.predictions?.length || 0})</span>
           {isSimulating && <span className="ai-sim-badge">SIMULATED</span>}
         </button>
       </div>
@@ -230,9 +255,9 @@ export default function AlertsView({ selectedStation }) {
             <div className="ai-p-left">
               <Sparkles size={18} className="text-cyan" />
               <div>
-                <h4 className="ai-p-title">Physics-Informed Multi-Horizon Machine Learning Forecasts</h4>
+                <h4 className="ai-p-title">Forward risk forecasts</h4>
                 <p className="ai-p-desc">
-                  Forward-looking anomaly extrapolation across thermal, electrical, mechanical, and meteorological sensor streams before physical threshold trips occur.
+                  Review projected threshold crossings across thermal, electrical, mechanical, and weather telemetry.
                 </p>
               </div>
             </div>
@@ -241,7 +266,7 @@ export default function AlertsView({ selectedStation }) {
               onClick={() => openPredictionCenter(null, 'all')}
             >
               <Sparkles size={13} />
-              <span>Launch AI Prediction Center</span>
+              <span>Open forecast review</span>
             </button>
           </div>
 
@@ -262,7 +287,7 @@ export default function AlertsView({ selectedStation }) {
                   <div className="incident-card-top">
                     <div className="incident-badge-cluster">
                       <span className={`severity-badge ${riskTag}`}>
-                        AI PREDICTION • {pred.risk_level} RISK
+                        FORECAST • {pred.risk_level} RISK
                       </span>
                       <span className="station-badge-pill">
                         {pred.station_name?.toUpperCase()}
@@ -303,7 +328,7 @@ export default function AlertsView({ selectedStation }) {
 
                   <div className="incident-action-box">
                     <div className="action-txt-wrap">
-                      <span className="action-label text-cyan">PRESCRIPTIVE AI MITIGATION DIRECTIVE:</span>
+                      <span className="action-label text-cyan">RECOMMENDED RESPONSE:</span>
                       <span className="action-desc">{pred.recommendation}</span>
                     </div>
 
@@ -440,7 +465,7 @@ export default function AlertsView({ selectedStation }) {
       )}
 
       {/* Incidents List Cards */}
-      <div className="incidents-cards-list">
+      {activeAlertTab === 'active' && <div className="incidents-cards-list">
         {filteredAlerts.length === 0 ? (
           <div className="no-incidents-box polaris-card">
             <CheckCircle2 size={32} className="text-emerald" />
@@ -449,7 +474,7 @@ export default function AlertsView({ selectedStation }) {
           </div>
         ) : (
           filteredAlerts.map((incident) => {
-            const isAcked = acknowledgedIds.has(incident.id);
+            const isAcked = acknowledgedIds.has(incident.id) || incident.status === 'ACKNOWLEDGED';
             const isCrit = incident.severity === 'CRITICAL';
             const isHigh = incident.severity === 'HIGH';
             const isWarn = incident.severity === 'WARNING';
@@ -490,15 +515,16 @@ export default function AlertsView({ selectedStation }) {
                     {isAcked ? (
                       <span className="status-ack-pill">
                         <Check size={12} />
-                        <span>ACKNOWLEDGED BY HQ</span>
+                        <span>{incident.isExample ? 'EXAMPLE ACKNOWLEDGED' : 'ACKNOWLEDGED'}</span>
                       </span>
                     ) : (
                       <button 
                         className="btn-ack-incident"
-                        onClick={() => handleAcknowledge(incident.id)}
+                        onClick={() => handleAcknowledge(incident.id, incident.isExample)}
+                        disabled={pendingAcknowledgment !== null}
                       >
                         <Check size={12} />
-                        <span>Acknowledge Incident</span>
+                        <span>{pendingAcknowledgment === incident.id ? 'Acknowledging…' : incident.isExample ? 'Acknowledge example' : 'Acknowledge incident'}</span>
                       </button>
                     )}
                   </div>
@@ -507,7 +533,7 @@ export default function AlertsView({ selectedStation }) {
             );
           })
         )}
-      </div>
+      </div>}
     </div>
   );
 }

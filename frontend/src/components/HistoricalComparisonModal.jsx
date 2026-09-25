@@ -327,10 +327,10 @@ export default function HistoricalComparisonModal({
             </div>
             <div>
               <div className="report-badge-row">
-                <span className="report-tag-live" style={{ background: 'rgba(139, 92, 246, 0.2)', borderColor: 'rgba(139, 92, 246, 0.4)', color: '#c084fc' }}>
+                <span className="report-tag-live" style={{ background: 'rgba(139, 92, 246, 0.2)', borderColor: 'rgba(139, 92, 246, 0.4)', color: '#705296' }}>
                   5-YEAR LONGITUDINAL CLIMATOLOGY BENCHMARK
                 </span>
-                <span className="report-station-tag" style={{ borderColor: '#c084fc', color: '#c084fc' }}>
+                <span className="report-station-tag" style={{ borderColor: '#705296', color: '#705296' }}>
                   {stationDisplayName.toUpperCase()} STATION
                 </span>
                 <span className="report-status-pill optimal">
@@ -357,8 +357,8 @@ export default function HistoricalComparisonModal({
             {/* 5-Year Velocity Shift Card */}
             <div className="report-risk-score-dial" style={{ background: 'rgba(139, 92, 246, 0.12)', borderColor: 'rgba(139, 92, 246, 0.4)' }}>
               <div className="dial-value-row">
-                <TrendingUp size={14} style={{ color: '#c084fc' }} />
-                <span className="dial-num" style={{ color: '#c084fc' }}>{isBharati ? '+17.5%' : '+18.3%'}</span>
+                <TrendingUp size={14} style={{ color: '#705296' }} />
+                <span className="dial-num" style={{ color: '#705296' }}>{isBharati ? '+17.5%' : '+18.3%'}</span>
               </div>
               <span className="dial-label">5-Yr Velocity Delta</span>
             </div>
@@ -476,15 +476,15 @@ export default function HistoricalComparisonModal({
         <div className="report-modal-body" style={{ padding: '18px 22px' }}>
           
           {/* Top Quick Synthesis Banner */}
-          <div className="ai-multimodal-banner" style={{ background: 'linear-gradient(135deg, rgba(14, 23, 42, 0.9) 0%, rgba(139, 92, 246, 0.08) 100%)', borderColor: 'rgba(139, 92, 246, 0.35)', marginBottom: '16px' }}>
+          <div className="ai-multimodal-banner" style={{ background: 'linear-gradient(135deg, #f4f7f9 0%, rgba(139, 92, 246, 0.08) 100%)', borderColor: 'rgba(139, 92, 246, 0.35)', marginBottom: '16px' }}>
             <div className="ai-banner-header">
               <div className="ai-banner-title-group">
-                <Sparkles size={14} style={{ color: '#c084fc' }} />
-                <span className="ai-banner-label" style={{ color: '#c084fc' }}>POLARIS 5-YEAR CLIMATOLOGICAL SYNTHESIS</span>
+                <Sparkles size={14} style={{ color: '#705296' }} />
+                <span className="ai-banner-label" style={{ color: '#705296' }}>POLARIS 5-YEAR CLIMATOLOGICAL SYNTHESIS</span>
               </div>
               <span className="ai-provider-badge">Decadal Longitudinal Ensemble Model v4.1</span>
             </div>
-            <p className="ai-banner-summary" style={{ fontSize: '0.78rem', lineHeight: '1.45', color: '#e2e8f0' }}>
+            <p className="ai-banner-summary" style={{ fontSize: '0.78rem', lineHeight: '1.45', color: '#1d3044' }}>
               <strong>5-Year Longitudinal Insight:</strong> Multi-year linear regression demonstrates a decadal air warming rate of <strong>+0.32°C/decade</strong> across East Antarctic coastal ice sheets. Annual ice displacement has expanded from <strong>{isBharati ? '19.4 m/yr' : '14.2 m/yr'} (2021)</strong> to <strong>{isBharati ? '22.8 m/yr' : '16.8 m/yr'} (2026)</strong>, matching positive Southern Annular Mode (SAM) anomalies.
             </p>
           </div>
@@ -500,13 +500,13 @@ export default function HistoricalComparisonModal({
                 <div className="rep-kpi-card" style={{ borderColor: 'rgba(139, 92, 246, 0.4)', background: 'rgba(139, 92, 246, 0.08)' }}>
                   <div className="kpi-top-row">
                     <span className="kpi-title">5-Yr Velocity Surge</span>
-                    <TrendingUp size={13} style={{ color: '#c084fc' }} />
+                    <TrendingUp size={13} style={{ color: '#705296' }} />
                   </div>
-                  <div className="kpi-main-val mono-num" style={{ color: '#c084fc' }}>
+                  <div className="kpi-main-val mono-num" style={{ color: '#705296' }}>
                     {isBharati ? '+3.4 m/yr' : '+2.6 m/yr'}
                   </div>
                   <div className="kpi-sub-label">
-                    <span style={{ color: '#c084fc', fontWeight: 'bold' }}>{isBharati ? '+17.5%' : '+18.3%'}</span> Total 5-Yr Growth
+                    <span style={{ color: '#705296', fontWeight: 'bold' }}>{isBharati ? '+17.5%' : '+18.3%'}</span> Total 5-Yr Growth
                   </div>
                 </div>
 
@@ -551,22 +551,22 @@ export default function HistoricalComparisonModal({
               </div>
 
               {/* Multi-Year SVG Graph */}
-              <div style={{ background: 'rgba(11, 19, 36, 0.7)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#c084fc', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#705296', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                       5-Year Annual Ice Velocity Benchmark (2021 – 2026)
                     </span>
-                    <p style={{ margin: '2px 0 0 0', fontSize: '0.66rem', color: '#94a3b8' }}>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '0.66rem', color: '#536579' }}>
                       Click on any campaign year point to view expedition specific telemetry.
                     </p>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.66rem' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#c084fc' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#c084fc' }} /> Annual Ice Flow (m/yr)
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#705296' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#705296' }} /> Annual Ice Flow (m/yr)
                     </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#ef4444' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} /> 2026 Surge (+12%)
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#b73b37' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#b73b37' }} /> 2026 Surge (+12%)
                     </span>
                   </div>
                 </div>
@@ -575,8 +575,8 @@ export default function HistoricalComparisonModal({
                   <svg viewBox={`0 0 ${svgW} ${svgH}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
                     <defs>
                       <linearGradient id="histVelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#c084fc" stopOpacity="0.45" />
-                        <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
+                        <stop offset="0%" stopColor="#705296" stopOpacity="0.45" />
+                        <stop offset="100%" stopColor="#705296" stopOpacity="0.0" />
                       </linearGradient>
                     </defs>
 
@@ -601,7 +601,7 @@ export default function HistoricalComparisonModal({
                       <path
                         d={velPathD}
                         fill="none"
-                        stroke="#c084fc"
+                        stroke="#705296"
                         strokeWidth="2.8"
                         strokeLinecap="round"
                         style={{ filter: 'drop-shadow(0 0 6px rgba(192, 132, 252, 0.6))' }}
@@ -612,8 +612,8 @@ export default function HistoricalComparisonModal({
                     {velCoords.map((c, i) => {
                       const isSelected = i === selectedYearIdx;
                       const isSurge = c.d.isSurge;
-                      const ptColor = isSurge ? '#ef4444' : isSelected ? '#c084fc' : '#ffffff';
-                      const strokeColor = isSurge ? '#ffffff' : '#8b5cf6';
+                      const ptColor = isSurge ? '#b73b37' : isSelected ? '#705296' : '#ffffff';
+                      const strokeColor = isSurge ? '#ffffff' : '#705296';
 
                       return (
                         <g 
@@ -627,7 +627,7 @@ export default function HistoricalComparisonModal({
                               cy={c.y}
                               r="8"
                               fill="none"
-                              stroke={isSurge ? '#ef4444' : '#c084fc'}
+                              stroke={isSurge ? '#b73b37' : '#705296'}
                               strokeWidth="1.5"
                               strokeDasharray="2 2"
                               className="animate-pulse"
@@ -644,7 +644,7 @@ export default function HistoricalComparisonModal({
                           <text
                             x={c.x}
                             y={svgH - 6}
-                            fill={isSelected ? '#c084fc' : '#94a3b8'}
+                            fill={isSelected ? '#705296' : '#94a3b8'}
                             fontSize="9"
                             fontWeight={isSelected ? 'bold' : 'normal'}
                             fontFamily="monospace"
@@ -659,22 +659,22 @@ export default function HistoricalComparisonModal({
                 </div>
 
                 {/* Selected Point Inspector */}
-                <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(14, 23, 42, 0.8)', borderRadius: '6px', border: '1px solid rgba(139, 92, 246, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ marginTop: '10px', padding: '8px 12px', background: '#f4f7f9', borderRadius: '6px', border: '1px solid rgba(139, 92, 246, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#c084fc' }}>
+                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#705296' }}>
                       🚩 {currentYearData.year} ({currentYearData.campaign})
                     </span>
-                    <span style={{ fontSize: '0.72rem', color: '#e2e8f0' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#1d3044' }}>
                       Flow Velocity: <strong className={currentYearData.isSurge ? 'text-red' : 'text-purple'}>{currentYearData.iceVel} m/yr</strong>
                     </span>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#536579' }}>
                       Mean Air Temp: {currentYearData.meanTemp}°C (Min: {currentYearData.minTemp}°C / Max: {currentYearData.maxTemp}°C)
                     </span>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#536579' }}>
                       Firn Density: {currentYearData.firnDensity} kg/m³
                     </span>
                   </div>
-                  <span style={{ fontSize: '0.7rem', color: currentYearData.isSurge ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                  <span style={{ fontSize: '0.7rem', color: currentYearData.isSurge ? '#b73b37' : '#187451', fontWeight: 700 }}>
                     {currentYearData.anomaly}
                   </span>
                 </div>
@@ -688,11 +688,11 @@ export default function HistoricalComparisonModal({
               ================================================================ */}
           {activeTab === 'table' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ background: 'rgba(11, 19, 36, 0.7)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#c084fc', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '8px', padding: '14px 16px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#705296', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   5-Year Multi-Parameter Expedition Comparison (2021 – 2026)
                 </span>
-                <p style={{ margin: '2px 0 12px 0', fontSize: '0.66rem', color: '#94a3b8' }}>
+                <p style={{ margin: '2px 0 12px 0', fontSize: '0.66rem', color: '#536579' }}>
                   Consolidated climatological archive from Indian Antarctic Research Stations.
                 </p>
 
@@ -714,7 +714,7 @@ export default function HistoricalComparisonModal({
                         background: c.isSurge ? 'rgba(239, 68, 68, 0.08)' : undefined
                       }}
                     >
-                      <span style={{ fontWeight: 600, color: '#ffffff' }}>
+                      <span style={{ fontWeight: 600, color: '#1d3044' }}>
                         {c.year} ({c.campaign.split(' ')[0]} IAE)
                       </span>
                       <span className="mono-num text-cyan">{c.meanTemp}°C</span>
@@ -741,62 +741,62 @@ export default function HistoricalComparisonModal({
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
                 
                 {/* Maitri Card */}
-                <div style={{ background: 'rgba(14, 23, 42, 0.8)', border: '1px solid rgba(56, 189, 248, 0.35)', borderRadius: '8px', padding: '14px' }}>
+                <div style={{ background: '#f4f7f9', border: '1px solid rgba(56, 189, 248, 0.35)', borderRadius: '8px', padding: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <MapPin size={14} className="text-cyan" />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#38bdf8' }}>MAITRI STATION</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#146b80' }}>MAITRI STATION</span>
                     </div>
                     <span className="report-status-pill normal">INLAND OASIS</span>
                   </div>
-                  <span style={{ fontSize: '0.66rem', color: '#94a3b8' }}>Schirmacher Oasis (70° 45′ S, 11° 44′ E)</span>
+                  <span style={{ fontSize: '0.66rem', color: '#536579' }}>Schirmacher Oasis (70° 45′ S, 11° 44′ E)</span>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', borderBottom: '1px solid rgba(45, 78, 128, 0.2)', paddingBottom: '4px' }}>
-                      <span style={{ color: '#94a3b8' }}>Glaciological Setting:</span>
-                      <strong style={{ color: '#e2e8f0' }}>Bedrock Oasis &amp; Inland Ice Tongue</strong>
+                      <span style={{ color: '#536579' }}>Glaciological Setting:</span>
+                      <strong style={{ color: '#1d3044' }}>Bedrock Oasis &amp; Inland Ice Tongue</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', borderBottom: '1px solid rgba(45, 78, 128, 0.2)', paddingBottom: '4px' }}>
-                      <span style={{ color: '#94a3b8' }}>Current Ice Flow Speed:</span>
+                      <span style={{ color: '#536579' }}>Current Ice Flow Speed:</span>
                       <strong className="text-red font-bold mono-num">16.8 m/yr (+12.4%)</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', borderBottom: '1px solid rgba(45, 78, 128, 0.2)', paddingBottom: '4px' }}>
-                      <span style={{ color: '#94a3b8' }}>Priyadarshini Lake Ice:</span>
+                      <span style={{ color: '#536579' }}>Priyadarshini Lake Ice:</span>
                       <strong className="text-cyan mono-num">1.8 Meters (Stable)</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', borderBottom: '1px solid rgba(45, 78, 128, 0.2)', paddingBottom: '4px' }}>
-                      <span style={{ color: '#94a3b8' }}>Katabatic Peak Wind Gust:</span>
+                      <span style={{ color: '#536579' }}>Katabatic Peak Wind Gust:</span>
                       <strong className="text-amber mono-num">162 km/h (Recorded)</strong>
                     </div>
                   </div>
                 </div>
 
                 {/* Bharati Card */}
-                <div style={{ background: 'rgba(14, 23, 42, 0.8)', border: '1px solid rgba(139, 92, 246, 0.35)', borderRadius: '8px', padding: '14px' }}>
+                <div style={{ background: '#f4f7f9', border: '1px solid rgba(139, 92, 246, 0.35)', borderRadius: '8px', padding: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <MapPin size={14} style={{ color: '#c084fc' }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#c084fc' }}>BHARATI STATION</span>
+                      <MapPin size={14} style={{ color: '#705296' }} />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#705296' }}>BHARATI STATION</span>
                     </div>
-                    <span className="report-status-pill warning" style={{ borderColor: 'rgba(139, 92, 246, 0.4)', color: '#c084fc' }}>COASTAL FJORD</span>
+                    <span className="report-status-pill warning" style={{ borderColor: 'rgba(139, 92, 246, 0.4)', color: '#705296' }}>COASTAL FJORD</span>
                   </div>
-                  <span style={{ fontSize: '0.66rem', color: '#94a3b8' }}>Larsemann Hills (69° 24′ S, 76° 17′ E)</span>
+                  <span style={{ fontSize: '0.66rem', color: '#536579' }}>Larsemann Hills (69° 24′ S, 76° 17′ E)</span>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', borderBottom: '1px solid rgba(45, 78, 128, 0.2)', paddingBottom: '4px' }}>
-                      <span style={{ color: '#94a3b8' }}>Glaciological Setting:</span>
-                      <strong style={{ color: '#e2e8f0' }}>Coastal Ice Shelf &amp; Marine Interface</strong>
+                      <span style={{ color: '#536579' }}>Glaciological Setting:</span>
+                      <strong style={{ color: '#1d3044' }}>Coastal Ice Shelf &amp; Marine Interface</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', borderBottom: '1px solid rgba(45, 78, 128, 0.2)', paddingBottom: '4px' }}>
-                      <span style={{ color: '#94a3b8' }}>Current Ice Flow Speed:</span>
+                      <span style={{ color: '#536579' }}>Current Ice Flow Speed:</span>
                       <strong className="text-red font-bold mono-num">22.8 m/yr (+12.0%)</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', borderBottom: '1px solid rgba(45, 78, 128, 0.2)', paddingBottom: '4px' }}>
-                      <span style={{ color: '#94a3b8' }}>Tidal Flexure Calving Risk:</span>
+                      <span style={{ color: '#536579' }}>Tidal Flexure Calving Risk:</span>
                       <strong className="text-amber mono-num">MODERATE (Dalk Glacier)</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', borderBottom: '1px solid rgba(45, 78, 128, 0.2)', paddingBottom: '4px' }}>
-                      <span style={{ color: '#94a3b8' }}>Maritime Relative Humidity:</span>
+                      <span style={{ color: '#536579' }}>Maritime Relative Humidity:</span>
                       <strong className="text-cyan mono-num">76% Avg (Higher coastal mist)</strong>
                     </div>
                   </div>
@@ -811,11 +811,11 @@ export default function HistoricalComparisonModal({
               ================================================================ */}
           {activeTab === 'forecasting' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ background: 'rgba(11, 19, 36, 0.85)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '8px', padding: '14px 16px' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#c084fc', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '8px', padding: '14px 16px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#705296', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
                   Neural Cryosphere Projections (2027 – 2030)
                 </span>
-                <p style={{ margin: '2px 0 12px 0', fontSize: '0.66rem', color: '#94a3b8' }}>
+                <p style={{ margin: '2px 0 12px 0', fontSize: '0.66rem', color: '#536579' }}>
                   Autoregressive LSTM &amp; Gaussian Process regression based on 40-year Indian Antarctic telemetry.
                 </p>
 
@@ -838,9 +838,9 @@ export default function HistoricalComparisonModal({
                 </div>
               </div>
 
-              <div className="sim-directives-box" style={{ background: 'rgba(14, 23, 42, 0.85)', borderColor: 'rgba(139, 92, 246, 0.3)' }}>
+              <div className="sim-directives-box" style={{ background: '#f4f7f9', borderColor: 'rgba(139, 92, 246, 0.3)' }}>
                 <div className="directive-block">
-                  <span className="dir-tag" style={{ color: '#c084fc' }}>STRATEGIC EXPEDITION INFRASTRUCTURE ADVISORY:</span>
+                  <span className="dir-tag" style={{ color: '#705296' }}>STRATEGIC EXPEDITION INFRASTRUCTURE ADVISORY:</span>
                   <p className="dir-text" style={{ fontSize: '0.74rem', lineHeight: '1.45' }}>
                     With long-term ice velocity projected to reach 17.9 m/yr by 2030, station ice ramps and blue-ice skiway approaches must undergo annual laser altimetry profiling. Structural anchoring on solid bedrock remain fully safe for the next 25-year operational lifecycle.
                   </p>

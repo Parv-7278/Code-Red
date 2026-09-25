@@ -89,7 +89,7 @@ export default function SimulationReportModal({
 
   const missionRisk = (params.missionRisk || metrics.risk || 'HIGH').toUpperCase();
   const riskScore = params.riskScore || (missionRisk === 'HIGH' ? 78 : missionRisk === 'CRITICAL' ? 88 : 58);
-  const riskColor = missionRisk === 'CRITICAL' || missionRisk === 'HIGH' ? '#ef4444' : '#f59e0b';
+  const riskColor = missionRisk === 'CRITICAL' || missionRisk === 'HIGH' ? '#b73b37' : '#946013';
 
   const loadShedRecommendation = params.loadShedRecommendation || metrics.loadNote || 'Auto-Shed Science Lab & Auxiliary Quarters Trace Heaters (-35 kW)';
   const mitigationAction = params.mitigationAction || 'Engage standby generator G-01 via Remote SCADA console within 15 minutes.';
@@ -225,6 +225,9 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
   };
 
   const handlePrint = () => {
+    document.body.classList.add('print-simulation-report');
+    const cleanup = () => document.body.classList.remove('print-simulation-report');
+    window.addEventListener('afterprint', cleanup, { once: true });
     window.print();
   };
 
@@ -251,13 +254,13 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
             ================================================================== */}
         <div className="report-modal-header" style={{ borderBottomColor: 'rgba(56, 189, 248, 0.25)' }}>
           <div className="report-modal-header-left">
-            <div className="report-icon-badge" style={{ background: 'rgba(2, 132, 199, 0.2)', borderColor: '#38bdf8' }}>
+            <div className="report-icon-badge" style={{ background: 'rgba(2, 132, 199, 0.2)', borderColor: '#146b80' }}>
               <FileText size={18} className="text-cyan animate-pulse" />
             </div>
             <div>
               <div className="report-badge-row">
                 <span className="report-tag-live">POLARIS OFFICIAL SIMULATION REPORT</span>
-                <span className="report-station-tag" style={{ borderColor: '#38bdf8', color: '#38bdf8' }}>
+                <span className="report-station-tag" style={{ borderColor: '#146b80', color: '#146b80' }}>
                   {station.name.toUpperCase()}
                 </span>
                 <span 
@@ -266,10 +269,10 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                 >
                   🚨 {missionRisk} RISK ({riskScore}/100)
                 </span>
-                <span className="report-status-pill normal" style={{ background: 'rgba(56, 189, 248, 0.15)', borderColor: 'rgba(56, 189, 248, 0.4)', color: '#38bdf8' }}>
+                <span className="report-status-pill normal" style={{ background: 'rgba(56, 189, 248, 0.15)', borderColor: 'rgba(56, 189, 248, 0.4)', color: '#146b80' }}>
                   REF: {referenceId}
                 </span>
-                <span className="report-status-pill normal" style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(16, 185, 129, 0.4)', color: '#10b981' }}>
+                <span className="report-status-pill normal" style={{ background: 'rgba(16, 185, 129, 0.15)', borderColor: 'rgba(16, 185, 129, 0.4)', color: '#187451' }}>
                   AI CONFIDENCE: {aiConfidence}
                 </span>
               </div>
@@ -392,11 +395,11 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                 <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '6px', padding: '8px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Sparkles size={14} className="text-cyan animate-pulse" />
-                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#38bdf8' }}>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#146b80' }}>
                       CUSTOM AI PARAMETER INJECTION PROFILE:
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: '10px', fontSize: '0.65rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', gap: '10px', fontSize: '0.65rem', color: '#536579' }}>
                     <span>Ambient: <strong className="mono-num text-cyan">{customInputs.ambientTemp}°C</strong></span>
                     <span>Wind: <strong className="mono-num text-cyan">{customInputs.windSpeed} km/h</strong></span>
                     <span>Derate: <strong className="mono-num text-amber">{customInputs.genDerate}%</strong></span>
@@ -426,7 +429,7 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
 
                 <div className="rep-kpi-card" style={{ borderColor: parseFloat(statorTemp) >= 90 ? 'rgba(239, 68, 68, 0.4)' : 'rgba(56, 189, 248, 0.4)', background: 'rgba(56, 189, 248, 0.08)' }}>
                   <span className="kpi-title">Stator Core Temp</span>
-                  <div className="kpi-main-val mono-num" style={{ color: parseFloat(statorTemp) >= 90 ? '#ef4444' : '#38bdf8' }}>
+                  <div className="kpi-main-val mono-num" style={{ color: parseFloat(statorTemp) >= 90 ? '#b73b37' : '#146b80' }}>
                     {statorTemp}
                   </div>
                   <span className="kpi-sub-label">{parseFloat(statorTemp) >= 95 ? 'CRITICAL BREACH' : parseFloat(statorTemp) >= 88 ? '18m to Overheat' : 'Safe (<95°C)'}</span>
@@ -458,27 +461,27 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
               </div>
 
               {/* Dynamic Fault Narrative & Thermodynamic Root Cause */}
-              <div style={{ background: 'rgba(11, 19, 36, 0.9)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '8px', padding: '16px 18px' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '8px', padding: '16px 18px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <AlertTriangle size={16} className="text-amber" />
-                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1d3044', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       Diagnostic Incident Summary &amp; Physics Analysis
                     </span>
                   </div>
-                  <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontFamily: 'monospace' }}>
+                  <span style={{ fontSize: '0.65rem', color: '#536579', fontFamily: 'monospace' }}>
                     Algorithm: Deterministic Multi-Bus Energy Balance (4th-order Runge-Kutta)
                   </span>
                 </div>
                 
-                <p style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: '1.55', margin: '0 0 12px 0' }}>
+                <p style={{ fontSize: '0.78rem', color: '#536579', lineHeight: '1.55', margin: '0 0 12px 0' }}>
                   {scenarioDescription} Upon simulated event trigger, station microgrid buses experience an immediate power deficit of <strong>{lostCapacityKw} kW</strong> ({powerDropPct}% of nominal baseload). The primary Battery Energy Storage System (BESS) automatically assumes transient load compensation, driving battery reserve autonomy down to <strong>{batteryHours} hours</strong>.
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'rgba(15, 23, 42, 0.8)', padding: '12px', borderRadius: '6px', border: '1px solid rgba(45, 78, 128, 0.3)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: '#f4f7f9', padding: '12px', borderRadius: '6px', border: '1px solid rgba(45, 78, 128, 0.3)' }}>
                   <div>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Station Microgrid Baselines:</span>
-                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '0.72rem', color: '#e2e8f0', lineHeight: '1.5' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#536579', textTransform: 'uppercase' }}>Station Microgrid Baselines:</span>
+                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '0.72rem', color: '#1d3044', lineHeight: '1.5' }}>
                       <li>Total Nominal Generation: <strong>{isMaitri ? '132 kW' : '185 kW'}</strong></li>
                       <li>Current Nominal Consumption: <strong>{isMaitri ? '105 kW' : '148 kW'}</strong></li>
                       <li>BESS Energy Capacity: <strong>{isMaitri ? '320 kWh' : '480 kWh'}</strong> (LiFePO4)</li>
@@ -486,8 +489,8 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                   </div>
 
                   <div>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Post-Fault Projected Envelope:</span>
-                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '0.72rem', color: '#e2e8f0', lineHeight: '1.5' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#536579', textTransform: 'uppercase' }}>Post-Fault Projected Envelope:</span>
+                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '0.72rem', color: '#1d3044', lineHeight: '1.5' }}>
                       <li>Available Generation: <strong className="text-red">{isMaitri ? (132 - lostCapacityKw).toFixed(1) : (185 - lostCapacityKw).toFixed(1)} kW</strong></li>
                       <li>Unmitigated Discharge Rate: <strong className="text-amber">{(lostCapacityKw / 1.1).toFixed(1)} kW net draw</strong></li>
                       <li>Critical Time Horizon to Low-SoC Trip: <strong className="text-red">{batteryHours} Hours</strong></li>
@@ -497,21 +500,21 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
               </div>
 
               {/* Action Recommendation Callout */}
-              <div className="sim-action-callout" style={{ background: 'rgba(14, 23, 42, 0.95)', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '8px', padding: '14px 18px' }}>
+              <div className="sim-action-callout" style={{ background: '#f4f7f9', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '8px', padding: '14px 18px' }}>
                 <div className="callout-header" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                   <Zap size={16} className="text-cyan" />
-                  <span className="callout-title" style={{ fontSize: '0.76rem', fontWeight: 800, color: '#38bdf8' }}>
+                  <span className="callout-title" style={{ fontSize: '0.76rem', fontWeight: 800, color: '#146b80' }}>
                     AUTOMATED SCADA NON-CRITICAL LOAD-SHEDDING RECOMMENDATION:
                   </span>
                 </div>
-                <p className="callout-desc" style={{ fontSize: '0.8rem', color: '#ffffff', fontWeight: 600, margin: '0 0 8px 0' }}>
+                <p className="callout-desc" style={{ fontSize: '0.8rem', color: '#1d3044', fontWeight: 600, margin: '0 0 8px 0' }}>
                   {loadShedRecommendation}
                 </p>
                 <div className="mitigation-row" style={{ borderTop: '1px solid rgba(56, 189, 248, 0.2)', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                  <span className="mitigation-label" style={{ fontSize: '0.64rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase' }}>
+                  <span className="mitigation-label" style={{ fontSize: '0.64rem', fontWeight: 800, color: '#946013', textTransform: 'uppercase' }}>
                     Required Operator Action:
                   </span>
-                  <span className="mitigation-text" style={{ fontSize: '0.74rem', color: '#cbd5e1' }}>
+                  <span className="mitigation-text" style={{ fontSize: '0.74rem', color: '#536579' }}>
                     {mitigationAction}
                   </span>
                 </div>
@@ -526,12 +529,12 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
           {activeTab === 'subsystems' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="sim-report-table-box">
-                <h5 className="sim-table-heading" style={{ fontSize: '0.8rem', fontWeight: 800, color: '#ffffff', marginBottom: '10px' }}>
+                <h5 className="sim-table-heading" style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1d3044', marginBottom: '10px' }}>
                   Subsystem Multi-Channel State &amp; Severity Impact Matrix
                 </h5>
 
                 <div className="sim-report-table" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div className="sim-rep-row header" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '8px 12px', background: 'rgba(30, 58, 95, 0.4)', borderRadius: '4px', fontWeight: 700, fontSize: '0.65rem', color: '#94a3b8' }}>
+                  <div className="sim-rep-row header" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '8px 12px', background: '#f4f7f9', borderRadius: '4px', fontWeight: 700, fontSize: '0.65rem', color: '#536579' }}>
                     <span>Subsystem Channel</span>
                     <span>Baseline State</span>
                     <span>Simulated State Envelope</span>
@@ -539,10 +542,10 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                   </div>
 
                   {/* Channel 1 */}
-                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: 'rgba(14, 23, 42, 0.7)', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
+                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: '#f4f7f9', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
                     <div>
-                      <strong style={{ color: '#ffffff', display: 'block' }}>Primary Diesel Alternator (G-02)</strong>
-                      <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>Main 415V 3-Phase Bus #1</span>
+                      <strong style={{ color: '#1d3044', display: 'block' }}>Primary Diesel Alternator (G-02)</strong>
+                      <span style={{ fontSize: '0.62rem', color: '#536579' }}>Main 415V 3-Phase Bus #1</span>
                     </div>
                     <span className="mono-num text-cyan">66 kW (Nominal)</span>
                     <span className="mono-num text-red">
@@ -554,10 +557,10 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                   </div>
 
                   {/* Channel 2 */}
-                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: 'rgba(14, 23, 42, 0.7)', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
+                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: '#f4f7f9', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
                     <div>
-                      <strong style={{ color: '#ffffff', display: 'block' }}>BESS Energy Storage Array</strong>
-                      <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>LiFePO4 String Modules</span>
+                      <strong style={{ color: '#1d3044', display: 'block' }}>BESS Energy Storage Array</strong>
+                      <span style={{ fontSize: '0.62rem', color: '#536579' }}>LiFePO4 String Modules</span>
                     </div>
                     <span className="mono-num text-emerald">94% SoC (Float)</span>
                     <span className="mono-num text-amber">
@@ -569,10 +572,10 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                   </div>
 
                   {/* Channel 3 */}
-                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: 'rgba(14, 23, 42, 0.7)', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
+                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: '#f4f7f9', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
                     <div>
-                      <strong style={{ color: '#ffffff', display: 'block' }}>Life Support &amp; Habitation Heaters</strong>
-                      <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>Priority Microgrid Bus #0</span>
+                      <strong style={{ color: '#1d3044', display: 'block' }}>Life Support &amp; Habitation Heaters</strong>
+                      <span style={{ fontSize: '0.62rem', color: '#536579' }}>Priority Microgrid Bus #0</span>
                     </div>
                     <span className="mono-num text-cyan">35 kW Continuous</span>
                     <span className="mono-num text-emerald">100% Protected (Isolated Circuit)</span>
@@ -582,12 +585,12 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                   </div>
 
                   {/* Channel 4 */}
-                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: 'rgba(14, 23, 42, 0.7)', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
+                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: '#f4f7f9', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
                     <div>
-                      <strong style={{ color: '#ffffff', display: 'block' }}>
+                      <strong style={{ color: '#1d3044', display: 'block' }}>
                         {isMaitri ? 'Lake Priyadarshini Water Intake Loop' : 'Seawater RO Desalination Skid'}
                       </strong>
-                      <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>Auxiliary Hydration System</span>
+                      <span style={{ fontSize: '0.62rem', color: '#536579' }}>Auxiliary Hydration System</span>
                     </div>
                     <span className="mono-num text-cyan">18.5 kW Trace Heat</span>
                     <span className="mono-num">
@@ -599,10 +602,10 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                   </div>
 
                   {/* Channel 5 */}
-                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: 'rgba(14, 23, 42, 0.7)', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
+                  <div className="sim-rep-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr 1.8fr 1fr', padding: '10px 12px', background: '#f4f7f9', borderRadius: '4px', border: '1px solid rgba(45, 78, 128, 0.3)', alignItems: 'center', fontSize: '0.74rem' }}>
                     <div>
-                      <strong style={{ color: '#ffffff', display: 'block' }}>SATCOM &amp; Earth Station Gateway</strong>
-                      <span style={{ fontSize: '0.62rem', color: '#94a3b8' }}>RF Tracking Pedestal &amp; Radome</span>
+                      <strong style={{ color: '#1d3044', display: 'block' }}>SATCOM &amp; Earth Station Gateway</strong>
+                      <span style={{ fontSize: '0.62rem', color: '#536579' }}>RF Tracking Pedestal &amp; Radome</span>
                     </div>
                     <span className="mono-num text-emerald">Carrier Lock (4.2 dB Margin)</span>
                     <span className="mono-num">
@@ -624,18 +627,18 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
           {activeTab === 'transients' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               
-              <div style={{ background: 'rgba(11, 19, 36, 0.9)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '8px', padding: '16px' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '8px', padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <TrendingDown size={16} className="text-cyan" />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1d3044', textTransform: 'uppercase' }}>
                       24-Hour Projected Microgrid Power Transients (kW)
                     </span>
                   </div>
                   <div style={{ display: 'flex', gap: '12px', fontSize: '0.68rem' }}>
-                    <span style={{ color: '#38bdf8' }}>■ Baseline Demand</span>
-                    <span style={{ color: '#ef4444' }}>■ Post-Fault Generation</span>
-                    <span style={{ color: '#10b981' }}>■ With Load-Shedding</span>
+                    <span style={{ color: '#146b80' }}>■ Baseline Demand</span>
+                    <span style={{ color: '#b73b37' }}>■ Post-Fault Generation</span>
+                    <span style={{ color: '#187451' }}>■ With Load-Shedding</span>
                   </div>
                 </div>
 
@@ -644,8 +647,8 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                   <svg width="100%" height="100%" viewBox="0 0 600 150" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="powerFaultGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3" />
-                        <stop offset="100%" stopColor="#ef4444" stopOpacity="0.0" />
+                        <stop offset="0%" stopColor="#b73b37" stopOpacity="0.3" />
+                        <stop offset="100%" stopColor="#b73b37" stopOpacity="0.0" />
                       </linearGradient>
                     </defs>
 
@@ -666,7 +669,7 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                     <path 
                       d="M 45 45 Q 180 40, 310 48 T 580 42" 
                       fill="none" 
-                      stroke="#38bdf8" 
+                      stroke="#146b80"
                       strokeWidth="2" 
                       strokeDasharray="4 4"
                     />
@@ -675,7 +678,7 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                     <path 
                       d="M 45 45 L 120 45 L 140 105 L 350 110 L 580 115" 
                       fill="none" 
-                      stroke="#ef4444" 
+                      stroke="#b73b37"
                       strokeWidth="2.5"
                     />
 
@@ -683,7 +686,7 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                     <path 
                       d="M 45 45 L 120 45 L 140 105 L 190 75 L 350 72 L 580 68" 
                       fill="none" 
-                      stroke="#10b981" 
+                      stroke="#187451"
                       strokeWidth="2.2"
                     />
 
@@ -698,15 +701,15 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
               </div>
 
               {/* BESS Discharge Envelope */}
-              <div style={{ background: 'rgba(11, 19, 36, 0.9)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '16px' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <BatteryCharging size={16} className="text-amber" />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1d3044', textTransform: 'uppercase' }}>
                       BESS Battery Bank State-of-Charge (SoC %) Depletion Horizon
                     </span>
                   </div>
-                  <span style={{ fontSize: '0.68rem', color: '#10b981', fontWeight: 700 }}>
+                  <span style={{ fontSize: '0.68rem', color: '#187451', fontWeight: 700 }}>
                     +3.8h Autonomy Extension via Automated Load-Shedding
                   </span>
                 </div>
@@ -730,7 +733,7 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                     <path 
                       d="M 45 20 C 180 35, 300 70, 420 100 L 580 100" 
                       fill="none" 
-                      stroke="#f59e0b" 
+                      stroke="#946013"
                       strokeWidth="2.2"
                     />
 
@@ -738,13 +741,13 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                     <path 
                       d="M 45 20 C 180 28, 300 45, 480 75 L 580 85" 
                       fill="none" 
-                      stroke="#10b981" 
+                      stroke="#187451"
                       strokeWidth="2.4"
                     />
 
                     {/* Critical Trip Threshold Line */}
-                    <line x1="45" y1="84" x2="580" y2="84" stroke="#ef4444" strokeDasharray="2 2" strokeWidth="1" />
-                    <text x="575" y="80" textAnchor="end" fill="#ef4444" fontSize="7.5" fontFamily="monospace">
+                    <line x1="45" y1="84" x2="580" y2="84" stroke="#b73b37" strokeDasharray="2 2" strokeWidth="1" />
+                    <text x="575" y="80" textAnchor="end" fill="#b73b37" fontSize="7.5" fontFamily="monospace">
                       Critical Cutoff Threshold (20% SoC)
                     </text>
                   </svg>
@@ -761,13 +764,13 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               
               {/* Load-Shedding Dispatch Control Center */}
-              <div style={{ background: 'rgba(14, 23, 42, 0.95)', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '8px', padding: '16px 20px' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '8px', padding: '16px 20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
                   <div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#146b80', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       Automated SCADA Priority Load-Shedding Engine
                     </span>
-                    <p style={{ fontSize: '0.72rem', color: '#94a3b8', margin: '2px 0 0 0' }}>
+                    <p style={{ fontSize: '0.72rem', color: '#536579', margin: '2px 0 0 0' }}>
                       Trips non-essential branch breakers to conserve {Math.round(lostCapacityKw * 0.75)} kW reserve capacity without human latency.
                     </p>
                   </div>
@@ -776,9 +779,9 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                     type="button" 
                     className="btn-drilldown-primary"
                     style={{ 
-                      background: loadShedDispatched ? 'rgba(16, 185, 129, 0.2)' : 'linear-gradient(135deg, #0284c7, #06b6d4)',
-                      borderColor: loadShedDispatched ? '#10b981' : '#38bdf8',
-                      color: loadShedDispatched ? '#10b981' : '#ffffff',
+                      background: loadShedDispatched ? 'rgba(16, 185, 129, 0.2)' : 'linear-gradient(135deg, #245b82, #147889)',
+                      borderColor: loadShedDispatched ? '#187451' : '#146b80',
+                      color: loadShedDispatched ? '#187451' : '#ffffff',
                       padding: '8px 16px',
                       fontSize: '0.76rem'
                     }}
@@ -790,31 +793,31 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '10px 12px', borderRadius: '6px', border: '1px solid rgba(45, 78, 128, 0.3)' }}>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#ef4444' }}>STAGE 1 (IMMEDIATE)</span>
-                    <strong style={{ display: 'block', fontSize: '0.74rem', color: '#ffffff', margin: '3px 0' }}>Science Lab Heaters (-22 kW)</strong>
-                    <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>Auxiliary quarters &amp; non-critical incubators</span>
+                  <div style={{ background: '#f4f7f9', padding: '10px 12px', borderRadius: '6px', border: '1px solid rgba(45, 78, 128, 0.3)' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#b73b37' }}>STAGE 1 (IMMEDIATE)</span>
+                    <strong style={{ display: 'block', fontSize: '0.74rem', color: '#1d3044', margin: '3px 0' }}>Science Lab Heaters (-22 kW)</strong>
+                    <span style={{ fontSize: '0.6rem', color: '#536579' }}>Auxiliary quarters &amp; non-critical incubators</span>
                   </div>
 
-                  <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '10px 12px', borderRadius: '6px', border: '1px solid rgba(45, 78, 128, 0.3)' }}>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#f59e0b' }}>STAGE 2 (T+5 MINS)</span>
-                    <strong style={{ display: 'block', fontSize: '0.74rem', color: '#ffffff', margin: '3px 0' }}>Domestic Laundry &amp; Workshop (-13 kW)</strong>
-                    <span style={{ fontSize: '0.6rem', color: '#94a3b8' }}>Heavy machine tools &amp; dry wash cycles</span>
+                  <div style={{ background: '#f4f7f9', padding: '10px 12px', borderRadius: '6px', border: '1px solid rgba(45, 78, 128, 0.3)' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#946013' }}>STAGE 2 (T+5 MINS)</span>
+                    <strong style={{ display: 'block', fontSize: '0.74rem', color: '#1d3044', margin: '3px 0' }}>Domestic Laundry &amp; Workshop (-13 kW)</strong>
+                    <span style={{ fontSize: '0.6rem', color: '#536579' }}>Heavy machine tools &amp; dry wash cycles</span>
                   </div>
 
-                  <div style={{ background: 'rgba(15, 23, 42, 0.8)', padding: '10px 12px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.4)' }}>
-                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#10b981' }}>PROTECTED CIRCUIT</span>
-                    <strong style={{ display: 'block', fontSize: '0.74rem', color: '#ffffff', margin: '3px 0' }}>Habitation &amp; Medical (35 kW)</strong>
-                    <span style={{ fontSize: '0.6rem', color: '#10b981' }}>100% Uninterrupted Priority Loop</span>
+                  <div style={{ background: '#f4f7f9', padding: '10px 12px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.4)' }}>
+                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#187451' }}>PROTECTED CIRCUIT</span>
+                    <strong style={{ display: 'block', fontSize: '0.74rem', color: '#1d3044', margin: '3px 0' }}>Habitation &amp; Medical (35 kW)</strong>
+                    <span style={{ fontSize: '0.6rem', color: '#187451' }}>100% Uninterrupted Priority Loop</span>
                   </div>
                 </div>
               </div>
 
               {/* Mandatory Operator Checklist */}
-              <div style={{ background: 'rgba(11, 19, 36, 0.9)', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: '8px', padding: '16px 20px' }}>
+              <div style={{ background: '#f4f7f9', border: '1px solid rgba(245, 158, 11, 0.35)', borderRadius: '8px', padding: '16px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                   <ShieldAlert size={16} className="text-amber" />
-                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1d3044', textTransform: 'uppercase' }}>
                     Mandatory On-Station Operator SOP Checklist (15-Minute Protocol)
                   </span>
                 </div>
@@ -850,8 +853,8 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                             width: '18px',
                             height: '18px',
                             borderRadius: '4px',
-                            border: `1.5px solid ${isChecked ? '#10b981' : '#64748b'}`,
-                            background: isChecked ? '#10b981' : 'transparent',
+                            border: `1.5px solid ${isChecked ? '#187451' : '#64748b'}`,
+                            background: isChecked ? '#187451' : 'transparent',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center'
@@ -862,7 +865,7 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
                             {idx + 1}. {step.title}
                           </span>
                         </div>
-                        <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontFamily: 'monospace' }}>
+                        <span style={{ fontSize: '0.65rem', color: '#536579', fontFamily: 'monospace' }}>
                           {step.time}
                         </span>
                       </div>
@@ -880,22 +883,22 @@ SCADA Protocol Status: ${loadShedDispatched ? 'DISPATCHED & ACTIVE' : 'PENDING O
           {activeTab === 'raw_audit' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#536579' }}>
                   NCPOR Mission Audit &amp; SCADA Invariant Stream
                 </span>
-                <span style={{ fontSize: '0.65rem', color: '#10b981', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: '0.65rem', color: '#187451', fontFamily: 'monospace' }}>
                   ● Cryptographic Hash: SHA-256 Verified
                 </span>
               </div>
 
               <pre style={{
-                background: '#040711',
+                background: '#f4f7f9',
                 border: '1px solid rgba(56, 189, 248, 0.25)',
                 borderRadius: '6px',
                 padding: '14px',
                 fontSize: '0.72rem',
                 fontFamily: 'monospace',
-                color: '#38bdf8',
+                color: '#146b80',
                 maxHeight: '380px',
                 overflowY: 'auto',
                 lineHeight: '1.45'

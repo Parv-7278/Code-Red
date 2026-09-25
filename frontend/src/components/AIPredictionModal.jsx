@@ -184,7 +184,7 @@ export default function AIPredictionModal() {
 
   return (
     <div className="ai-modal-backdrop" onClick={closePredictionCenter}>
-      <div className="ai-modal-dialog polaris-card" onClick={(e) => e.stopPropagation()}>
+      <div className="ai-modal-dialog polaris-card" role="dialog" aria-modal="true" aria-labelledby="prediction-center-title" onClick={(e) => e.stopPropagation()}>
         {/* Top Header */}
         <div className="ai-modal-header">
           <div className="ai-modal-head-left">
@@ -193,11 +193,11 @@ export default function AIPredictionModal() {
             </div>
             <div>
               <div className="ai-modal-title-row">
-                <h2 className="ai-modal-title">POLARIS AI Predictive Intelligence Center</h2>
+                <h2 id="prediction-center-title" className="ai-modal-title">Forecast Review</h2>
                 {isSimulating ? (
-                  <span className="ai-modal-sim-pill">⚡ SIMULATION MODE</span>
+                  <span className="ai-modal-sim-pill">SIMULATION</span>
                 ) : (
-                  <span className="ai-modal-live-pill">● REAL-TIME TELEMETRY</span>
+                  <span className="ai-modal-live-pill">LIVE TELEMETRY</span>
                 )}
               </div>
               <span className="ai-modal-subtitle">
@@ -210,7 +210,7 @@ export default function AIPredictionModal() {
             <button 
               className={`btn-sim-toggle ${showSimSandbox ? 'active' : ''}`}
               onClick={() => setShowSimSandbox(!showSimSandbox)}
-              title="Toggle What-If Telemetry Simulation Sandbox"
+                title="Open or close what-if controls"
             >
               <Sliders size={14} />
               <span>{showSimSandbox ? 'Hide Sandbox' : 'What-If Simulation'}</span>
@@ -219,7 +219,8 @@ export default function AIPredictionModal() {
             <button 
               className="ai-modal-close-btn"
               onClick={closePredictionCenter}
-              title="Close AI Center (Esc)"
+              title="Close forecast review (Esc)"
+              aria-label="Close forecast review"
             >
               <X size={20} />
             </button>
@@ -232,11 +233,11 @@ export default function AIPredictionModal() {
             <div className="sandbox-head">
               <div className="sandbox-head-title">
                 <Sliders size={15} className="text-amber" />
-                <span>What-If Telemetry Injection Sandbox (Test Forward Predictions)</span>
+                <span>What-if inputs</span>
               </div>
               <button className="btn-reset-sim" onClick={handleResetSim}>
                 <RotateCcw size={12} />
-                <span>Reset to Live Sensors</span>
+                <span>Reset to current telemetry</span>
               </button>
             </div>
 
@@ -319,7 +320,7 @@ export default function AIPredictionModal() {
               <div className="slider-submit-wrap">
                 <button type="submit" className="btn-run-sim" disabled={loading}>
                   <Sparkles size={14} />
-                  <span>{loading ? 'Recalculating…' : 'Run AI Prediction'}</span>
+                  <span>{loading ? 'Recalculating…' : 'Run forecast'}</span>
                 </button>
               </div>
             </form>
@@ -352,7 +353,7 @@ export default function AIPredictionModal() {
           <div className="ai-kpi-box">
             <span className="ai-kpi-lbl">ACTIVE FORECAST ENGINE</span>
             <div className="ai-kpi-val-row">
-              <span className="ai-kpi-model text-purple">Physics + Neural ML Regressor</span>
+              <span className="ai-kpi-model text-purple">Station forecast service</span>
             </div>
           </div>
 
@@ -371,7 +372,7 @@ export default function AIPredictionModal() {
             onClick={() => setActiveCategoryFilter('all')}
           >
             <Sparkles size={13} />
-            <span>All Predictions ({predictions.length})</span>
+            <span>All forecasts ({predictions.length})</span>
           </button>
           <button 
             className={`ai-cat-pill ${activeCategoryFilter === 'energy' ? 'active' : ''}`}
@@ -427,6 +428,9 @@ export default function AIPredictionModal() {
                   key={pred.id}
                   className={`ai-list-card ${riskTag} ${isSelected ? 'selected' : ''}`}
                   onClick={() => setSelectedPrediction(pred)}
+                  onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelectedPrediction(pred); }}
+                  role="button"
+                  tabIndex={0}
                 >
                   <div className="ai-list-card-head">
                     <div className="ai-list-icon-box">
@@ -460,7 +464,7 @@ export default function AIPredictionModal() {
                 {/* Detail Header */}
                 <div className="detail-pane-head">
                   <div>
-                    <span className="detail-category-tag">{currentItem.category?.toUpperCase()} PREDICTION MODEL</span>
+                    <span className="detail-category-tag">{currentItem.category?.toUpperCase()} FORECAST</span>
                     <h3 className="detail-pane-title">{currentItem.title}</h3>
                   </div>
                   <div className="detail-confidence-pill mono-num">
@@ -544,7 +548,7 @@ export default function AIPredictionModal() {
                       <Activity size={16} />
                     </div>
                     <div>
-                      <h4 className="expl-title">Physics & Sensor Telemetry Explanation</h4>
+                      <h4 className="expl-title">Evidence and telemetry</h4>
                       <p className="expl-body">{currentItem.explanation}</p>
                     </div>
                   </div>
@@ -554,7 +558,7 @@ export default function AIPredictionModal() {
                       <CheckCircle2 size={16} />
                     </div>
                     <div>
-                      <h4 className="expl-title text-emerald">Prescriptive AI Action & Mitigation Directive</h4>
+                      <h4 className="expl-title text-emerald">Recommended response</h4>
                       <p className="expl-body">{currentItem.recommendation}</p>
                     </div>
                   </div>

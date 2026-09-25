@@ -67,20 +67,20 @@ export default function ResourceTrend({ trendData, selectedStation = 'station-ma
           <text x="38" y="93" fill="#64748b" fontSize="8.5" textAnchor="end" className="mono-num">{data.yLow}</text>
 
           {/* Red Critical Threshold Line */}
-          <line x1="45" y1="90" x2="330" y2="90" stroke="#ef4444" strokeWidth="1.2" strokeDasharray="4 3" />
+          <line x1="45" y1="90" x2="330" y2="90" stroke="#b73b37" strokeWidth="1.2" strokeDasharray="4 3" />
           
           {/* Projected Depletion Label Box */}
           <g transform={`translate(240, ${data.boxY || 68})`}>
-            <rect x="0" y="0" width="85" height="19" rx="3" fill="#0d192e" stroke="#ef4444" strokeWidth="0.8" />
+            <rect x="0" y="0" width="85" height="19" rx="3" fill="#0d192e" stroke="#b73b37" strokeWidth="0.8" />
             <text x="42.5" y="8" fill="#94a3b8" fontSize="6" textAnchor="middle">Projected Depletion</text>
-            <text x="42.5" y="15" fill="#f87171" fontSize="7" fontWeight="bold" textAnchor="middle" className="mono-num">{data.depletionDate}</text>
+            <text x="42.5" y="15" fill="#b73b37" fontSize="7" fontWeight="bold" textAnchor="middle" className="mono-num">{data.depletionDate}</text>
           </g>
 
           {/* Actual Consumption Path (Solid Blue) */}
           <path
             d={data.actualPath}
             fill="none"
-            stroke="#38bdf8"
+            stroke="#146b80"
             strokeWidth="2.2"
             strokeLinecap="round"
           />
@@ -92,8 +92,8 @@ export default function ResourceTrend({ trendData, selectedStation = 'station-ma
               cx={pt[0]} 
               cy={pt[1]} 
               r={i === actualPoints.length - 1 ? 3 : 2.5} 
-              fill={i === actualPoints.length - 1 ? '#ffffff' : '#38bdf8'} 
-              stroke={i === actualPoints.length - 1 ? '#38bdf8' : 'none'}
+              fill={i === actualPoints.length - 1 ? '#ffffff' : '#146b80'}
+              stroke={i === actualPoints.length - 1 ? '#146b80' : 'none'}
               strokeWidth={i === actualPoints.length - 1 ? 2 : 0}
             />
           ))}
@@ -102,13 +102,13 @@ export default function ResourceTrend({ trendData, selectedStation = 'station-ma
           <path
             d={data.forecastPath}
             fill="none"
-            stroke="#38bdf8"
+            stroke="#146b80"
             strokeWidth="2.2"
             strokeDasharray="4 4"
             strokeLinecap="round"
           />
           {forecastPoints.map((pt, i) => (
-            <circle key={i} cx={pt[0]} cy={pt[1]} r="2.5" fill="none" stroke="#38bdf8" strokeWidth="1.5" />
+            <circle key={i} cx={pt[0]} cy={pt[1]} r="2.5" fill="none" stroke="#146b80" strokeWidth="1.5" />
           ))}
 
           {/* X-Axis Horizontal Base Line */}

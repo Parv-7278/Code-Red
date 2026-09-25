@@ -17,17 +17,17 @@ export default function LogisticsOverview({ inventory: inventoryProp, selectedSt
       amount: '50,200 L',
       percent: 58,
       daysLeft: '43 Days',
-      barColor: '#f59e0b',
-      iconColor: '#f87171',
+      barColor: '#946013',
+      iconColor: '#b73b37',
       unit: 'Liters',
       currentValue: 50200,
       interpretation: 'Arctic grade ATF / diesel storage. Consumption rate 1,167 L/day across station heating and generators.',
       recommendation: 'Next refuel tanker expedition scheduled in 35 days.',
       details: [
-        { label: 'Total Remaining', value: '50,200 L', color: '#f59e0b' },
-        { label: 'Burn Rate', value: '1,167 L / day', color: '#38bdf8' },
-        { label: 'Storage Tank Temp', value: '-4.2°C (Trace Heated)', color: '#10b981' },
-        { label: 'Reserve Autonomy', value: '43 Days Remaining', color: '#f59e0b' },
+        { label: 'Total Remaining', value: '50,200 L', color: '#946013' },
+        { label: 'Burn Rate', value: '1,167 L / day', color: '#146b80' },
+        { label: 'Storage Tank Temp', value: '-4.2°C (Trace Heated)', color: '#187451' },
+        { label: 'Reserve Autonomy', value: '43 Days Remaining', color: '#946013' },
       ]
     },
     {
@@ -36,17 +36,17 @@ export default function LogisticsOverview({ inventory: inventoryProp, selectedSt
       amount: '3,250 kg',
       percent: 82,
       daysLeft: '67 Days',
-      barColor: '#10b981',
-      iconColor: '#10b981',
+      barColor: '#187451',
+      iconColor: '#187451',
       unit: 'kg',
       currentValue: 3250,
       interpretation: 'Freeze-dried and dry ration supply nominal for overwintering station crew members.',
       recommendation: 'Cold storage hydroponics module functioning optimally producing fresh greens weekly.',
       details: [
-        { label: 'Dry Rations', value: '2,800 kg', color: '#10b981' },
-        { label: 'Cold Storage Freezer', value: '-22.4°C', color: '#10b981' },
-        { label: 'Fresh Hydroponics Yield', value: '4.2 kg / week', color: '#38bdf8' },
-        { label: 'Reserve Autonomy', value: '67 Days Remaining', color: '#10b981' },
+        { label: 'Dry Rations', value: '2,800 kg', color: '#187451' },
+        { label: 'Cold Storage Freezer', value: '-22.4°C', color: '#187451' },
+        { label: 'Fresh Hydroponics Yield', value: '4.2 kg / week', color: '#146b80' },
+        { label: 'Reserve Autonomy', value: '67 Days Remaining', color: '#187451' },
       ]
     },
     {
@@ -55,17 +55,17 @@ export default function LogisticsOverview({ inventory: inventoryProp, selectedSt
       amount: '620 kg',
       percent: 89,
       daysLeft: '89 Days',
-      barColor: '#10b981',
-      iconColor: '#10b981',
+      barColor: '#187451',
+      iconColor: '#187451',
       unit: 'kg',
       currentValue: 620,
       interpretation: 'Critical trauma kits, antibiotics, surgical oxygen, and telemedicine consumables in high readiness state.',
       recommendation: 'Routine inventory audit completed; expiry profile 18+ months.',
       details: [
-        { label: 'Surgical Trauma Kits', value: '100% Stocked', color: '#10b981' },
-        { label: 'Medical Oxygen', value: '24 Cylinders (Full)', color: '#38bdf8' },
-        { label: 'Cryo Vaccine Storage', value: '-80.0°C Nominal', color: '#10b981' },
-        { label: 'Reserve Autonomy', value: '89 Days Remaining', color: '#10b981' },
+        { label: 'Surgical Trauma Kits', value: '100% Stocked', color: '#187451' },
+        { label: 'Medical Oxygen', value: '24 Cylinders (Full)', color: '#146b80' },
+        { label: 'Cryo Vaccine Storage', value: '-80.0°C Nominal', color: '#187451' },
+        { label: 'Reserve Autonomy', value: '89 Days Remaining', color: '#187451' },
       ]
     },
     {
@@ -74,17 +74,17 @@ export default function LogisticsOverview({ inventory: inventoryProp, selectedSt
       amount: '1,120 kg',
       percent: 74,
       daysLeft: '55 Days',
-      barColor: '#10b981',
-      iconColor: '#10b981',
+      barColor: '#187451',
+      iconColor: '#187451',
       unit: 'kg',
       currentValue: 1120,
       interpretation: 'Critical replacement parts for wind turbines, generator alternators, snowcats, and HVAC loops.',
       recommendation: 'High-wear seals and hydraulic filters maintained in duplicate stock.',
       details: [
-        { label: 'Generator Spares', value: '2 Sets G-01/G-02', color: '#10b981' },
-        { label: 'Snowmobile Tracks', value: '4 Complete Pairs', color: '#38bdf8' },
-        { label: 'Hydraulic Filters', value: '36 Units In Stock', color: '#10b981' },
-        { label: 'Reserve Autonomy', value: '55 Days Remaining', color: '#10b981' },
+        { label: 'Generator Spares', value: '2 Sets G-01/G-02', color: '#187451' },
+        { label: 'Snowmobile Tracks', value: '4 Complete Pairs', color: '#146b80' },
+        { label: 'Hydraulic Filters', value: '36 Units In Stock', color: '#187451' },
+        { label: 'Reserve Autonomy', value: '55 Days Remaining', color: '#187451' },
       ]
     },
   ];
@@ -124,7 +124,7 @@ export default function LogisticsOverview({ inventory: inventoryProp, selectedSt
                 subtext={`Days Remaining: ${row.daysLeft} (Stock Level: ${row.percent}%)`}
                 details={row.details || [
                   { label: 'Remaining Stock', value: row.amount, color: row.barColor },
-                  { label: 'Days Remaining', value: row.daysLeft, color: '#38bdf8' },
+                  { label: 'Days Remaining', value: row.daysLeft, color: '#146b80' },
                   { label: 'Capacity Level', value: `${row.percent}%`, color: row.barColor }
                 ]}
                 interpretation={row.interpretation}

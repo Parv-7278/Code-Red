@@ -126,7 +126,7 @@ export default function AuthModal({ isOpen, onClose, isBarrier = false }) {
                 <circle cx="24" cy="9" r="3" fill="#ffffff" />
                 <circle cx="20" cy="20" r="2.5" fill="#ffffff" />
                 <circle cx="28" cy="20" r="2.5" fill="#ffffff" />
-                <circle cx="24" cy="44" r="3" stroke="#0284c7" strokeWidth="1.2" />
+                <circle cx="24" cy="44" r="3" stroke="#245b82" strokeWidth="1.2" />
                 <rect x="12" y="50" width="24" height="3" rx="1.5" fill="#1e3a5f" />
               </svg>
             </div>
@@ -187,9 +187,9 @@ export default function AuthModal({ isOpen, onClose, isBarrier = false }) {
               <div className="hero-brand-left">
                 <div className="hero-logo-container">
                   <svg viewBox="0 0 40 32" className="hero-polar-crest" fill="none">
-                    <path d="M20 2L36 12V24L20 31L4 24V12L20 2Z" stroke="#0284c7" strokeWidth="2" fill="rgba(2, 132, 199, 0.15)" />
-                    <path d="M11 23L17 14L22 21L27 10L33 23H11Z" fill="#0284c7" fillOpacity="0.5" />
-                    <path d="M27 10L22 21L17 14L11 23H33L27 10Z" stroke="#0284c7" strokeWidth="1.8" strokeLinejoin="round" />
+                    <path d="M20 2L36 12V24L20 31L4 24V12L20 2Z" stroke="#245b82" strokeWidth="2" fill="rgba(2, 132, 199, 0.15)" />
+                    <path d="M11 23L17 14L22 21L27 10L33 23H11Z" fill="#245b82" fillOpacity="0.5" />
+                    <path d="M27 10L22 21L17 14L11 23H33L27 10Z" stroke="#245b82" strokeWidth="1.8" strokeLinejoin="round" />
                     <circle cx="27" cy="10" r="1.5" fill="#ffffff" />
                     <circle cx="17" cy="14" r="1.5" fill="#ffffff" />
                   </svg>
@@ -210,19 +210,19 @@ export default function AuthModal({ isOpen, onClose, isBarrier = false }) {
                   <path 
                     d="M 80,32 C 96,30 114,40 126,55 C 138,70 134,95 120,115 C 108,130 85,135 68,128 C 50,122 36,105 34,88 C 32,72 45,55 58,45 C 68,36 74,33 80,32 Z" 
                     fill="rgba(255, 255, 255, 0.65)" 
-                    stroke="#0284c7" 
+                    stroke="#245b82"
                     strokeWidth="1.5"
                   />
                   
                   <g className="radar-station-pin" onClick={() => handleQuickLogin('station-bharati')} style={{ cursor: 'pointer' }}>
-                    <circle cx="118" cy="62" r="4" fill="#0284c7" className="animate-ping" opacity="0.8" />
-                    <circle cx="118" cy="62" r="2.5" fill="#0284c7" />
+                    <circle cx="118" cy="62" r="4" fill="#245b82" className="animate-ping" opacity="0.8" />
+                    <circle cx="118" cy="62" r="2.5" fill="#245b82" />
                     <text x="124" y="64" fill="#0f172a" fontSize="8" fontWeight="bold">Bharati</text>
                   </g>
 
                   <g className="radar-station-pin" onClick={() => handleQuickLogin('station-maitri')} style={{ cursor: 'pointer' }}>
-                    <circle cx="106" cy="108" r="4" fill="#0284c7" className="animate-ping" opacity="0.8" />
-                    <circle cx="106" cy="108" r="2.5" fill="#0284c7" />
+                    <circle cx="106" cy="108" r="4" fill="#245b82" className="animate-ping" opacity="0.8" />
+                    <circle cx="106" cy="108" r="2.5" fill="#245b82" />
                     <text x="112" y="110" fill="#0f172a" fontSize="8" fontWeight="bold">Maitri</text>
                   </g>
                 </svg>
@@ -544,7 +544,7 @@ export default function AuthModal({ isOpen, onClose, isBarrier = false }) {
                     logout();
                     if (onClose) onClose();
                   }}
-                  style={{ color: '#f87171', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 600 }}
+                  style={{ color: '#b73b37', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 600 }}
                   title="Sign out and return to the Government Login Page"
                 >
                   <span>Sign Out to Login Page →</span>

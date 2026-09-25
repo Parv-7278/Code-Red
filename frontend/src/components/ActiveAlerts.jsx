@@ -38,20 +38,20 @@ export default function ActiveAlerts({ alerts: alertsProp, unreadCount, onOpenVi
   const alertsList = rawAlerts.map(item => {
     let Icon = AlertTriangle;
     let iconBg = 'rgba(245, 158, 11, 0.18)';
-    let iconColor = '#fbbf24';
+    let iconColor = '#946013';
 
     if (item.severity === 'critical') {
       Icon = Flame;
       iconBg = 'rgba(239, 68, 68, 0.18)';
-      iconColor = '#f87171';
+      iconColor = '#b73b37';
     } else if (item.severity === 'info') {
       Icon = BellRing;
       iconBg = 'rgba(56, 189, 248, 0.18)';
-      iconColor = '#38bdf8';
+      iconColor = '#146b80';
     } else if (item.title?.toLowerCase().includes('wind')) {
       Icon = Wind;
       iconBg = 'rgba(234, 179, 8, 0.18)';
-      iconColor = '#facc15';
+      iconColor = '#946013';
     }
 
     return {
