@@ -36,11 +36,16 @@ class WhatIfPredictionService:
     _model_cache: Dict[str, PolarisMLPredictionModel] = {}
 
     @classmethod
-    def get_model(cls, station_id: str) -> PolarisMLPredictionModel:
+    def get_model(cls, station_id: str, allow_on_demand_training: bool = True) -> PolarisMLPredictionModel:
         clean_id = "station-bharati" if "bharati" in station_id.lower() else "station-maitri"
         if clean_id not in cls._model_cache:
             model = PolarisMLPredictionModel(station_id=clean_id)
             if not model.load():
+                if not allow_on_demand_training:
+                    raise RuntimeError(
+                        f"No persisted what-if model is available for {clean_id}; "
+                        "synthetic on-demand training is disabled."
+                    )
                 logger.info(f"[WhatIfPredictionService] Training model on-demand for {clean_id}...")
                 model.train()
             cls._model_cache[clean_id] = model
@@ -55,7 +60,8 @@ class WhatIfPredictionService:
         wind_velocity: float = 75.0,
         life_support_min_reserve: float = 80.0,
         load_reduction_kw: float = 0.0,
-        custom_telemetry_history: Optional[List[SyntheticTelemetryPoint]] = None
+        custom_telemetry_history: Optional[List[SyntheticTelemetryPoint]] = None,
+        allow_on_demand_training: bool = True,
     ) -> Dict[str, Any]:
         """
         Executes end-to-end ML prediction pipeline for What-If scenario.
@@ -111,7 +117,7 @@ class WhatIfPredictionService:
         )
 
         # 4. Run ML Model
-        model = cls.get_model(clean_id)
+        model = cls.get_model(clean_id, allow_on_demand_training=allow_on_demand_training)
         horizon_preds, explainability, confidence, uncertainty_mae = model.predict_horizons(
             feature_vector=feature_vec,
             current_telemetry=current_telemetry
@@ -419,7 +425,8 @@ class WhatIfPredictionService:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "whatif_parameters": whatif_params,
             "data_provenance": {
-                "telemetry": "SIMULATED_DIGITAL_TWIN",
+                "telemetry": "SUPABASE_COMMITTED_TELEMETRY" if custom_telemetry_history else "SIMULATED_DIGITAL_TWIN",
+                "input_sample_count": len(history),
                 "manual_inputs": "OPERATOR_WHAT_IF",
                 "forecast": "ML_DERIVED_ESTIMATE",
                 "intervention": "OPERATOR_APPROVED_COUNTERFACTUAL" if load_reduction_kw > 0 else "NONE",

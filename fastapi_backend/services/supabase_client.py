@@ -33,6 +33,17 @@ def get_supabase_client():
 def is_supabase_configured() -> bool:
     return get_supabase_client() is not None
 
+async def check_supabase_connection() -> Dict[str, Any]:
+    client = get_supabase_client()
+    if not client:
+        return {"ready": False, "status": "NOT_CONFIGURED"}
+    try:
+        client.table("stations").select("id").limit(1).execute()
+        return {"ready": True, "status": "READY"}
+    except Exception as err:
+        logger.error("[Supabase] Readiness query failed: %s", err)
+        return {"ready": False, "status": f"ERROR: {err}"}
+
 async def fetch_station_telemetry_db(station_id: str, limit: int = 50) -> List[Dict[str, Any]]:
     client = get_supabase_client()
     if not client:

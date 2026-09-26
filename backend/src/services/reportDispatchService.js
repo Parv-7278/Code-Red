@@ -1,4 +1,5 @@
 const sensorService = require('./sensorService');
+const reportRepository = require('../repositories/reportRepository');
 
 const STATIONS = {
   'station-maitri': {
@@ -12,9 +13,6 @@ const STATIONS = {
     region: 'Larsemann Hills',
   },
 };
-
-const reportSchedules = new Map();
-const deliveryLog = [];
 
 function asFiniteNumber(value) {
   const parsed = Number(value);
@@ -35,12 +33,14 @@ function calculateStats(records, field) {
   };
 }
 
-function stationSummary(stationId, periodStart) {
+async function stationSummary(stationId, periodStart) {
   const profile = STATIONS[stationId];
-  const history = sensorService
-    .getHistory(stationId, 300)
+  const [allHistory, latest] = await Promise.all([
+    sensorService.getHistory(stationId, 300),
+    sensorService.getLatestData(stationId),
+  ]);
+  const history = allHistory
     .filter((record) => new Date(record.recorded_at || record.received_at || 0) >= periodStart);
-  const latest = sensorService.getLatestData(stationId);
   const records = history.length ? history : latest ? [latest] : [];
 
   const generator = calculateStats(records, 'generator_temperature');
@@ -79,15 +79,15 @@ function allowedStations(stationId) {
   return STATIONS[stationId] ? [stationId] : ['station-maitri'];
 }
 
-function generate12HourReport(stationId = 'station-maitri', requestedBy = 'station_operator') {
+async function generate12HourReport(stationId = 'station-maitri', requestedBy = 'station_operator') {
   const now = new Date();
   const periodStart = new Date(now.getTime() - 12 * 60 * 60 * 1000);
   const targetStations = allowedStations(stationId);
-  const stationReports = targetStations.map((id) => stationSummary(id, periodStart));
+  const stationReports = await Promise.all(targetStations.map((id) => stationSummary(id, periodStart)));
   const overallRisk = Math.max(...stationReports.map((report) => report.risk_score));
   const reportId = `POL-12H-${now.toISOString().replace(/[-:TZ.]/g, '').slice(0, 14)}-${targetStations.length === 2 ? 'FLEET' : targetStations[0].split('-')[1].toUpperCase()}`;
 
-  return {
+  const report = {
     success: true,
     report_id: reportId,
     report_type: '12_HOUR_STATION_OPERATIONS_SUMMARY',
@@ -109,11 +109,14 @@ function generate12HourReport(stationId = 'station-maitri', requestedBy = 'stati
     },
     station_reports: Object.fromEntries(stationReports.map((report) => [report.station_id, report])),
     delivery: { status: 'READY', delivered_at: null },
-    provenance: 'Calculated from the backend telemetry history retained by this POLARIS instance.',
+    provenance: 'Calculated from committed POLARIS telemetry history with per-record source labels.',
   };
+  const stored = await reportRepository.saveReport(report);
+  report.persistence = stored.persistence;
+  return report;
 }
 
-function transmitToIndiaHQ(report, requestedBy = 'station_operator', trigger = 'MANUAL') {
+async function transmitToIndiaHQ(report, requestedBy = 'station_operator', trigger = 'MANUAL') {
   const deliveredAt = new Date().toISOString();
   const delivery = {
     delivery_id: `DLV-${Date.now()}`,
@@ -123,23 +126,22 @@ function transmitToIndiaHQ(report, requestedBy = 'station_operator', trigger = '
     recipient: report.recipient,
     requested_by_role: requestedBy,
     trigger,
-    status: 'TRANSMITTED',
+    status: 'DELIVERED_INTERNAL',
     delivered_at: deliveredAt,
     checksum: Buffer.from(`${report.report_id}:${deliveredAt}`).toString('base64').slice(0, 18).toUpperCase(),
   };
-  deliveryLog.unshift(delivery);
-  if (deliveryLog.length > 100) deliveryLog.pop();
-  return delivery;
+  return reportRepository.recordDelivery(delivery);
 }
 
 function scheduleKey(stationId) {
   return stationId === 'all' ? 'all-stations' : stationId;
 }
 
-function getSchedule(stationId = 'station-maitri') {
+async function getSchedule(stationId = 'station-maitri') {
   const key = scheduleKey(stationId);
-  return reportSchedules.get(key) || {
-    station_id: key,
+  const stored = await reportRepository.getSchedule(key);
+  return stored || {
+    station_scope: key,
     enabled: false,
     cadence_hours: 12,
     recipient: 'India Control Centre · NCPOR Goa',
@@ -149,38 +151,45 @@ function getSchedule(stationId = 'station-maitri') {
   };
 }
 
-function updateSchedule(stationId, enabled, requestedBy) {
+async function updateSchedule(stationId, enabled, requestedBy) {
   const key = scheduleKey(stationId);
-  const current = getSchedule(key);
+  const current = await getSchedule(key);
   const schedule = {
     ...current,
-    station_id: key,
+    station_scope: key,
     enabled: Boolean(enabled),
     cadence_hours: 12,
     requested_by_role: requestedBy,
     updated_at: new Date().toISOString(),
     next_dispatch_at: enabled ? new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString() : null,
   };
-  reportSchedules.set(key, schedule);
-  return schedule;
+  return reportRepository.upsertSchedule(schedule);
 }
 
-function listDeliveries(stationId) {
-  if (!stationId || stationId === 'all-stations' || stationId === 'all') return deliveryLog.slice(0, 12);
-  return deliveryLog.filter((delivery) => delivery.station_id === stationId || delivery.station_id === 'all-stations').slice(0, 12);
+async function listDeliveries(stationId) {
+  return reportRepository.listDeliveries(scheduleKey(stationId || 'all-stations'));
 }
 
-const scheduler = setInterval(() => {
-  const now = Date.now();
-  for (const [key, schedule] of reportSchedules.entries()) {
-    if (!schedule.enabled || !schedule.next_dispatch_at || new Date(schedule.next_dispatch_at).getTime() > now) continue;
-    const report = generate12HourReport(key, schedule.requested_by_role || 'system_scheduler');
-    const delivery = transmitToIndiaHQ(report, schedule.requested_by_role || 'system_scheduler', 'SCHEDULED');
-    reportSchedules.set(key, {
-      ...schedule,
-      last_dispatch_at: delivery.delivered_at,
-      next_dispatch_at: new Date(now + 12 * 60 * 60 * 1000).toISOString(),
-    });
+const scheduler = setInterval(async () => {
+  const now = new Date();
+  try {
+    const dueSchedules = await reportRepository.listDueSchedules(now.toISOString());
+    for (const schedule of dueSchedules) {
+      const key = schedule.station_scope;
+      try {
+        const report = await generate12HourReport(key, schedule.requested_by_role || 'system_scheduler');
+        const delivery = await transmitToIndiaHQ(report, schedule.requested_by_role || 'system_scheduler', 'SCHEDULED');
+        await reportRepository.upsertSchedule({
+          ...schedule,
+          last_dispatch_at: delivery.delivered_at,
+          next_dispatch_at: new Date(now.getTime() + 12 * 60 * 60 * 1000).toISOString(),
+        });
+      } catch (error) {
+        console.error(`[Reports] Scheduled 12-hour report failed for ${key}:`, error.message);
+      }
+    }
+  } catch (error) {
+    console.error('[Reports] Schedule polling failed:', error.message);
   }
 }, 60 * 1000);
 scheduler.unref();

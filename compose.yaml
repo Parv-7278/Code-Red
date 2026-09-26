@@ -16,7 +16,7 @@ services:
         VITE_ML_API_URL: /ml
         VITE_SOCKET_URL: ""
         VITE_SOCKET_PATH: /backend/socket.io
-        VITE_DATA_MODE: ${VITE_DATA_MODE:-SIMULATION}
+        VITE_DATA_MODE: ${VITE_DATA_MODE:-CONNECTED}
         VITE_SUPABASE_URL: ${SUPABASE_URL:-}
         VITE_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
     ports:
@@ -36,7 +36,7 @@ services:
     environment:
       PORT: 5000
       NODE_ENV: production
-      DEMO_MODE: ${DEMO_MODE:-true}
+      DEMO_MODE: ${DEMO_MODE:-false}
       CORS_ORIGINS: ${PUBLIC_ORIGIN:-http://localhost:8080}
       FASTAPI_URL: http://ml:8000
       DEVICE_INGEST_API_KEY: ${DEVICE_INGEST_API_KEY:-}
@@ -61,7 +61,7 @@ services:
       HOST: 0.0.0.0
       PORT: 8000
       DEBUG: "false"
-      DEMO_MODE: ${DEMO_MODE:-true}
+      DEMO_MODE: ${DEMO_MODE:-false}
       CORS_ORIGINS: ${PUBLIC_ORIGIN:-http://localhost:8080}
       DEVICE_INGEST_API_KEY: ${DEVICE_INGEST_API_KEY:-}
       SUPABASE_URL: ${SUPABASE_URL:-}
@@ -71,6 +71,7 @@ services:
       AI_MODEL: ${AI_MODEL:-gemini-1.5-flash}
       WS_TICK_INTERVAL_SECONDS: ${WS_TICK_INTERVAL_SECONDS:-1.5}
       SIMULATION_MAX_DAYS: ${SIMULATION_MAX_DAYS:-90}
+      ALLOW_SYNTHETIC_ML: ${ALLOW_SYNTHETIC_ML:-false}
     expose:
       - "8000"
     restart: unless-stopped

@@ -81,13 +81,13 @@ function normalizeStationId(s) {
   return 'station-maitri';
 }
 
-function getStationStatus(stationId) {
+async function getStationStatus(stationId) {
   const normId = normalizeStationId(stationId);
   const meta = STATION_METADATA[normId];
   if (!meta) return null;
 
-  const latestTelemetry = sensorService.getLatestData(normId);
-  const stationAlerts = alertService.getAlerts({ station_id: normId, status: 'ACTIVE' });
+  const latestTelemetry = await sensorService.getLatestData(normId);
+  const stationAlerts = await alertService.getAlerts({ station_id: normId, status: 'ACTIVE' });
 
   let overallHealth = 'NOMINAL';
   const hasCritical = stationAlerts.some(a => a.priority === 'CRITICAL') || (latestTelemetry?.generator_temperature > 90);

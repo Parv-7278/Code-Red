@@ -15,7 +15,7 @@ from starlette.datastructures import MutableHeaders
 
 from config import settings
 
-from services.supabase_client import get_supabase_client, is_supabase_configured
+from services.supabase_client import get_supabase_client, is_supabase_configured, check_supabase_connection
 from routers import (
     stations_router, 
     research_router, 
@@ -204,6 +204,29 @@ async def health_check():
         "stations_monitored": ["Maitri (Schirmacher Oasis)", "Bharati (Larsemann Hills)"],
         "timestamp": datetime.utcnow().isoformat()
     }
+
+@app.get("/api/health/live", tags=["System Diagnostics"])
+async def liveness_check():
+    return {
+        "status": "LIVE",
+        "service": "polaris-fastapi-ml",
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+@app.get("/api/health/ready", tags=["System Diagnostics"])
+async def readiness_check():
+    database = await check_supabase_connection()
+    ready = settings.DEMO_MODE or database["ready"]
+    payload = {
+        "status": "READY" if ready else "NOT_READY",
+        "mode": "DEMO" if settings.DEMO_MODE else "CONNECTED",
+        "checks": {"database": database["status"]},
+        "synthetic_ml_allowed": settings.ALLOW_SYNTHETIC_ML,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    if not ready:
+        return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content=payload)
+    return payload
 
 @app.get("/", tags=["System Diagnostics"])
 async def root_index():

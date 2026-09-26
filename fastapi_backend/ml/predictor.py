@@ -13,6 +13,7 @@ import numpy as np
 from .telemetry_dataset import TelemetryRecord, TelemetryDataset, MIN_SAMPLES_FOR_INFERENCE
 from .feature_engineering import FeatureEngineer
 from .model_pipeline import StationMLPipeline
+from services.prediction_repository import record_model_version, record_prediction
 
 logger = logging.getLogger("polaris.ml.predictor")
 
@@ -57,6 +58,11 @@ class StationPredictor:
             records = await TelemetryDataset.load_telemetry_for_station(st, limit=300)
 
         meta = pipeline.train_and_evaluate(records)
+        meta["artifact_path"] = pipeline.model_path
+        registry = await record_model_version(meta)
+        meta["registry"] = registry
+        pipeline.metadata = meta
+        pipeline.save()
         return meta
 
     @classmethod
@@ -198,7 +204,7 @@ class StationPredictor:
                 f"Sustained 24h reserve ({b24:.1f}%) and generation headroom covers forecast demand ({demand_growth:+.1f} kW)."
             )
 
-        return {
+        response = {
             "generator_risk": generator_risk,
             "generator_risk_detail": gen_risk_detail,
             "battery_risk": battery_risk,
@@ -211,6 +217,7 @@ class StationPredictor:
             "anomalies_detected": anomalies_detected,
             "recommendation": recommendation
         }
+        return response
 
     @classmethod
     async def predict_for_station(
@@ -248,6 +255,11 @@ class StationPredictor:
                 "generator_risk": "UNKNOWN",
                 "energy_risk": "UNKNOWN",
                 "confidence": 0.0,
+                "data_provenance": {
+                    "sources": {},
+                    "contains_simulation": False,
+                    "operational_claim_permitted": False,
+                },
                 "recommendation": "Awaiting active sensor telemetry transmission from Antarctic satellite gateway."
             }
 
@@ -295,8 +307,13 @@ class StationPredictor:
         diag = cls.evaluate_diagnostics(clean_prediction, latest_rec, st)
 
         confidence = pipeline.metadata.get("confidence", 0.86)
+        source_counts: Dict[str, int] = {}
+        for record in history:
+            source = str(getattr(record, "source", "UNKNOWN") or "UNKNOWN").upper()
+            source_counts[source] = source_counts.get(source, 0) + 1
+        contains_simulation = source_counts.get("SIMULATION", 0) > 0
 
-        return {
+        response = {
             "status": "SUCCESS",
             "station_id": st,
             "station_name": station_name,
@@ -309,6 +326,11 @@ class StationPredictor:
             "energy_risk": diag["energy_risk"],
             "overall_equipment_risk": diag["overall_equipment_risk"],
             "confidence": confidence,
+            "data_provenance": {
+                "sources": source_counts,
+                "contains_simulation": contains_simulation,
+                "operational_claim_permitted": not contains_simulation,
+            },
             "demand_trend": diag["demand_trend"],
             "battery_trend": diag["battery_trend"],
             "anomaly_status": diag["anomaly_status"],
@@ -316,3 +338,13 @@ class StationPredictor:
             "recommendation": diag["recommendation"],
             "evaluation_metrics": pipeline.metadata.get("target_metrics", {})
         }
+        audit = await record_prediction(
+            station_id=st,
+            result=response,
+            history=history,
+            horizons=prediction_horizons,
+            model_metadata=pipeline.metadata,
+        )
+        response["prediction_id"] = audit["id"]
+        response["persistence"] = audit["persistence"]
+        return response

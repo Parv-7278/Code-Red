@@ -14,6 +14,9 @@ from ml.prediction_model import PolarisMLPredictionModel
 from ml.train_model import run_training_pipeline
 from services.ai_analyst_service import AIAnalystService
 from services.station_service import StationService
+from services.prediction_repository import record_prediction
+from services.what_if_input_service import load_committed_what_if_history
+from config import settings
 
 logger = logging.getLogger("polaris.routers.predictions")
 
@@ -54,15 +57,50 @@ async def execute_what_if_prediction(
         )
 
     try:
+        history, provenance = await load_committed_what_if_history(clean_id)
+        if not history and not settings.ALLOW_SYNTHETIC_ML:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"No committed telemetry is available for {clean_id}. "
+                    "Ingest station telemetry before running a production prediction."
+                ),
+            )
+
         result = WhatIfPredictionService.run_what_if_prediction(
             station_id=clean_id,
             ambient_temperature=payload.ambient_temperature,
             generator_capacity_derate=payload.generator_capacity_derate,
             wind_velocity=payload.wind_velocity,
             life_support_min_reserve=payload.life_support_min_reserve,
-            load_reduction_kw=payload.load_reduction_kw
+            load_reduction_kw=payload.load_reduction_kw,
+            custom_telemetry_history=history or None,
+            allow_on_demand_training=settings.ALLOW_SYNTHETIC_ML,
         )
+        if history:
+            result["data_provenance"] = {
+                **result.get("data_provenance", {}),
+                **provenance,
+                "manual_inputs": "OPERATOR_WHAT_IF",
+                "forecast": "PERSISTED_ML_MODEL_ESTIMATE",
+            }
+
+        model = WhatIfPredictionService.get_model(
+            clean_id,
+            allow_on_demand_training=settings.ALLOW_SYNTHETIC_ML,
+        )
+        audit = await record_prediction(
+            station_id=clean_id,
+            result=result,
+            history=history,
+            horizons=[15, 30, 60, 120],
+            model_metadata=model.metadata,
+        )
+        result["audit_record_id"] = audit["id"]
+        result["persistence"] = audit["persistence"]
         return result
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"[WhatIfPredictionAPI] Inference error for {clean_id}: {e}", exc_info=True)
         raise HTTPException(

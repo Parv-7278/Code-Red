@@ -3,21 +3,29 @@ const stationService = require('../services/stationService');
 /**
  * GET /api/stations/:stationId/status or /api/stations/:stationId/health
  */
-function getStationStatus(req, res) {
-  const { stationId } = req.params;
-  const status = stationService.getStationStatus(stationId);
+async function getStationStatus(req, res) {
+  try {
+    const { stationId } = req.params;
+    const status = await stationService.getStationStatus(stationId);
 
-  if (!status) {
-    return res.status(404).json({
+    if (!status) {
+      return res.status(404).json({
+        success: false,
+        message: `Station '${stationId}' not found. Valid stations: 'station-bharati', 'station-maitri'.`,
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: status,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: `Station '${stationId}' not found. Valid stations: 'station-bharati', 'station-maitri'.`,
+      message: 'Station status could not be loaded.',
+      error: error.message,
     });
   }
-
-  return res.json({
-    success: true,
-    data: status,
-  });
 }
 
 /**

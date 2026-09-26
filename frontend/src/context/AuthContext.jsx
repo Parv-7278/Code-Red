@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase, getUserProfile, signInWithEmail, signUpWithEmail, signOutUser, isSupabaseConfigured } from '../services/supabaseClient';
+import { supabase, getUserProfile, signInWithEmail, signOutUser } from '../services/supabaseClient';
 
 export const DEMO_OPERATORS = [
   {
@@ -97,17 +97,12 @@ export function AuthProvider({ children }) {
       if (session?.user) {
         setUser(session.user);
         const userProf = await getUserProfile(session.user.id);
-        if (userProf) {
-          setProfile(userProf);
-        } else {
-          // Fallback profile based on metadata
-          const meta = session.user.user_metadata || {};
-          setProfile({
-            id: session.user.id,
-            full_name: meta.full_name || session.user.email?.split('@')[0] || 'Authenticated Operator',
-            role: meta.role || 'india_operator',
-            station_id: meta.station_id || null,
-          });
+        if (userProf) setProfile(userProf);
+        else {
+          setUser(null);
+          setProfile(null);
+          setError('Your account is authenticated but has no authorized POLARIS operator profile. Contact an administrator.');
+          await signOutUser();
         }
       }
     });
@@ -116,16 +111,11 @@ export function AuthProvider({ children }) {
       if (session?.user) {
         setUser(session.user);
         const userProf = await getUserProfile(session.user.id);
-        if (userProf) {
-          setProfile(userProf);
-        } else {
-          const meta = session.user.user_metadata || {};
-          setProfile({
-            id: session.user.id,
-            full_name: meta.full_name || session.user.email?.split('@')[0] || 'Authenticated Operator',
-            role: meta.role || 'india_operator',
-            station_id: meta.station_id || null,
-          });
+        if (userProf) setProfile(userProf);
+        else {
+          setUser(null);
+          setProfile(null);
+          setError('Your account is authenticated but has no authorized POLARIS operator profile. Contact an administrator.');
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
@@ -165,7 +155,13 @@ export function AuthProvider({ children }) {
         const data = await signInWithEmail(email, password);
         setUser(data.user);
         const prof = await getUserProfile(data.user.id);
-        if (prof) setProfile(prof);
+        if (!prof) {
+          await signOutUser();
+          setUser(null);
+          setProfile(null);
+          throw new Error('This account has no authorized POLARIS operator profile.');
+        }
+        setProfile(prof);
         return prof;
       } else {
         // Find matching demo user by email
@@ -199,7 +195,7 @@ export function AuthProvider({ children }) {
       value={{
         user,
         profile,
-        role: profile?.role || 'india_operator',
+        role: profile?.role || null,
         station_id: profile?.station_id || null,
         isIndiaOperator,
         isStationOperator,

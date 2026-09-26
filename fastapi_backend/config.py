@@ -3,6 +3,8 @@ from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
+ENV_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+
 class Settings(BaseSettings):
     APP_NAME: str = "POLARIS Antarctic Digital Twin Backend"
     APP_VERSION: str = "1.0.0"
@@ -18,6 +20,7 @@ class Settings(BaseSettings):
     SUPABASE_KEY: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
     DEVICE_INGEST_API_KEY: str = ""
+    ALLOW_SYNTHETIC_ML: bool = True
 
     WS_TICK_INTERVAL_SECONDS: float = 1.5
     SIMULATION_MAX_DAYS: int = 90
@@ -28,7 +31,7 @@ class Settings(BaseSettings):
     AI_MODEL: str = "gemini-1.5-flash"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore"
     )

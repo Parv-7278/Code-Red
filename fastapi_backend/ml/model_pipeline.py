@@ -97,6 +97,7 @@ class StationMLPipeline:
 
         cv_r2_scores = []
         cv_mae_scores = []
+        cv_rmse_scores = []
 
         for train_idx, val_idx in tscv.split(X):
             X_tr, X_val = X[train_idx], X[val_idx]
@@ -115,8 +116,10 @@ class StationMLPipeline:
             # Evaluate fold
             fold_r2 = [r2_score(Y_val[:, j], Y_val_pred[:, j]) for j in range(Y.shape[1])]
             fold_mae = [mean_absolute_error(Y_val[:, j], Y_val_pred[:, j]) for j in range(Y.shape[1])]
+            fold_rmse = [math.sqrt(mean_squared_error(Y_val[:, j], Y_val_pred[:, j])) for j in range(Y.shape[1])]
             cv_r2_scores.append(fold_r2)
             cv_mae_scores.append(fold_mae)
+            cv_rmse_scores.append(fold_rmse)
 
         # 3. Final Production Fit on full history
         self.model = RandomForestRegressor(
@@ -129,21 +132,18 @@ class StationMLPipeline:
         self.model.fit(X, Y)
         self.model_type = "RandomForestRegressor"
 
-        # 4. Evaluation on Full Dataset
-        Y_pred = self.model.predict(X)
-
+        # 4. Report chronological cross-validation performance. Metrics from
+        # the full training set would be optimistic and are not used here.
         metrics_per_target = {}
         r2_list = []
         mae_list = []
         rmse_list = []
 
         for idx, name in enumerate(target_names):
-            r2 = float(r2_score(Y[:, idx], Y_pred[:, idx]))
-            mae = float(mean_absolute_error(Y[:, idx], Y_pred[:, idx]))
-            rmse = float(math.sqrt(mean_squared_error(Y[:, idx], Y_pred[:, idx])))
-
-            # Clean NaNs or negative R2 for display
-            clean_r2 = max(0.50, min(0.98, r2 if not math.isnan(r2) else 0.80))
+            r2 = float(np.mean([fold[idx] for fold in cv_r2_scores]))
+            mae = float(np.mean([fold[idx] for fold in cv_mae_scores]))
+            rmse = float(np.mean([fold[idx] for fold in cv_rmse_scores]))
+            clean_r2 = r2 if not math.isnan(r2) else 0.0
             metrics_per_target[name] = {
                 "r2": round(clean_r2, 3),
                 "mae": round(mae, 2),
@@ -155,7 +155,12 @@ class StationMLPipeline:
 
         mean_r2 = round(float(np.mean(r2_list)), 3)
         mean_mae = round(float(np.mean(mae_list)), 2)
-        confidence = round(max(0.72, min(0.96, mean_r2 * 0.92 + min(0.06, len(records) / 2500.0))), 2)
+        mean_rmse = round(float(np.mean(rmse_list)), 2)
+        confidence = round(max(0.0, min(0.99, mean_r2)), 2)
+        source_counts: Dict[str, int] = {}
+        for record in records:
+            source = str(getattr(record, "source", "UNKNOWN") or "UNKNOWN").upper()
+            source_counts[source] = source_counts.get(source, 0) + 1
 
         # 5. Build and Save Metadata
         self.metadata = {
@@ -170,8 +175,15 @@ class StationMLPipeline:
             "cv_splits_evaluated": cv_splits,
             "mean_r2": mean_r2,
             "mean_mae": mean_mae,
+            "mean_rmse": mean_rmse,
             "confidence": confidence,
-            "target_metrics": metrics_per_target
+            "target_metrics": metrics_per_target,
+            "training_data_start": min(record.timestamp for record in records).isoformat(),
+            "training_data_end": max(record.timestamp for record in records).isoformat(),
+            "data_provenance": {
+                "sources": source_counts,
+                "contains_simulation": source_counts.get("SIMULATION", 0) > 0,
+            },
         }
 
         self.save()
