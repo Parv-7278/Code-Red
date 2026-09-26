@@ -1,0 +1,56 @@
+services:
+  - type: web
+    name: polaris-code-red-5791-free
+    runtime: docker
+    region: singapore
+    plan: free
+    dockerfilePath: ./deploy/all-in-one.free.Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    numInstances: 1
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: DEMO_MODE
+        value: "false"
+      - key: CORS_ORIGINS
+        value: https://polaris-code-red-5791-free.onrender.com
+      - key: FASTAPI_URL
+        value: http://127.0.0.1:8000
+      - key: BACKEND_URL
+        value: http://127.0.0.1:5000
+      - key: TELEMETRY_INTERVAL_MS
+        value: "2000"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DEVICE_INGEST_API_KEY
+        sync: false
+      - key: VITE_DATA_MODE
+        value: CONNECTED
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: AI_MODEL
+        value: gemini-1.5-flash
+      - key: WS_TICK_INTERVAL_SECONDS
+        value: "1.5"
+      - key: SIMULATION_MAX_DAYS
+        value: "90"
+      - key: ALLOW_SYNTHETIC_ML
+        value: "false"
+      - key: SIMULATED_BANDWIDTH_KBPS
+        value: "64"
+      - key: NORMAL_PACKET_PROCESSING_INTERVAL_MS
+        value: "800"
+      - key: EMERGENCY_PACKET_PROCESSING_INTERVAL_MS
+        value: "50"
+      - key: BASE_PROPAGATION_DELAY_MS
+        value: "250"

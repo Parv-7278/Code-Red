@@ -97,6 +97,9 @@ The existing `vercel.json` is suitable only for a frontend preview. Vercel by it
 
 For the checked-in Render Blueprint, service sizing, secret-entry map and cutover procedure, see [`RENDER_DEPLOYMENT.md`](RENDER_DEPLOYMENT.md). The Blueprint keeps the Node and FastAPI services private and exposes them through a single HTTPS Nginx gateway.
 
+For a no-card demo deployment that combines the complete stack into one free
+Render web service, see [`RENDER_FREE_DEPLOYMENT.md`](RENDER_FREE_DEPLOYMENT.md).
+
 ## 7. Pre-launch checklist
 
 - `PUBLIC_ORIGIN` exactly matches the deployed URL.
