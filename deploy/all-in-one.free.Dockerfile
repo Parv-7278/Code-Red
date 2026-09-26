@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS frontend-build
+FROM node:22-bookworm-slim AS frontend-build
 
 WORKDIR /build
 COPY frontend/package.json frontend/package-lock.json ./
@@ -22,13 +22,13 @@ RUN test -n "$VITE_SUPABASE_URL" \
     && test -n "$VITE_SUPABASE_ANON_KEY" \
     && npm run build
 
-FROM node:20-bookworm-slim AS backend-deps
+FROM node:22-bookworm-slim AS backend-deps
 
 WORKDIR /backend
 COPY backend/package.json backend/package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
