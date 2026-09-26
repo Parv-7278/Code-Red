@@ -95,6 +95,8 @@ The frontend gateway must be able to resolve the private service names `backend`
 
 The existing `vercel.json` is suitable only for a frontend preview. Vercel by itself will not run this repository's persistent Node Socket.IO process, FastAPI service and telemetry worker. Use the Docker stack for the complete application, or deploy those services separately and replace the Nginx upstreams with their hosted URLs.
 
+For the checked-in Render Blueprint, service sizing, secret-entry map and cutover procedure, see [`RENDER_DEPLOYMENT.md`](RENDER_DEPLOYMENT.md). The Blueprint keeps the Node and FastAPI services private and exposes them through a single HTTPS Nginx gateway.
+
 ## 7. Pre-launch checklist
 
 - `PUBLIC_ORIGIN` exactly matches the deployed URL.

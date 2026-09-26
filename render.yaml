@@ -1,0 +1,109 @@
+services:
+  - type: pserv
+    name: polaris-code-red-5791-ml
+    runtime: docker
+    region: singapore
+    plan: 1c-2g
+    dockerfilePath: ./deploy/fastapi.Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    numInstances: 1
+    envVars:
+      - key: APP_NAME
+        value: POLARIS Antarctic Digital Twin Backend
+      - key: ENVIRONMENT
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "8000"
+      - key: DEBUG
+        value: "false"
+      - key: DEMO_MODE
+        value: "false"
+      - key: CORS_ORIGINS
+        value: https://polaris-code-red-5791-web.onrender.com
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DEVICE_INGEST_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: gemini-1.5-flash
+      - key: WS_TICK_INTERVAL_SECONDS
+        value: "1.5"
+      - key: SIMULATION_MAX_DAYS
+        value: "90"
+      - key: ALLOW_SYNTHETIC_ML
+        value: "false"
+
+  - type: pserv
+    name: polaris-code-red-5791-api
+    runtime: docker
+    region: singapore
+    plan: 0.5c-512mb
+    dockerfilePath: ./deploy/backend.Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    numInstances: 1
+    envVars:
+      - key: PORT
+        value: "5000"
+      - key: NODE_ENV
+        value: production
+      - key: DEMO_MODE
+        value: "false"
+      - key: CORS_ORIGINS
+        value: https://polaris-code-red-5791-web.onrender.com
+      - key: FASTAPI_URL
+        value: http://polaris-code-red-5791-ml:8000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DEVICE_INGEST_API_KEY
+        sync: false
+      - key: SIMULATED_BANDWIDTH_KBPS
+        value: "64"
+      - key: NORMAL_PACKET_PROCESSING_INTERVAL_MS
+        value: "800"
+      - key: EMERGENCY_PACKET_PROCESSING_INTERVAL_MS
+        value: "50"
+      - key: BASE_PROPAGATION_DELAY_MS
+        value: "250"
+
+  - type: web
+    name: polaris-code-red-5791-web
+    runtime: docker
+    region: singapore
+    plan: 0.5c-512mb
+    dockerfilePath: ./deploy/frontend.render.Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    numInstances: 1
+    healthCheckPath: /healthz
+    envVars:
+      - key: VITE_DATA_MODE
+        value: CONNECTED
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+
+  - type: worker
+    name: polaris-code-red-5791-simulator
+    runtime: docker
+    region: singapore
+    plan: 0.5c-512mb
+    dockerfilePath: ./deploy/simulator.Dockerfile
+    dockerContext: .
+    autoDeployTrigger: commit
+    numInstances: 1
+    envVars:
+      - key: BACKEND_URL
+        value: http://polaris-code-red-5791-api:5000
+      - key: DEVICE_INGEST_API_KEY
+        sync: false
+      - key: TELEMETRY_INTERVAL_MS
+        value: "2000"
