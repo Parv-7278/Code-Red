@@ -11,7 +11,8 @@ const crypto = require('crypto');
 const ALLOWED_ROLES = new Set(['india_operator', 'station_operator']);
 
 function isDemoMode() {
-  return process.env.DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production';
+  if (process.env.DEMO_MODE !== undefined) return process.env.DEMO_MODE === 'true';
+  return process.env.NODE_ENV !== 'production';
 }
 
 function sendAuthError(res, status, errorCode, message) {
@@ -45,9 +46,18 @@ async function resolveAuthentication(req, res) {
     return null;
   }
 
+  const resolved = await resolveSupabaseToken(token);
+  if (!resolved) {
+    sendAuthError(res, 401, 'INVALID_ACCESS_TOKEN', 'The supplied access token is invalid, expired, or has no authorized operator profile.');
+    return null;
+  }
+  return resolved;
+}
+
+async function resolveSupabaseToken(token) {
+  if (!token || !isConfigured()) return null;
   const { data: userData, error: userError } = await supabase.auth.getUser(token);
   if (userError || !userData?.user) {
-    sendAuthError(res, 401, 'INVALID_ACCESS_TOKEN', 'The supplied access token is invalid or expired.');
     return null;
   }
 
@@ -58,7 +68,6 @@ async function resolveAuthentication(req, res) {
     .single();
 
   if (profileError || !profile || !ALLOWED_ROLES.has(profile.role)) {
-    sendAuthError(res, 403, 'TRUSTED_PROFILE_REQUIRED', 'No authorized server-side operator profile was found.');
     return null;
   }
 
@@ -140,4 +149,10 @@ async function validateStationAccess(req, res, next) {
   });
 }
 
-module.exports = { requireAuthenticated, requireDeviceIngestAccess, validateStationAccess };
+module.exports = {
+  isDemoMode,
+  resolveSupabaseToken,
+  requireAuthenticated,
+  requireDeviceIngestAccess,
+  validateStationAccess,
+};

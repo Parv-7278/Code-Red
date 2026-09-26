@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { fetchLatestTelemetry, fetchQueueMetrics, fetchAlerts } from '../services/api';
+import { getAccessToken } from '../services/supabaseClient';
 import { useAuth } from './AuthContext';
 
 const TelemetryContext = createContext(null);
@@ -164,7 +165,7 @@ export function TelemetryProvider({ children }) {
       setAlerts((prev) => [alert, ...prev.filter((item) => item.id !== alert.id)].slice(0, 50));
     };
 
-    import('socket.io-client').then(({ io }) => {
+    Promise.all([import('socket.io-client'), getAccessToken()]).then(([{ io }, token]) => {
       if (disposed) return;
       socket = io(socketUrl, {
         path: socketPath,
@@ -172,6 +173,11 @@ export function TelemetryProvider({ children }) {
         reconnection: true,
         reconnectionDelay: 1000,
         timeout: 5000,
+        auth: {
+          token,
+          role: role || 'india_operator',
+          stationId: assignedStation || null,
+        },
       });
       socketRef.current = socket;
       socket.on('telemetry_update', receiveTelemetry);
@@ -201,7 +207,7 @@ export function TelemetryProvider({ children }) {
       socket?.disconnect();
       socketRef.current = null;
     };
-  }, [refreshData, isStationOperator, assignedStation]);
+  }, [refreshData, isStationOperator, assignedStation, role]);
 
   const activeStationId = isStationOperator ? (assignedStation || 'station-maitri') : selectedStation;
   const effectiveId = activeStationId === 'all-stations' ? 'station-maitri' : activeStationId;

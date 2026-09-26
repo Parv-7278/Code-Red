@@ -45,9 +45,9 @@ exports.generate12hSummaryReport = async (req, res) => {
   try {
     const { station_id = req.query.stationId || 'station-maitri', send_to_hq = false } = req.body;
     const userRole = req.headers['x-user-role'] || 'india_operator';
-    const report = reportDispatchService.generate12HourReport(station_id, userRole);
+    const report = await reportDispatchService.generate12HourReport(station_id, userRole);
     if (send_to_hq) {
-      report.delivery = reportDispatchService.transmitToIndiaHQ(report, userRole, 'MANUAL');
+      report.delivery = await reportDispatchService.transmitToIndiaHQ(report, userRole, 'MANUAL');
     }
     return res.json(report);
   } catch (err) {
@@ -56,20 +56,20 @@ exports.generate12hSummaryReport = async (req, res) => {
   }
 };
 
-exports.get12hReportSchedule = (req, res) => {
+exports.get12hReportSchedule = async (req, res) => {
   const stationId = req.query.stationId || req.query.station_id || 'station-maitri';
-  return res.json({ success: true, data: reportDispatchService.getSchedule(stationId) });
+  return res.json({ success: true, data: await reportDispatchService.getSchedule(stationId) });
 };
 
-exports.update12hReportSchedule = (req, res) => {
+exports.update12hReportSchedule = async (req, res) => {
   const stationId = req.body.station_id || req.body.stationId || 'station-maitri';
   const userRole = req.headers['x-user-role'] || 'india_operator';
-  return res.json({ success: true, data: reportDispatchService.updateSchedule(stationId, req.body.enabled, userRole) });
+  return res.json({ success: true, data: await reportDispatchService.updateSchedule(stationId, req.body.enabled, userRole) });
 };
 
-exports.get12hReportDeliveries = (req, res) => {
+exports.get12hReportDeliveries = async (req, res) => {
   const stationId = req.query.stationId || req.query.station_id || null;
-  return res.json({ success: true, data: reportDispatchService.listDeliveries(stationId) });
+  return res.json({ success: true, data: await reportDispatchService.listDeliveries(stationId) });
 };
 
 

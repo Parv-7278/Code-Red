@@ -14,17 +14,6 @@ SET name = EXCLUDED.name,
     timezone = EXCLUDED.timezone,
     timezone_label = EXCLUDED.timezone_label;
 
--- ==============================================================================
--- Seed Data: User Profiles (India Operator, Maitri Operator, Bharati Operator)
--- Note: In Supabase Auth, profiles link to auth.users via matching UUID.
--- ==============================================================================
-
-INSERT INTO user_profiles (id, full_name, role, station_id)
-VALUES 
-    ('00000000-0000-0000-0000-000000000001', 'Dr. Rajesh Sharma (HQ National Command)', 'india_operator', NULL),
-    ('00000000-0000-0000-0000-000000000002', 'Cmdr. Vikram Nair (Maitri Lead)', 'station_operator', 'station-maitri'),
-    ('00000000-0000-0000-0000-000000000003', 'Dr. Sunita Deshmukh (Bharati Lead)', 'station_operator', 'station-bharati')
-ON CONFLICT (id) DO UPDATE
-SET full_name = EXCLUDED.full_name,
-    role = EXCLUDED.role,
-    station_id = EXCLUDED.station_id;
+-- Operator profiles are intentionally not seeded with placeholder UUIDs.
+-- First create real users in Supabase Authentication, then insert profiles
+-- using their actual auth.users UUIDs. See database/OPERATIONAL_SETUP.md.

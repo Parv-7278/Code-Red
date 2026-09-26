@@ -69,6 +69,8 @@ class RawTelemetryPayload(BaseModel):
     humidity: Optional[float] = Field(default=68.0, description="Relative humidity %")
     voltage: Optional[float] = Field(default=415.0, description="Bus voltage in V")
     current: Optional[float] = Field(default=180.0, description="Bus current in A")
+    source: str = Field(default="MANUAL_TEST", description="Provenance of supplied telemetry")
+    quality_status: str = Field(default="VALID", description="Telemetry quality classification")
 
 
 class MLPredictRequest(BaseModel):

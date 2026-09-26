@@ -32,15 +32,16 @@ Edit `.env` and set:
 - `PUBLIC_ORIGIN` to the exact URL users will open, such as `https://polaris.example.org`.
 - `APP_PORT=80` when the container should listen directly on HTTP port 80. Keep `8080` when a load balancer or TLS reverse proxy sits in front.
 - `DEVICE_INGEST_API_KEY` to a random value of at least 32 characters.
-- Keep `DEMO_MODE=true` for a self-contained judging/demo deployment.
-- For a real authenticated environment, set `DEMO_MODE=false`, configure Supabase, run `database/schema.sql` and `database/seed.sql`, and provide the service-role secret only through the hosting provider's secret manager.
+- Keep `DEMO_MODE=false` and `VITE_DATA_MODE=CONNECTED` for the authenticated Supabase environment. These are the deployment defaults.
+- Configure Supabase, run `database/schema.sql`, `database/seed.sql`, and the files in `database/migrations/`, then provide the service-role secret only through the hosting provider's secret manager.
+- Use `DEMO_MODE=true` only for a deliberately isolated, non-production demo without real operator authentication.
 - `GEMINI_API_KEY` is optional. Deterministic forecasts and what-if simulations work without it.
 
 Do not commit the generated `.env` file.
 
 ## 3. Build and start
 
-For the complete SIH demo, including continuously changing telemetry:
+For the complete SIH demo, including continuously changing telemetry committed through the authenticated device-ingestion path:
 
 ```bash
 docker compose --profile simulation up -d --build
@@ -100,6 +101,8 @@ The existing `vercel.json` is suitable only for a frontend preview. Vercel by it
 - Secrets are stored in the provider, not Git.
 - The three health URLs return successful responses.
 - Maitri and Bharati telemetry values update at least every few seconds when the simulation profile is active.
+- What-if predictions identify `SUPABASE_COMMITTED_TELEMETRY` as their source and create a row in `predictions`.
+- The combined 12-hour report, HQ delivery record, and 12-hour schedule are present in Supabase.
 - A what-if run changes both forecast text and its graph.
 - Report JSON/PDF download and print preview work.
 - The station-role access checks are tested before setting `DEMO_MODE=false`.
@@ -107,4 +110,4 @@ The existing `vercel.json` is suitable only for a frontend preview. Vercel by it
 
 ## Important architecture note
 
-In demo mode, live telemetry and some report scheduling state are in memory. Restarting containers clears that state. Supabase configuration is required for durable multi-instance production data and verified user authentication.
+In demo mode, live telemetry and some report scheduling state are in memory. Restarting containers clears that state. The connected deployment defaults require Supabase for durable telemetry, prediction audits, reports, schedules, and verified user authentication.

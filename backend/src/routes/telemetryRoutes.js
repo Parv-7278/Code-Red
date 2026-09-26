@@ -7,6 +7,9 @@ const { requireDeviceIngestAccess, validateStationAccess } = require('../middlew
 // POST /api/telemetry (Alias for /api/sensor-data)
 router.post('/', requireDeviceIngestAccess, validateSensorData, sensorController.ingestSensorData);
 
+// Human-entered operational test data uses a verified operator session, not a device key.
+router.post('/manual', validateStationAccess, validateSensorData, sensorController.ingestManualSensorData);
+
 // GET /api/telemetry/latest
 router.get('/latest', validateStationAccess, sensorController.getLatest);
 

@@ -26,47 +26,49 @@ async function postAlert(req, res) {
  * GET /api/alerts
  * Fetch active and recent alerts with optional filters.
  */
-function getAlerts(req, res) {
-  const { stationId, station_id, priority, status } = req.query;
-  const targetStation = stationId || station_id;
-  const alerts = alertService.getAlerts({ stationId: targetStation, priority, status });
-  return res.json({
-    success: true,
-    count: alerts.length,
-    data: alerts,
-  });
+async function getAlerts(req, res) {
+  try {
+    const { stationId, station_id, priority, status } = req.query;
+    const targetStation = stationId || station_id;
+    const alerts = await alertService.getAlerts({ stationId: targetStation, priority, status });
+    return res.json({ success: true, count: alerts.length, data: alerts });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ success: false, message: 'Alerts could not be loaded.', error: error.message });
+  }
 }
 
 /**
  * PATCH /api/alerts/:alertId/ack
  * Acknowledge an alert.
  */
-function acknowledge(req, res) {
-  const { alertId } = req.params;
-  const updated = alertService.acknowledgeAlert(alertId);
-  if (!updated) {
-    return res.status(404).json({
-      success: false,
-      message: `Alert '${alertId}' not found.`,
-    });
+async function acknowledge(req, res) {
+  try {
+    const { alertId } = req.params;
+    const updated = await alertService.acknowledgeAlert(alertId, req.auth || {});
+    if (!updated) {
+      return res.status(404).json({ success: false, message: `Alert '${alertId}' not found.` });
+    }
+    return res.json({ success: true, message: 'Alert acknowledged successfully.', data: updated });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ success: false, message: 'Alert could not be acknowledged.', error: error.message });
   }
-  return res.json({
-    success: true,
-    message: 'Alert acknowledged successfully.',
-    data: updated,
-  });
 }
 
 /**
  * DELETE /api/alerts/clear
  */
-function clearAll(req, res) {
-  const result = alertService.clearAlerts();
-  return res.json({
-    success: true,
-    message: 'Active alerts cleared.',
-    data: result,
-  });
+async function clearAll(req, res) {
+  try {
+    const stationId = req.query.stationId || req.query.station_id || null;
+    const result = await alertService.clearAlerts(
+      stationId ? { stationId } : {},
+      req.auth || {},
+      req.body?.resolution_note || 'Bulk resolved through POLARIS operations console.',
+    );
+    return res.json({ success: true, message: 'Active alerts resolved with an audit record.', data: result });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ success: false, message: 'Alerts could not be resolved.', error: error.message });
+  }
 }
 
 module.exports = {

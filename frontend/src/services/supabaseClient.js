@@ -60,7 +60,7 @@ export async function signInWithEmail(email, password) {
 /**
  * Sign up with email, password, and create user profile
  */
-export async function signUpWithEmail(email, password, fullName, role, stationId = null) {
+export async function signUpWithEmail(email, password, fullName) {
   if (!supabase) {
     throw new Error('Supabase client is not configured.');
   }
@@ -70,24 +70,10 @@ export async function signUpWithEmail(email, password, fullName, role, stationId
     options: {
       data: {
         full_name: fullName,
-        role: role,
-        station_id: stationId,
       }
     }
   });
   if (error) throw error;
-
-  if (data?.user) {
-    // Attempt to upsert user_profile
-    await supabase.from('user_profiles').upsert([
-      {
-        id: data.user.id,
-        full_name: fullName,
-        role: role,
-        station_id: stationId,
-      }
-    ]);
-  }
 
   return data;
 }

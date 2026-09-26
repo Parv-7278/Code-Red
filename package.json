@@ -16,8 +16,11 @@
     "dev:frontend": "npm --prefix frontend run dev",
     "simulate": "node simulator/simulator.js",
     "simulate:scenario": "node simulator/simulator.js --scenario",
-    "test": "npm run test:queue",
+    "test": "npm run test:queue && npm run test:operational && npm run test:alerts && npm run test:reports",
     "test:queue": "node backend/test_verification.js",
+    "test:operational": "node backend/test_operational_telemetry.js",
+    "test:alerts": "node backend/test_operational_alerts.js",
+    "test:reports": "node backend/test_operational_reports.js",
     "check": "npm run test && npm --prefix frontend run build"
   },
   "keywords": [

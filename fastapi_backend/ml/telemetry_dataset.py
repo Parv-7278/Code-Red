@@ -9,6 +9,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Union
 from pydantic import BaseModel, Field
+from config import settings
 
 logger = logging.getLogger("polaris.ml.dataset")
 
@@ -30,6 +31,8 @@ class TelemetryRecord(BaseModel):
     voltage: Optional[float] = Field(default=415.0, description="3-phase bus voltage in V")
     current: Optional[float] = Field(default=180.0, description="Primary generator bus current in A")
     surplus: Optional[float] = Field(default=None, description="Net power surplus (Gen - Cons) in kW")
+    source: str = Field(default="UNKNOWN", description="SENSOR, MANUAL_TEST, EXTERNAL_REFERENCE, or SIMULATION")
+    quality_status: str = Field(default="VALID", description="Telemetry quality classification")
 
     @classmethod
     def from_dict(cls, raw: Dict[str, Any], default_station: str = "maitri") -> "TelemetryRecord":
@@ -112,7 +115,9 @@ class TelemetryRecord(BaseModel):
             humidity=round(humidity, 2),
             voltage=round(voltage, 1),
             current=round(current, 1),
-            surplus=round(surplus, 2)
+            surplus=round(surplus, 2),
+            source=str(raw.get("source", "UNKNOWN")).upper(),
+            quality_status=str(raw.get("quality_status", "VALID")).upper(),
         )
 
 
@@ -204,7 +209,9 @@ class TelemetryDataset:
                 humidity=round(random.uniform(62.0, 75.0), 1),
                 voltage=415.0 if not is_bharati else 400.0,
                 current=round(cons * 1.6, 1),
-                surplus=surplus
+                surplus=surplus,
+                source="SIMULATION",
+                quality_status="VALID",
             ))
 
         return records
@@ -214,13 +221,14 @@ class TelemetryDataset:
         cls,
         station_id: str,
         limit: int = 300,
-        fallback_if_empty: bool = True
+        fallback_if_empty: Optional[bool] = None
     ) -> List[TelemetryRecord]:
         """
         Loads chronological telemetry for a station from Supabase (or fallback generator).
         Filters strictly by target station to maintain separate models for Maitri & Bharati.
         """
         st = cls.normalize_station_id(station_id)
+        allow_synthetic = settings.ALLOW_SYNTHETIC_ML if fallback_if_empty is None else fallback_if_empty
         records: List[TelemetryRecord] = []
 
         try:
@@ -246,8 +254,8 @@ class TelemetryDataset:
         records.sort(key=lambda r: r.timestamp)
 
         # Fallback to rich physical simulator if database has insufficient data
-        if len(records) < MIN_SAMPLES_FOR_TRAINING and fallback_if_empty:
-            logger.info(f"[TelemetryDataset] Supplementing {len(records)} records with realistic baseline for {st}.")
+        if len(records) < MIN_SAMPLES_FOR_TRAINING and allow_synthetic:
+            logger.warning(f"[TelemetryDataset] Replacing {len(records)} records with an explicitly simulated baseline for {st}.")
             sim_records = cls.generate_realistic_telemetry(station_id=st, num_records=168)
             records = sim_records
 

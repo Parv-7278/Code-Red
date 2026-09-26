@@ -1,49 +1,14 @@
-const { supabase, isConfigured } = require('../config/supabase');
+const crypto = require('crypto');
 const { defaultSatelliteLink } = require('../queue/satelliteLink');
 const { checkAnomalies } = require('./anomalyDetector');
 const alertService = require('./alertService');
-
-// In-memory cache for latest station telemetry
-const latestStationData = {
-  'station-bharati': {
-    station_id: 'station-bharati',
-    station_name: 'Bharati Research Station',
-    temperature: -14.0,
-    battery: 98.0,
-    battery_level: 98.0,
-    power_consumption: 52.0,
-    generator_status: 'RUNNING',
-    generator_temperature: 70.0,
-    wind_speed: 25.0,
-    water_level: 92.0,
-    comms_status: 'SAT_LINK_NOMINAL',
-    recorded_at: new Date().toISOString(),
-    received_at: new Date().toISOString(),
-  },
-  'station-maitri': {
-    station_id: 'station-maitri',
-    station_name: 'Maitri Research Station',
-    temperature: -18.0,
-    battery: 95.0,
-    battery_level: 95.0,
-    power_consumption: 45.0,
-    generator_status: 'RUNNING',
-    generator_temperature: 72.0,
-    wind_speed: 32.0,
-    water_level: 88.0,
-    comms_status: 'SAT_LINK_NOMINAL',
-    recorded_at: new Date().toISOString(),
-    received_at: new Date().toISOString(),
-  }
-};
-
-const sensorDataHistory = [];
+const telemetryRepository = require('../repositories/telemetryRepository');
 
 /**
  * Ingest sensor data, detect critical conditions, and enqueue for priority satellite dispatch.
  */
 async function processSensorData(data) {
-  const stationId = data.station_id || 'station-bharati';
+  const stationId = data.station_id;
   const nowIso = new Date().toISOString();
   // `battery_level` is the canonical live sensor field. Older simulator
   // payloads may also include a legacy `battery` alias that can lag behind;
@@ -51,7 +16,11 @@ async function processSensorData(data) {
   const batt = Number(data.battery_level !== undefined ? data.battery_level : data.battery ?? 95);
 
   const formattedRecord = {
+    packet_id: data.packet_id || crypto.randomUUID(),
     station_id: stationId,
+    device_id: data.device_id || `${stationId}-station-gateway`,
+    source: String(data.source || 'SENSOR').toUpperCase(),
+    quality_status: String(data.quality_status || 'VALID').toUpperCase(),
     temperature: Number(data.temperature),
     battery_level: batt,
     battery: batt,
@@ -63,22 +32,34 @@ async function processSensorData(data) {
     comms_status: data.comms_status || 'SAT_LINK_NOMINAL',
     recorded_at: data.recorded_at || data.timestamp || nowIso,
     received_at: nowIso,
+    raw_payload: data,
     packet_type: 'NORMAL_TELEMETRY',
   };
 
-  // 1. Submit normal telemetry packet to Priority Queue (Priority Level 3 = Normal)
-  const enqueuedPacket = defaultSatelliteLink.submitPacket(formattedRecord, 3);
+  // Commit first. Connected deployments must never claim that a packet was
+  // accepted when its durable database write failed.
+  const persistenceResult = await telemetryRepository.insertTelemetry(formattedRecord);
+  if (persistenceResult.duplicate) {
+    return {
+      status: 'DUPLICATE_IGNORED',
+      duplicate: true,
+      station_id: stationId,
+      timestamp: nowIso,
+      data: persistenceResult.record,
+      criticalConditionDetected: false,
+      triggeredAlerts: [],
+      persistence: telemetryRepository.getPersistenceMode(),
+      queueInfo: null,
+    };
+  }
 
-  // 2. Update in-memory state
-  latestStationData[stationId] = {
-    ...latestStationData[stationId],
-    ...formattedRecord,
-  };
-  sensorDataHistory.unshift(formattedRecord);
-  if (sensorDataHistory.length > 300) sensorDataHistory.pop();
+  const committedRecord = { ...formattedRecord, ...persistenceResult.record };
 
-  // 3. Automated Anomaly Detection for CRITICAL conditions
-  const detectedAnomalies = checkAnomalies(formattedRecord);
+  // Queue and broadcast only after the record has been committed.
+  const enqueuedPacket = defaultSatelliteLink.submitPacket(committedRecord, 3);
+
+  // Automated anomaly detection runs against the exact committed values.
+  const detectedAnomalies = checkAnomalies(committedRecord);
   const triggeredAlerts = [];
 
   for (const anomaly of detectedAnomalies) {
@@ -86,33 +67,15 @@ async function processSensorData(data) {
     triggeredAlerts.push(alertResult);
   }
 
-  // 4. Asynchronously persist to Supabase if configured
-  if (isConfigured()) {
-    const supabasePayload = {
-      station_id: formattedRecord.station_id,
-      temperature: formattedRecord.temperature,
-      battery_level: formattedRecord.battery_level,
-      power_consumption: formattedRecord.power_consumption,
-      generator_status: formattedRecord.generator_status,
-      generator_temperature: formattedRecord.generator_temperature,
-      wind_speed: formattedRecord.wind_speed,
-      water_level: formattedRecord.water_level,
-      comms_status: formattedRecord.comms_status,
-      recorded_at: formattedRecord.recorded_at,
-    };
-
-    supabase.from('telemetry_logs').insert([supabasePayload]).then(({ error }) => {
-      if (error) console.error('[Supabase] Error saving telemetry_logs:', error.message);
-    });
-  }
-
   return {
     status: 'INGESTED_AND_QUEUED',
+    duplicate: false,
     station_id: stationId,
     timestamp: nowIso,
-    data: formattedRecord,
+    data: committedRecord,
     criticalConditionDetected: triggeredAlerts.some(a => a.alert?.priority === 'CRITICAL'),
     triggeredAlerts,
+    persistence: telemetryRepository.getPersistenceMode(),
     queueInfo: {
       priority: enqueuedPacket.priority,
       queued_at: enqueuedPacket.queued_at,
@@ -120,19 +83,12 @@ async function processSensorData(data) {
   };
 }
 
-function getLatestData(stationId) {
-  if (stationId) {
-    return latestStationData[stationId] || null;
-  }
-  return latestStationData;
+async function getLatestData(stationId) {
+  return telemetryRepository.getLatestTelemetry(stationId);
 }
 
-function getHistory(stationId, limit = 50) {
-  let records = sensorDataHistory;
-  if (stationId) {
-    records = records.filter(r => r.station_id === stationId);
-  }
-  return records.slice(0, limit);
+async function getHistory(stationId, limit = 50) {
+  return telemetryRepository.getTelemetryHistory(stationId, limit);
 }
 
 module.exports = {
