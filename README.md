@@ -10,21 +10,18 @@ POLARIS DEV AUTHENTICATION ACCOUNTS
 INDIA HQ
 Email: bhavyadawar5791+polaris-hq@gmail.com
 Password: Polaris-HQ!Demo#2026_A9
-UUID: 62e5fa04-3fd8-49ea-ad5c-a541a638863f
 Role: india_operator
 Station: All stations
 
 MAITRI
 Email: bhavyadawar5791+polaris-maitri@gmail.com
 Password: Polaris-Maitri!Demo#2026_B7
-UUID: 7e20f8f7-5cd7-4944-a24b-a82071da941c
 Role: station_operator
 Station: station-maitri
 
 BHARATI
 Email: bhavyadawar5791+polaris-bharati@gmail.com
 Password: Polaris-Bharati!Demo#2026_C4
-UUID: 941b27bc-cf4b-4eaa-a971-ebba33e363fc
 Role: station_operator
 Station: station-bharati
 
